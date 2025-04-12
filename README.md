@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # webTeam51
 
 Group_51 in CITS5505
@@ -52,3 +53,85 @@ A simple calorie tracking web app built with HTML, CSS, and JavaScript. Designed
 4. View personal progress and friend comparison.
 
 ## 📁 Project Structure
+=======
+
+## Getting Started
+
+Follow the steps below to set up and run the project on your local machine.
+
+### Prerequisites
+
+Ensure you have the following installed:
+
+- Python 3.x
+- pip (Python package manager)
+
+### Setup Instructions
+
+#### 1. Check Python & pip Versions
+
+Run the following commands to verify your Python and pip installations:
+
+```bash
+python3 --version   # Or python --version
+pip --version
+```
+
+#### 2. Create a Virtual Environment
+
+Set up a new virtual environment to manage dependencies:
+```bash
+python3 -m venv venv   # Or python -m venv venv
+```
+####  3. Activate the Virtual Environment
+
+Activate the virtual environment using the command for your operating system:
+•	Linux/Mac:
+```bash
+source venv/bin/activate
+```
+•	Windows:
+```bash	
+.\venv\Scripts\activate
+```
+#### 4. Install Dependencies
+
+Install the required dependencies listed in __requirements.txt__:
+```bash
+pip install -r requirements.txt 
+```
+#### 5. Run the Flask App
+
+Start the Flask development server:
+```
+flask run
+```
+6. Access the App
+
+Open your browser and navigate to the following URL to view the application:
+```
+http://127.0.0.1:5000
+```
+
+
+
+## Project Structure
+
+├── app/ 
+<br>             		
+├── templates/         
+├── static/         	   
+├── venv/ <br>            	 
+├── requirements.txt  
+├── README.md 
+
+
+app: _Application source code_<br>
+templates: _HTML templates_<br>
+static: _Static files (CSS, JS, images)_<br>
+venv:  _Virtual environment (not included in GitHub)_<br>
+requirements: _Python dependencies_<br>
+README.md: _Project documentation_
+
+
+>>>>>>> 55bbccc (Refactor: reorganise project structure for better modularity)

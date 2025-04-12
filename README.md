@@ -53,11 +53,7 @@ A simple calorie tracking web app built with HTML, CSS, and JavaScript. Designed
 
 ## 📁 Project Structure
 
-
-
 =======
-
-
 
 ## Getting Started
 
@@ -75,80 +71,94 @@ Ensure you have the following installed:
 #### 1. Check Python & pip Versions
 
 Run the following commands to verify your Python and pip installations:
+
 ```
 python3 --version
 ```
-or: 
+
+or:
+
 ```
 python --version
-```  
+```
+
 <br>
 
 ```
 pip --version
 ```
 
-
 #### 2. Create a Virtual Environment
 
 Set up a new virtual environment to manage dependencies:
+
 ```bash
-python3 -m venv venv   
+python3 -m venv venv
 ```
-or:  
+
+or:
+
 ```
 python -m venv venv
 ```
 
-####  3. Activate the Virtual Environment
+#### 3. Activate the Virtual Environment
 
 Activate the virtual environment using the command for your operating system:
 <br>
-•	Linux/Mac:
+• Linux/Mac:
+
 ```bash
 source venv/bin/activate
 ```
-•	Windows:
-```bash	
+
+• Windows:
+
+```bash
 .\venv\Scripts\activate
 ```
+
 #### 4. Install Dependencies
 
-Install the required dependencies listed in __requirements.txt__:
+Install the required dependencies listed in **requirements.txt**:
+
 ```bash
-pip install -r requirements.txt 
+pip install -r requirements.txt
 ```
+
 #### 5. Run the Flask App
 
 Start the Flask development server:
+
 ```
 flask run
 ```
+
 6. Access the App
 
 Open your browser and navigate to the following URL to view the application:
+
 ```
 http://127.0.0.1:5000
 ```
 
-
-
 ## Project Structure
 
-├── app/ 
-<br>             		
-├── templates/         
-├── static/         	   
-├── venv/ <br>            	 
+├── app/
+<br>
+├── templates/  
+├── static/   
+├── venv/ <br>
 ├── requirements.txt  
-├── README.md 
-
+├── README.md
 
 app: _Application source code_<br>
 templates: _HTML templates_<br>
 static: _Static files (CSS, JS, images)_<br>
-venv:  _Virtual environment (not included in GitHub)_<br>
+venv: _Virtual environment (not included in GitHub)_<br>
 requirements: _Python dependencies_<br>
 README.md: _Project documentation_
 
-
+change css setting in input.css
+then run
+npx tailwindcss -i ./input.css -o ./static/css/output.css --watch

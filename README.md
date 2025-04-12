@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # webTeam51
 
 Group_51 in CITS5505
@@ -53,7 +52,12 @@ A simple calorie tracking web app built with HTML, CSS, and JavaScript. Designed
 4. View personal progress and friend comparison.
 
 ## 📁 Project Structure
+
+
+
 =======
+
+
 
 ## Getting Started
 
@@ -72,20 +76,24 @@ Ensure you have the following installed:
 
 Run the following commands to verify your Python and pip installations:
 
-```bash
-python3 --version   # Or python --version
-pip --version
-```
+`python3 --version`   
+Or:  
+`python --version`
+`pip --version`
+
 
 #### 2. Create a Virtual Environment
 
 Set up a new virtual environment to manage dependencies:
 ```bash
-python3 -m venv venv   # Or python -m venv venv
+python3 -m venv venv   
 ```
+Or:  
+`python -m venv venv`
+
 ####  3. Activate the Virtual Environment
 
-Activate the virtual environment using the command for your operating system:
+Activate the virtual environment using the command for your operating system:<br>
 •	Linux/Mac:
 ```bash
 source venv/bin/activate

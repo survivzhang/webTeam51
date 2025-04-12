@@ -77,13 +77,17 @@ Ensure you have the following installed:
 Run the following commands to verify your Python and pip installations:
 ```
 python3 --version
-# or: 
+```
+or: 
+```
 python --version
 ```  
 <br>
+
 ```
 pip --version
 ```
+
 
 #### 2. Create a Virtual Environment
 
@@ -91,14 +95,15 @@ Set up a new virtual environment to manage dependencies:
 ```bash
 python3 -m venv venv   
 ```
+or:  
 ```
-# or:  
 python -m venv venv
 ```
 
 ####  3. Activate the Virtual Environment
 
-Activate the virtual environment using the command for your operating system:<br>
+Activate the virtual environment using the command for your operating system:
+<br>
 •	Linux/Mac:
 ```bash
 source venv/bin/activate

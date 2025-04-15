@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CalTrack - Homepage</title>
+    <link
+      href="{{ url_for('static', filename='css/output.css') }}"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-background text-text">
+    <div class="max-w-7xl mx-auto px-6 py-12 space-y-16">
+      <!-- Header Section -->
+      <section class="grid md:grid-cols-2 gap-10 items-center">
+        <div class="space-y-6">
+          <h1 class="text-3xl md:text-4xl font-bold">
+            Track Your Journey to Health
+          </h1>
+
+          <div class="space-y-4">
+            <div class="flex items-start gap-4">
+              <div class="bg-primary-light p-2 rounded-xl">
+                <svg
+                  class="w-6 h-6 text-primary"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <!-- <path d="M..." /> -->
+                </svg>
+              </div>
+              <div>
+                <h3 class="font-semibold">Food Tracking</h3>
+                <p class="text-muted text-sm">
+                  Log your meals and track calorie intake with ease
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-4">
+              <div class="bg-secondary-light p-2 rounded-xl">
+                <svg
+                  class="w-6 h-6 text-secondary"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <!-- <path d="M..." /> -->
+                </svg>
+              </div>
+              <div>
+                <h3 class="font-semibold">Exercise Logging</h3>
+                <p class="text-muted text-sm">
+                  Record your workouts and calories burned
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-4">
+              <div class="bg-accent-light p-2 rounded-xl">
+                <svg
+                  class="w-6 h-6 text-accent"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <!-- <path d="M..." /> -->
+                </svg>
+              </div>
+              <div>
+                <h3 class="font-semibold">Progress Tracking</h3>
+                <p class="text-muted text-sm">
+                  Monitor your daily goals and achievements
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-card rounded-2xl shadow-lg overflow-hidden">
+          <img
+            src="{{ url_for('static', filename='images/healthy-food.jpg') }}"
+            alt="Healthy Food"
+            class="w-full object-cover"
+          />
+          <div class="p-6">
+            <h2 class="font-bold text-xl mb-2">
+              Start Your Health Journey Today
+            </h2>
+            <p class="text-muted">
+              Track your meals, monitor your exercise, and achieve your health
+              goals with CalTrack's comprehensive tools and intuitive interface.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Features Section -->
+      <section class="grid md:grid-cols-3 gap-6">
+        <div class="bg-card rounded-xl p-6 shadow-sm border border-border">
+          <div class="bg-primary-light p-2 inline-block rounded-xl mb-4">
+            <svg
+              class="w-6 h-6 text-primary"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <!-- <path d="M..." /> -->
+            </svg>
+          </div>
+          <h3 class="font-semibold mb-1">Smart Meal Tracking</h3>
+          <p class="text-muted text-sm">
+            Easily log your meals and track nutritional information with our
+            comprehensive database.
+          </p>
+        </div>
+
+        <div class="bg-card rounded-xl p-6 shadow-sm border border-border">
+          <div class="bg-secondary-light p-2 inline-block rounded-xl mb-4">
+            <svg
+              class="w-6 h-6 text-secondary"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <!-- <path d="M..." /> -->
+            </svg>
+          </div>
+          <h3 class="font-semibold mb-1">Exercise Analytics</h3>
+          <p class="text-muted text-sm">
+            Monitor your workouts and see detailed statistics about your
+            physical activities.
+          </p>
+        </div>
+
+        <div class="bg-card rounded-xl p-6 shadow-sm border border-border">
+          <div class="bg-accent-light p-2 inline-block rounded-xl mb-4">
+            <svg
+              class="w-6 h-6 text-accent"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <!-- <path d="M..." /> -->
+            </svg>
+          </div>
+          <h3 class="font-semibold mb-1">Progress Insights</h3>
+          <p class="text-muted text-sm">
+            Get detailed insights and visualizations of your health journey
+            progress.
+          </p>
+        </div>
+      </section>
+      <script src="https://cdn.tailwindcss.com"></script>
+
+      <!-- jQuery -->
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+      <!-- Chart.js -->
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </div>
+  </body>
+</html>

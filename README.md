@@ -15,6 +15,7 @@ A simple calorie tracking web app built with HTML, CSS, and JavaScript. Designed
 - Brief introduction to the app and its purpose.
 - **Sign Up**: Register with email, height, weight, and target weight.
 - **Sign In**: Log in to access personalized tracking.
+- Once loged in, Dashboard must be shown.
 
 ### 2. Calorie Log Page
 
@@ -25,8 +26,7 @@ A simple calorie tracking web app built with HTML, CSS, and JavaScript. Designed
 
 ### 3. Friends Page
 
-- View your friends' calorie progress and stats.
-- Compare net calorie balances and target weight progress.
+- View your friends' calorie progress and stats. 
 - Add friends using their email.
 
 ### 4. Profile Page

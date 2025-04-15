@@ -1,26 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./templates/*.html", "./static/**/*.js", "./**/*.html"],
-  safelist: [
-    "bg-background",
-    "text-text",
-    "bg-card",
-    "border",
-    "shadow-lg",
-    "text-muted",
-    "text-disabled",
-    "text-link",
-    "bg-primary",
-    "bg-primary-light",
-    "bg-secondary",
-    "bg-secondary-light",
-    "bg-accent",
-    "bg-accent-light",
-    "text-success",
-    "text-error",
-    "text-warning",
-    "text-info",
-  ],
+  content: ["./templates/**/*.{html,js}"],
   theme: {
     extend: {
       colors: {

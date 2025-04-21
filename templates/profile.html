@@ -1,0 +1,227 @@
+<!-- profile.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Calorie Tracker - Profile</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-700">
+  <div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-gray-200">
+      <div class="p-4 border-b border-gray-200">
+        <h1 class="text-xl font-bold">Calorie Tracker</h1>
+      </div>
+      <nav class="mt-4">
+        <ul class="space-y-2">
+          <li>
+            <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+              Dashboard
+            </a>
+          </li>
+          <li>
+            <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+              Users
+            </a>
+          </li>
+          <li>
+            <button
+              type="button"
+              class="w-full text-left block px-4 py-2 text-gray-700 hover:bg-gray-100"
+            >
+              Account
+            </button>
+          </li>
+          <li>
+            <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+              Projects
+            </a>
+          </li>
+          <li>
+            <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+              Calendar
+            </a>
+          </li>
+          <li>
+            <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+              Documentation
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-6 space-y-6">
+      <!-- Stats Section (Similar to Picture 3) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- BMR stat card -->
+        <div class="bg-white rounded shadow p-4">
+          <div class="text-sm text-gray-500">Recommended Daily Calorie Intake (BMR)</div>
+          <div class="text-2xl font-bold mt-1">2,000 kcal</div>
+          <!-- Example small growth indicator; adjust as needed -->
+          <div class="text-xs text-green-500 mt-1">+7.7% vs. last week</div>
+        </div>
+        <!-- Net Daily Calories stat card -->
+        <div class="bg-white rounded shadow p-4">
+          <div class="text-sm text-gray-500">Net Daily Calories</div>
+          <div class="text-2xl font-bold mt-1">1,500 kcal</div>
+          <div class="text-xs text-red-500 mt-1">-1.7% vs. yesterday</div>
+        </div>
+        <!-- Progress toward target weight card -->
+        <div class="bg-white rounded shadow p-4">
+          <div class="text-sm text-gray-500">Progress Toward Target Weight</div>
+          <div class="flex items-center justify-between mt-1">
+            <span class="text-2xl font-bold">72%</span>
+            <!-- You could show numeric goal info here if you like -->
+          </div>
+          <!-- Progress bar -->
+          <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+            <div class="bg-blue-500 h-2 rounded-full" style="width: 72%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Section (Similar to Picture 2) -->
+      <div class="bg-white rounded shadow p-6">
+        <h2 class="text-xl font-semibold mb-2">Profile</h2>
+        <p class="text-sm text-gray-500 mb-6">
+          Manage your name, password, and account settings.
+        </p>
+
+        <!-- Upload Photo Row -->
+        <div class="flex items-center space-x-4 mb-6">
+          <!-- Example avatar image placeholder -->
+          <img
+            src="https://via.placeholder.com/80"
+            alt="Profile Photo"
+            class="w-20 h-20 rounded-full object-cover border"
+          />
+          <button
+            type="button"
+            class="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-500"
+          >
+            Upload photo
+          </button>
+        </div>
+
+        <!-- Profile Form -->
+        <form class="space-y-4">
+          <!-- Full Name & Email -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-gray-700 mb-1" for="fullName">
+                Full name
+              </label>
+              <input
+                type="text"
+                id="fullName"
+                placeholder="Maria Boone"
+                class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1" for="email">
+                Email
+              </label>
+              <input
+                type="email"
+                id="email"
+                placeholder="maria@site.com"
+                class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
+              />
+            </div>
+          </div>
+
+          <!-- Password & Phone -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-gray-700 mb-1" for="password">
+                Password
+              </label>
+              <input
+                type="password"
+                id="password"
+                placeholder="Enter new password"
+                class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1" for="phone">
+                Phone (Optional)
+              </label>
+              <input
+                type="tel"
+                id="phone"
+                placeholder="+1 (xxx) xxx-xx-xx"
+                class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
+              />
+            </div>
+          </div>
+
+          <!-- Gender & Bio -->
+          <div class="flex flex-col md:flex-row md:space-x-4">
+            <!-- Gender Radio Buttons -->
+            <div class="mb-4 md:mb-0">
+              <span class="block text-gray-700 mb-1">Gender</span>
+              <div class="flex items-center space-x-4">
+                <label class="flex items-center space-x-1">
+                  <input
+                    type="radio"
+                    name="gender"
+                    value="male"
+                    class="focus:ring-0"
+                  />
+                  <span>Male</span>
+                </label>
+                <label class="flex items-center space-x-1">
+                  <input
+                    type="radio"
+                    name="gender"
+                    value="female"
+                    class="focus:ring-0"
+                  />
+                  <span>Female</span>
+                </label>
+                <label class="flex items-center space-x-1">
+                  <input
+                    type="radio"
+                    name="gender"
+                    value="other"
+                    class="focus:ring-0"
+                  />
+                  <span>Other</span>
+                </label>
+              </div>
+            </div>
+            <!-- BIO -->
+            <div class="flex-1">
+              <label class="block text-gray-700 mb-1" for="bio">
+                BIO
+              </label>
+              <textarea
+                id="bio"
+                placeholder="Type your message..."
+                rows="3"
+                class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Save Button -->
+          <div class="flex justify-end">
+            <button
+              type="submit"
+              class="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-500"
+            >
+              Save changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

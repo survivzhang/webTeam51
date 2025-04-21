@@ -1,0 +1,142 @@
+<!doctype html>
+<html>
+    <head>
+      {% if title %}
+      <title>{{ title }} - CalTrack</title>
+      {% else %}
+      <title>Welcome to CalTrack</title>
+      {% endif %}
+      <!-- Tailwind CSS CDN -->
+      <script src="https://cdn.tailwindcss.com"></script>
+      <!-- Lucide Icons CDN -->
+      <script src="https://unpkg.com/lucide@latest"></script>
+      <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+      <script>
+        tailwind.config = {
+          theme: {
+            extend: {
+              colors: {
+                'cal-blue': {
+                  light: '#90cdf4',
+                  DEFAULT: '#63b3ed',
+                  dark: '#4299e1',
+                }
+              }
+            }
+          }
+        }
+      </script>
+      <style>
+        html {
+          scroll-behavior: smooth;
+        }
+        .nav-link {
+          padding: 0.5rem 1rem;
+          margin-left: 0.5rem;
+          margin-right: 0.5rem;
+          border-radius: 0.5rem;
+          transition: all 300ms;
+          color: #000000;
+        }
+        .nav-link:hover {
+          background-color: #90cdf4;
+          color: white;
+        }
+        .active {
+          color: #63b3ed;
+          font-weight: 600;
+        }
+        .brand-text {
+          background-image: linear-gradient(to right, #63b3ed, #90cdf4);
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+        }
+        /* Updated back-to-top button styling with lighter blue */
+        #backToTopBtn {
+          display: block;
+          position: fixed;
+          bottom: 30px;
+          right: 30px;
+          width: 50px;
+          height: 50px;
+          background-color: #bfdbfe; /* Changed to an even lighter blue */
+          color: white;
+          text-align: center;
+          border-radius: 10px;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+          z-index: 1000;
+          border: none;
+          outline: none;
+          cursor: pointer;
+          padding: 10px;
+          transition: background-color 0.3s, transform 0.3s;
+        }
+        
+        #backToTopBtn:hover {
+          background-color: #90cdf4; /* Hover now goes to the previous light blue */
+          transform: translateY(-3px);
+        }
+      </style>
+    </head>
+    <body class="bg-gray-50 min-h-screen">
+        <!-- Navigation Bar -->
+        <nav class="bg-white shadow-md p-4 fixed top-0 left-0 right-0 z-10">
+            <div class="container mx-auto flex justify-between items-center">
+                <!-- Logo/Brand -->
+                <a href="{{ url_for('index') }}" class="font-bold text-2xl flex items-center {% if request.path == '/index' or request.path == '/' %}active{% endif %}">
+                    <i data-lucide="activity" class="w-6 h-6 mr-2 text-cal-blue"></i>
+                    <span class="brand-text">CalTrack</span>
+                </a>
+                
+                <!-- Center Navigation -->
+                <div class="hidden md:flex items-center space-x-1">
+                    <a href="{{ url_for('update') }}" class="nav-link flex items-center {% if request.path == '/update' %}active{% endif %}">
+                        <i data-lucide="edit" class="w-4 h-4 mr-1"></i>
+                        Update
+                    </a>
+                    <a href="{{ url_for('visualisation') }}" class="nav-link flex items-center {% if request.path == '/visualisation' %}active{% endif %}">
+                        <i data-lucide="bar-chart" class="w-4 h-4 mr-1"></i>
+                        Visualisation
+                    </a>
+                    <a href="{{ url_for('sharing') }}" class="nav-link flex items-center {% if request.path == '/sharing' %}active{% endif %}">
+                        <i data-lucide="share-2" class="w-4 h-4 mr-1"></i>
+                        Sharing
+                    </a>
+                </div>
+                
+                <!-- Right Navigation -->
+                <div class="flex items-center">
+                    <a href="{{ url_for('profile') }}" class="nav-link flex items-center {% if request.path == '/profile' %}active{% endif %}">
+                        <i data-lucide="user" class="w-4 h-4 mr-1"></i>
+                        Profile
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container mx-auto mt-24 px-4">
+            {% block content %}{% endblock %}
+        </div>
+
+        <!-- Updated back-to-top button with single arrow -->
+        <button id="backToTopBtn" title="Go to top">
+            <i data-lucide="arrow-up" class="w-full h-full"></i>
+        </button>
+
+        <!-- Initialize Lucide Icons -->
+        <script>
+            lucide.createIcons();
+            
+            // Back to top functionality
+            const backToTopBtn = document.getElementById("backToTopBtn");
+            
+            backToTopBtn.addEventListener("click", function() {
+                window.scrollTo({
+                    top: 0,
+                    behavior: "smooth"
+                });
+            });
+        </script>
+    </body>
+</html>

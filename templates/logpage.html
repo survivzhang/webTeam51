@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calorie Log - CalTrack</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'cal-blue': {
+              light: '#90cdf4',
+              DEFAULT: '#63b3ed',
+              dark: '#4299e1',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    html {
+      scroll-behavior: smooth;
+    }
+    .nav-link {
+      padding: 0.5rem 1rem;
+      margin-left: 0.5rem;
+      margin-right: 0.5rem;
+      border-radius: 0.5rem;
+      transition: all 300ms;
+      color: #000000;
+    }
+    .nav-link:hover {
+      background-color: #90cdf4;
+      color: white;
+    }
+    .active {
+      color: #63b3ed;
+      font-weight: 600;
+    }
+    .brand-text {
+      background-image: linear-gradient(to right, #63b3ed, #90cdf4);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    /* Updated back-to-top button styling with lighter blue */
+    #backToTopBtn {
+      display: block;
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 50px;
+      height: 50px;
+      background-color: #bfdbfe;
+      color: white;
+      text-align: center;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      z-index: 1000;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      padding: 10px;
+      transition: background-color 0.3s, transform 0.3s;
+    }
+    
+    #backToTopBtn:hover {
+      background-color: #90cdf4;
+      transform: translateY(-3px);
+    }
+    
+    .btn {
+      @apply bg-blue-100 hover:bg-blue-200 text-sm px-3 py-1 rounded shadow;
+    }
+    .btn-primary {
+      @apply bg-cal-blue text-white px-4 py-2 rounded hover:bg-cal-blue-dark;
+    }
+    .food-img {
+      width: 70px;
+      height: 70px;
+      object-fit: cover;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen">
+  <!-- Navigation Bar -->
+  <nav class="bg-white shadow-md p-4 fixed top-0 left-0 right-0 z-10">
+    <div class="container mx-auto flex justify-between items-center">
+      <!-- Logo/Brand -->
+      <a href="#" class="font-bold text-2xl flex items-center active">
+        <i data-lucide="activity" class="w-6 h-6 mr-2 text-cal-blue"></i>
+        <span class="brand-text">CalTrack</span>
+      </a>
+      
+      <!-- Center Navigation -->
+      <div class="hidden md:flex items-center space-x-1">
+        <a href="#" class="nav-link flex items-center active">
+          <i data-lucide="edit" class="w-4 h-4 mr-1"></i>
+          Update
+        </a>
+        <a href="#" class="nav-link flex items-center">
+          <i data-lucide="bar-chart" class="w-4 h-4 mr-1"></i>
+          Visualisation
+        </a>
+        <a href="#" class="nav-link flex items-center">
+          <i data-lucide="share-2" class="w-4 h-4 mr-1"></i>
+          Sharing
+        </a>
+      </div>
+      
+      <!-- Right Navigation -->
+      <div class="flex items-center">
+        <a href="#" class="nav-link flex items-center">
+          <i data-lucide="user" class="w-4 h-4 mr-1"></i>
+          Profile
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container mx-auto mt-24 px-4">
+    <h1 class="text-3xl font-bold mb-6">Calorie Log</h1>
+
+    <!-- Search Bar -->
+    <div class="mb-4">
+      <input type="text" id="searchInput" onkeyup="filterFoods()" placeholder="Search food items..." class="w-full p-2 border border-gray-300 rounded" />
+    </div>
+
+    <!-- Meal Selector -->
+    <div class="mb-6">
+      <label class="block font-semibold mb-1">Select Meal</label>
+      <div class="flex flex-wrap gap-4">
+        <label class="flex items-center gap-2">
+          <input type="radio" name="meal_type" value="Breakfast" required> Breakfast
+        </label>
+        <label class="flex items-center gap-2">
+          <input type="radio" name="meal_type" value="Lunch"> Lunch
+        </label>
+        <label class="flex items-center gap-2">
+          <input type="radio" name="meal_type" value="Dinner"> Dinner
+        </label>
+        <label class="flex items-center gap-2">
+          <input type="radio" name="meal_type" value="Snacks"> Snacks
+        </label>
+      </div>
+    </div>
+
+    <!-- Custom Food Entry -->
+    <div class="mb-8 bg-white p-4 rounded-lg shadow">
+      <h2 class="text-xl font-semibold mb-3">Add Custom Food</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block mb-1 text-sm font-medium">Food Name</label>
+          <input type="text" id="customFoodName" placeholder="Enter food name" class="w-full p-2 border border-gray-300 rounded" />
+        </div>
+        <div>
+          <label class="block mb-1 text-sm font-medium">Amount (grams)</label>
+          <input type="number" id="customFoodGrams" placeholder="Enter grams consumed" class="w-full p-2 border border-gray-300 rounded" />
+        </div>
+        <div class="flex items-end">
+          <button onclick="searchCustomFood()" class="btn-primary w-full">
+            <i data-lucide="search" class="inline w-4 h-4 mr-1"></i> Search & Add
+          </button>
+        </div>
+      </div>
+      <div id="customFoodResult" class="mt-4 hidden"></div>
+    </div>
+
+    <!-- Food Categories -->
+    <div id="foodCategories"></div>
+
+    <!-- Log -->
+    <div class="mt-10 mb-16">
+      <h2 class="text-xl font-semibold mb-2">Logged Items</h2>
+      <ul id="logList" class="list-disc pl-6 space-y-1"></ul>
+      <p class="mt-4 text-lg font-bold">Net Calories: <span id="netCal">0</span> kcal</p>
+      <button onclick="submitLog()" class="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Submit</button>
+    </div>
+  </div>
+
+  <!-- Back to top button -->
+  <button id="backToTopBtn" title="Go to top">
+    <i data-lucide="arrow-up" class="w-full h-full"></i>
+  </button>
+
+  <script>
+    // Core data structures
+    let logItems = [];
+    let netCalories = 0;
+
+    // Food database with web images
+    const foods = {
+      Bakery: [
+        { name: 'Bread', kcalPer100g: 265, image: 'https://cdn.pixabay.com/photo/2016/03/26/18/23/bread-1280768_640.jpg' },
+        { name: 'Muffin', kcalPer100g: 340, image: 'https://cdn.pixabay.com/photo/2015/05/07/15/38/muffins-756601_640.jpg' }
+      ],
+      Vegetables: [
+        { name: 'Carrot', kcalPer100g: 41, image: 'https://cdn.pixabay.com/photo/2015/03/14/14/00/carrots-673184_640.jpg' },
+        { name: 'Spinach', kcalPer100g: 23, image: 'https://cdn.pixabay.com/photo/2016/01/10/22/52/spinach-1132412_640.jpg' }
+      ],
+      Fruits: [
+        { name: 'Apple', kcalPer100g: 52, image: 'https://cdn.pixabay.com/photo/2016/01/05/13/58/apple-1122537_640.jpg' },
+        { name: 'Banana', kcalPer100g: 89, image: 'https://cdn.pixabay.com/photo/2014/12/21/23/50/bananas-575773_640.png' }
+      ],
+      Drinks: [
+        { name: 'Orange Juice', kcalPer100g: 45, image: 'https://cdn.pixabay.com/photo/2016/10/25/13/30/orange-juice-1768774_640.jpg' },
+        { name: 'Milk', kcalPer100g: 42, image: 'https://cdn.pixabay.com/photo/2017/07/05/15/41/milk-2474993_640.jpg' }
+      ],
+      Nuts: [
+        { name: 'Almonds', kcalPer100g: 579, image: 'https://cdn.pixabay.com/photo/2017/05/13/20/41/almonds-2310611_640.jpg' },
+        { name: 'Cashews', kcalPer100g: 553, image: 'https://cdn.pixabay.com/photo/2019/03/14/03/06/cashews-4054346_640.jpg' }
+      ]
+    };
+
+    // Simulated food database for custom searches
+    const foodDatabase = {
+      "apple pie": { calories: 237, image: "https://cdn.pixabay.com/photo/2016/01/22/16/42/apple-pie-1156685_640.jpg" },
+      "chicken breast": { calories: 165, image: "https://cdn.pixabay.com/photo/2015/03/26/10/28/chicken-691691_640.jpg" },
+      "rice": { calories: 130, image: "https://cdn.pixabay.com/photo/2014/10/22/18/43/rice-498688_640.jpg" },
+      "pasta": { calories: 131, image: "https://cdn.pixabay.com/photo/2014/11/05/15/57/pasta-518434_640.jpg" },
+      "salad": { calories: 33, image: "https://cdn.pixabay.com/photo/2016/08/18/18/40/salad-1603608_640.jpg" },
+      "pizza": { calories: 266, image: "https://cdn.pixabay.com/photo/2017/09/30/15/10/plate-2802332_640.jpg" },
+      "burger": { calories: 295, image: "https://cdn.pixabay.com/photo/2016/03/05/19/02/hamburger-1238246_640.jpg" },
+      "chocolate": { calories: 546, image: "https://cdn.pixabay.com/photo/2013/09/18/18/24/chocolate-183543_640.jpg" },
+      "cookie": { calories: 353, image: "https://cdn.pixabay.com/photo/2018/02/17/21/35/cookies-3160651_640.jpg" },
+      "sandwich": { calories: 289, image: "https://cdn.pixabay.com/photo/2017/05/10/17/27/sandwich-2301387_640.jpg" }
+    };
+
+    // Initialize the UI when the page loads
+    window.onload = () => {
+      renderFoodCategories();
+      lucide.createIcons();
+      
+      // Back to top functionality
+      const backToTopBtn = document.getElementById("backToTopBtn");
+      
+      backToTopBtn.addEventListener("click", function() {
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth"
+        });
+      });
+    };
+
+    // Search for custom food
+    function searchCustomFood() {
+      const foodName = document.getElementById("customFoodName").value.toLowerCase().trim();
+      const grams = parseFloat(document.getElementById("customFoodGrams").value);
+      const resultDiv = document.getElementById("customFoodResult");
+      
+      if (!foodName || !grams || isNaN(grams) || grams <= 0) {
+        alert("Please enter both a food name and valid amount in grams");
+        return;
+      }
+
+      // Simulate a search with loading state
+      resultDiv.innerHTML = `
+        <div class="text-center py-4">
+          <i data-lucide="loader" class="animate-spin mx-auto mb-2"></i>
+          <p>Searching for "${foodName}"...</p>
+        </div>
+      `;
+      resultDiv.classList.remove("hidden");
+      lucide.createIcons();
+      
+      // Simulated delay to mimic web search
+      setTimeout(() => {
+        // Check our simple database (in real implementation, this would be an API call)
+        let found = false;
+        
+        // Try to find exact match
+        if (foodDatabase[foodName]) {
+          found = foodName;
+        } else {
+          // Try to find partial match
+          for (const key of Object.keys(foodDatabase)) {
+            if (key.includes(foodName) || foodName.includes(key)) {
+              found = key;
+              break;
+            }
+          }
+        }
+        
+        if (found) {
+          const item = foodDatabase[found];
+          const caloriesPerGram = item.calories / 100;
+          const totalCalories = Math.round(caloriesPerGram * grams);
+          
+          resultDiv.innerHTML = `
+            <div class="bg-green-50 border border-green-200 rounded p-4">
+              <div class="flex items-center">
+                <img src="${item.image}" alt="${found}" class="food-img mr-4" onerror="this.src='https://via.placeholder.com/70'">
+                <div>
+                  <h3 class="font-semibold text-lg capitalize">${found}</h3>
+                  <p>${item.calories} kcal per 100g</p>
+                  <p class="text-green-700 font-medium">${grams}g = ${totalCalories} kcal</p>
+                  <button onclick="addCustomFoodToLog('${found}', ${totalCalories})" class="mt-2 btn-primary text-sm">
+                    Add to Log
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        } else {
+          resultDiv.innerHTML = `
+            <div class="bg-yellow-50 border border-yellow-200 rounded p-4">
+              <p class="mb-2">No exact match found for "${foodName}". Estimating calories...</p>
+              <p>Estimated: <span class="font-semibold">85 kcal per 100g</span></p>
+              <p class="text-green-700 font-medium">${grams}g = ${Math.round(85 * grams / 100)} kcal</p>
+              <button onclick="addCustomFoodToLog('${foodName}', ${Math.round(85 * grams / 100)})" class="mt-2 btn-primary text-sm">
+                Add to Log with Estimate
+              </button>
+            </div>
+          `;
+        }
+        lucide.createIcons();
+      }, 1500);
+    }
+
+    // Add custom food to log
+    function addCustomFoodToLog(name, calories) {
+      const meal = document.querySelector('input[name="meal_type"]:checked')?.value;
+      if (!meal) {
+        return alert("Please select a meal type.");
+      }
+
+      logItems.push({ name, calories, meal });
+      netCalories += calories;
+      updateLog();
+      
+      // Clear form
+      document.getElementById("customFoodName").value = "";
+      document.getElementById("customFoodGrams").value = "";
+      document.getElementById("customFoodResult").classList.add("hidden");
+      
+      // Show success notification
+      const resultDiv = document.getElementById("customFoodResult");
+      resultDiv.innerHTML = `
+        <div class="bg-green-50 border border-green-200 rounded p-4 text-green-800">
+          Added ${name} (${calories} kcal) to your ${meal} log!
+        </div>
+      `;
+      resultDiv.classList.remove("hidden");
+      
+      // Hide notification after a few seconds
+      setTimeout(() => {
+        resultDiv.classList.add("hidden");
+      }, 3000);
+    }
+
+    // Render all food categories and items
+    function renderFoodCategories() {
+      const container = document.getElementById("foodCategories");
+      for (const category in foods) {
+        const sectionId = category.toLowerCase();
+        const section = document.createElement("div");
+        section.className = "border rounded mb-6";
+        section.innerHTML = `
+          <button class="w-full p-3 text-left font-semibold bg-gray-100" onclick="toggleSection('${sectionId}')">
+            ${category}
+          </button>
+          <div id="${sectionId}" class="hidden p-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              ${foods[category].map(item => `
+                <div class="bg-white p-3 rounded shadow text-center food-item">
+                  <img src="${item.image}" class="food-img mx-auto mb-2" onerror="this.src='https://via.placeholder.com/70'" />
+                  <h3 class="font-semibold mb-1">${item.name}</h3>
+                  <p class="text-sm text-gray-600 mb-2">${item.kcalPer100g} kcal per 100g</p>
+
+                  <div class="flex flex-col gap-2">
+                    <input type="number" placeholder="grams" id="${item.name.replace(/\s+/g, '')}Grams" class="w-full p-1 border rounded" />
+                    <span class="text-gray-500 text-sm">or</span>
+                    <input type="number" placeholder="calories" id="${item.name.replace(/\s+/g, '')}Calories" class="w-full p-1 border rounded" />
+                  </div>
+
+                  <button class="btn mt-2" onclick="logFood('${item.name}', ${item.kcalPer100g})">Add</button>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+        container.appendChild(section);
+      }
+    }
+
+    // Toggle visibility of a food category section
+    function toggleSection(id) {
+      document.getElementById(id).classList.toggle("hidden");
+    }
+
+    // Log a food item to the daily log
+    function logFood(name, kcalPer100g) {
+      const grams = parseFloat(document.getElementById(name.replace(/\s+/g, '') + 'Grams').value);
+      const caloriesInput = parseFloat(document.getElementById(name.replace(/\s+/g, '') + 'Calories').value);
+      let calories;
+
+      if (!isNaN(grams) && grams > 0) {
+        calories = (grams / 100) * kcalPer100g;
+      } else if (!isNaN(caloriesInput) && caloriesInput > 0) {
+        calories = caloriesInput;
+      } else {
+        return alert("Please enter either grams or calories.");
+      }
+
+      const meal = document.querySelector('input[name="meal_type"]:checked')?.value;
+      if (!meal) {
+        return alert("Please select a meal type.");
+      }
+
+      logItems.push({ name, calories: Math.round(calories), meal });
+      netCalories += calories;
+      updateLog();
+
+      // Clear inputs after adding
+      document.getElementById(name.replace(/\s+/g, '') + 'Grams').value = "";
+      document.getElementById(name.replace(/\s+/g, '') + 'Calories').value = "";
+    }
+
+    // Update the log display
+    function updateLog() {
+      const list = document.getElementById("logList");
+      list.innerHTML = "";
+      logItems.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = `${item.name} - ${item.calories} kcal (${item.meal})`;
+        list.appendChild(li);
+      });
+      document.getElementById("netCal").textContent = Math.round(netCalories);
+    }
+
+    // Filter food items based on search input
+    function filterFoods() {
+      const query = document.getElementById("searchInput").value.toLowerCase();
+      const items = document.querySelectorAll(".food-item");
+      items.forEach(item => {
+        const name = item.querySelector("h3").textContent.toLowerCase();
+        item.style.display = name.includes(query) ? "block" : "none";
+      });
+    }
+
+    // Submit the log
+    function submitLog() {
+      if (logItems.length > 0) {
+        alert("Your log has been submitted!");
+        logItems = [];
+        netCalories = 0;
+        updateLog();
+      } else {
+        alert("Please log some food before submitting.");
+      }
+    }
+  </script>
+</body>
+</html>

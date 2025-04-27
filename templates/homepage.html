@@ -1,152 +1,127 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CalTrack - Homepage</title>
-    <link
-      href="{{ url_for('static', filename='css/output.css') }}"
-      rel="stylesheet"
-    />
-  </head>
-  <body class="bg-background text-text">
-    <div class="max-w-7xl mx-auto px-6 py-12 space-y-16">
-      <!-- Header Section -->
-      <section class="grid md:grid-cols-2 gap-10 items-center">
-        <div class="space-y-6">
-          <div class="sm:mx-auto sm:w-full sm:max-w-sm">
-            <img
-              class="mx-auto h-12 w-auto"
-              src="{{ url_for('static', filename='images/logo.svg') }}"
-              alt="CalTrack Logo"
-            />
-            <h2 class="text-4xl font-bold text-center">Welcome to CalTrack</h2>
-          </div>
-          <div
-            class="space-y-4 mt-10 sm:mx-auto sm:w-full sm:max-w-sm flex flex-col"
-          >
-            <form class="space-y-6" action="#" method="POST">
-              <div>
-                <label for="name" class="block text-sm font-medium text-text"
-                  >Email address</label
-                >
-                <input
-                  type="email"
-                  name="email"
-                  id="email"
-                  required
-                  class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                  placeholder="xxx@gmail.com"
-                />
-              </div>
-              <div>
-                <label
-                  for="password"
-                  class="block text-sm font-medium text-text"
-                  >Password</label
-                >
-                <input
-                  type="password"
-                  name="password"
-                  id="password"
-                  required
-                  class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                  placeholder="********"
-                />
-              </div>
-              <div>
-                <button
-                  type="submit"
-                  class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                >
-                  Sign in
-                </button>
-              </div>
-            </form>
-            <p class="mt-10 text-center text-sm text-gray-500">
-              Not a member?
-              <a
-                href="#"
-                class="font-semibold text-indigo-600 hover:text-indigo-500"
-              >
-                Start registration
-              </a>
-            </p>
-          </div>
-        </div>
-
-        <div class="bg-card rounded-2xl shadow-lg overflow-hidden">
-          <img
-            src="{{ url_for('static', filename='images/healthy-food.jpg') }}"
-            alt="Healthy Food"
-            class="w-full object-cover"
-          />
-          <div class="p-6">
-            <h2 class="font-bold text-xl mb-2">
-              Start Your Health Journey Today
-            </h2>
-            <p class="text-muted">
-              Track your meals, monitor your exercise, and achieve your health
-              goals with CalTrack's comprehensive tools and intuitive interface.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Features Section -->
-      <section class="grid md:grid-cols-3 gap-6">
-        <div class="bg-card rounded-xl p-6 shadow-sm border border-border">
-          <div class="bg-primary-light p-2 inline-block rounded-xl mb-4">
-            <img
-              src="{{ url_for('static', filename='images/food.svg') }}"
-              class="w-12 h-12 text-primary"
-              alt="Food icon"
-            />
-          </div>
-          <h3 class="font-semibold mb-1">Smart Meal Tracking</h3>
-          <p class="text-muted text-sm">
-            Easily log your meals and track nutritional information with our
-            comprehensive database.
-          </p>
-        </div>
-
-        <div class="bg-card rounded-xl p-6 shadow-sm border border-border">
-          <div class="bg-secondary-light p-2 inline-block rounded-xl mb-4">
-            <img
-              src="{{ url_for('static', filename='images/gym.svg') }}"
-              class="w-12 h-12 text-primary"
-              alt="Food icon"
-            />
-          </div>
-          <h3 class="font-semibold mb-1">Exercise Analytics</h3>
-          <p class="text-muted text-sm">
-            Monitor your workouts and see detailed statistics about your
-            physical activities.
-          </p>
-        </div>
-
-        <div class="bg-card rounded-xl p-6 shadow-sm border border-border">
-          <div class="bg-accent-light p-2 inline-block rounded-xl mb-4">
-            <img
-              src="{{ url_for('static', filename='images/trend.svg') }}"
-              class="w-12 h-12 text-primary"
-              alt="Food icon"
-            />
-          </div>
-          <h3 class="font-semibold mb-1">Progress Insights</h3>
-          <p class="text-muted text-sm">
-            Get detailed insights and visualizations of your health journey
-            progress.
-          </p>
-        </div>
-      </section>
-      <script src="https://cdn.tailwindcss.com"></script>
-
-      <!-- jQuery -->
-      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-      <!-- Chart.js -->
-      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% extends "base.html" %} {% block content %}
+<!-- Header Section -->
+<section class="grid md:grid-cols-2 gap-10 items-center">
+  <div class="space-y-6">
+    <div class="sm:mx-auto sm:w-full sm:max-w-sm">
+      <img
+        class="mx-auto h-12 w-auto"
+        src="{{ url_for('static', filename='images/logo.svg') }}"
+        alt="CalTrack Logo"
+      />
+      <h2 class="text-4xl font-bold text-center">Welcome to CalTrack</h2>
     </div>
-  </body>
-</html>
+    <div class="space-y-4 mt-10 sm:mx-auto sm:w-full sm:max-w-sm flex flex-col">
+      <form class="space-y-6" action="{{ url_for('about') }}" method="POST">
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700"
+            >Email address</label
+          >
+          <div class="relative">
+            <div
+              class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+            >
+              <i data-lucide="mail" class="h-5 w-5 text-gray-400"></i>
+            </div>
+            <input
+              type="email"
+              name="email"
+              id="email"
+              required
+              class="pl-10 w-full rounded-md border border-gray-300 py-2 px-3 text-gray-900 placeholder-gray-400 focus:border-cal-blue focus:outline-none focus:ring-1 focus:ring-cal-blue"
+              placeholder="your@email.com"
+            />
+          </div>
+        </div>
+        <div>
+          <label for="password" class="block text-sm font-medium text-gray-700"
+            >Password</label
+          >
+          <div class="relative">
+            <div
+              class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+            >
+              <i data-lucide="lock" class="h-5 w-5 text-gray-400"></i>
+            </div>
+            <input
+              type="password"
+              name="password"
+              id="password"
+              required
+              class="pl-10 w-full rounded-md border border-gray-300 py-2 px-3 text-gray-900 placeholder-gray-400 focus:border-cal-blue focus:outline-none focus:ring-1 focus:ring-cal-blue"
+              placeholder="********"
+            />
+          </div>
+        </div>
+        <div>
+          <button
+            type="submit"
+            class="w-full bg-gradient-to-r from-cal-blue to-cal-blue-light text-white py-2 px-4 rounded-md hover:from-cal-blue-dark hover:to-cal-blue transition duration-300 flex justify-center items-center"
+          >
+            <i data-lucide="log-in" class="h-5 w-5 mr-2"></i>
+            Sign in
+          </button>
+        </div>
+      </form>
+      <p class="mt-6 text-center text-sm text-gray-500">
+        Not a member?
+        <a
+          href="{{ url_for('register') }}"
+          class="text-cal-blue hover:underline"
+        >
+          Create an account
+        </a>
+      </p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+    <img
+      src="{{ url_for('static', filename='images/healthy-food.jpg') }}"
+      alt="Healthy Food"
+      class="w-full object-cover"
+    />
+    <div class="p-6">
+      <h2 class="font-bold text-xl mb-2">Start Your Health Journey Today</h2>
+      <p class="text-gray-600">
+        Track your meals, monitor your exercise, and achieve your health goals
+        with CalTrack's comprehensive tools and intuitive interface.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Features Section -->
+<section class="grid md:grid-cols-3 gap-6 mt-16">
+  <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+    <div class="bg-blue-100 p-2 inline-block rounded-xl mb-4">
+      <i data-lucide="utensils" class="w-12 h-12 text-cal-blue"></i>
+    </div>
+    <h3 class="font-semibold mb-1">Smart Meal Tracking</h3>
+    <p class="text-gray-600 text-sm">
+      Easily log your meals and track nutritional information with our
+      comprehensive database.
+    </p>
+  </div>
+
+  <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+    <div class="bg-blue-100 p-2 inline-block rounded-xl mb-4">
+      <i data-lucide="dumbbell" class="w-12 h-12 text-cal-blue"></i>
+    </div>
+    <h3 class="font-semibold mb-1">Exercise Analytics</h3>
+    <p class="text-gray-600 text-sm">
+      Monitor your workouts and see detailed statistics about your physical
+      activities.
+    </p>
+  </div>
+
+  <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+    <div class="bg-blue-100 p-2 inline-block rounded-xl mb-4">
+      <i data-lucide="trending-up" class="w-12 h-12 text-cal-blue"></i>
+    </div>
+    <h3 class="font-semibold mb-1">Progress Insights</h3>
+    <p class="text-gray-600 text-sm">
+      Get detailed insights and visualizations of your health journey progress.
+    </p>
+  </div>
+</section>
+{% endblock %}

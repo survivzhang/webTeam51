@@ -1,0 +1,173 @@
+/* Register Component Styles */
+
+.register-form-component {
+  max-width: 480px;
+  margin: 0 auto;
+  background-color: #ffffff;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.brand-text {
+  background-image: linear-gradient(to right, #63b3ed, #90cdf4);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: bold;
+}
+
+/* Form Elements */
+.register-form-component form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.register-form-component label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.25rem;
+}
+
+.register-form-component .input-wrapper {
+  position: relative;
+}
+
+.register-form-component .icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+}
+
+.register-form-component input[type="text"],
+.register-form-component input[type="email"],
+.register-form-component input[type="password"] {
+  width: 100%;
+  padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: #111827;
+}
+
+.register-form-component input[type="text"]:focus,
+.register-form-component input[type="email"]:focus,
+.register-form-component input[type="password"]:focus {
+  outline: none;
+  border-color: #63b3ed;
+  box-shadow: 0 0 0 1px #63b3ed;
+}
+
+.register-form-component input[type="checkbox"] {
+  height: 1rem;
+  width: 1rem;
+  border-radius: 0.25rem;
+  border-color: #d1d5db;
+}
+
+.register-form-component .checkbox-wrapper {
+  display: flex;
+  align-items: flex-start;
+}
+
+.register-form-component .checkbox-label {
+  margin-left: 0.5rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.register-form-component .hint-text {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* Button Styles */
+.register-form-component button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  background-image: linear-gradient(to right, #63b3ed, #90cdf4);
+  color: white;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.register-form-component button:hover {
+  background-image: linear-gradient(to right, #4299e1, #63b3ed);
+  transform: translateY(-1px);
+}
+
+.register-form-component button .icon {
+  margin-right: 0.5rem;
+  position: static;
+  transform: none;
+  color: white;
+}
+
+/* Link Styles */
+.register-form-component a {
+  color: #63b3ed;
+  text-decoration: none;
+}
+
+.register-form-component a:hover {
+  text-decoration: underline;
+}
+
+/* Divider with text */
+.register-form-component .divider {
+  display: flex;
+  align-items: center;
+  margin: 1.5rem 0;
+}
+
+.register-form-component .divider::before,
+.register-form-component .divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.register-form-component .divider-text {
+  padding: 0 0.5rem;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+/* Social login buttons */
+.register-form-component .social-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.register-form-component .social-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  background-color: white;
+  font-size: 0.875rem;
+  color: #374151;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.register-form-component .social-button:hover {
+  background-color: #f3f4f6;
+}

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              "cal-blue": {
+                light: "#90cdf4",
+                DEFAULT: "#63b3ed",
+                dark: "#4299e1",
+              },
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      .brand-text {
+        background-image: linear-gradient(to right, #63b3ed, #90cdf4);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-gray-50 min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8"
+  >
+    <div class="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
+      <h2 class="text-2xl font-bold mb-6 text-center brand-text">
+        Create Account
+      </h2>
+
+      <form method="POST" action="/register" class="space-y-4">
+        <!-- Username Field -->
+        <div>
+          <label
+            for="username"
+            class="block text-sm font-medium text-gray-700 mb-1"
+            >Username</label
+          >
+          <div class="relative">
+            <div
+              class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+            >
+              <i data-lucide="user" class="h-5 w-5 text-gray-400"></i>
+            </div>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              required
+              class="pl-10 w-full rounded-md border border-gray-300 py-2 px-3 text-gray-900 placeholder-gray-400 focus:border-cal-blue focus:outline-none focus:ring-1 focus:ring-cal-blue"
+              placeholder="Choose a username"
+            />
+          </div>
+        </div>
+
+        <!-- Email Field -->
+        <div>
+          <label
+            for="email"
+            class="block text-sm font-medium text-gray-700 mb-1"
+            >Email</label
+          >
+          <div class="relative">
+            <div
+              class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+            >
+              <i data-lucide="mail" class="h-5 w-5 text-gray-400"></i>
+            </div>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              class="pl-10 w-full rounded-md border border-gray-300 py-2 px-3 text-gray-900 placeholder-gray-400 focus:border-cal-blue focus:outline-none focus:ring-1 focus:ring-cal-blue"
+              placeholder="your@email.com"
+            />
+          </div>
+        </div>
+
+        <!-- Password Field -->
+        <div>
+          <label
+            for="password"
+            class="block text-sm font-medium text-gray-700 mb-1"
+            >Password</label
+          >
+          <div class="relative">
+            <div
+              class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+            >
+              <i data-lucide="lock" class="h-5 w-5 text-gray-400"></i>
+            </div>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              required
+              class="pl-10 w-full rounded-md border border-gray-300 py-2 px-3 text-gray-900 placeholder-gray-400 focus:border-cal-blue focus:outline-none focus:ring-1 focus:ring-cal-blue"
+              placeholder="Create a password"
+            />
+          </div>
+          <p class="mt-1 text-xs text-gray-500">
+            Password must be at least 8 characters long
+          </p>
+        </div>
+
+        <!-- Confirm Password Field -->
+        <div>
+          <label
+            for="confirm_password"
+            class="block text-sm font-medium text-gray-700 mb-1"
+            >Confirm Password</label
+          >
+          <div class="relative">
+            <div
+              class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+            >
+              <i data-lucide="check-circle" class="h-5 w-5 text-gray-400"></i>
+            </div>
+            <input
+              type="password"
+              id="confirm_password"
+              name="confirm_password"
+              required
+              class="pl-10 w-full rounded-md border border-gray-300 py-2 px-3 text-gray-900 placeholder-gray-400 focus:border-cal-blue focus:outline-none focus:ring-1 focus:ring-cal-blue"
+              placeholder="Confirm your password"
+            />
+          </div>
+        </div>
+
+        <!-- Terms and Conditions Checkbox -->
+        <div class="flex items-start">
+          <div class="flex items-center h-5">
+            <input
+              id="terms"
+              name="terms"
+              type="checkbox"
+              required
+              class="h-4 w-4 rounded border-gray-300 text-cal-blue focus:ring-cal-blue"
+            />
+          </div>
+          <div class="ml-3 text-sm">
+            <label for="terms" class="text-gray-700"
+              >I agree to the
+              <a href="#" class="text-cal-blue hover:underline"
+                >Terms of Service</a
+              >
+              and
+              <a href="#" class="text-cal-blue hover:underline"
+                >Privacy Policy</a
+              ></label
+            >
+          </div>
+        </div>
+
+        <!-- Register Button -->
+        <button
+          type="submit"
+          class="w-full bg-gradient-to-r from-cal-blue to-cal-blue-light text-white py-2 px-4 rounded-md hover:from-cal-blue-dark hover:to-cal-blue transition duration-300 flex justify-center items-center"
+        >
+          <i data-lucide="user-plus" class="h-5 w-5 mr-2"></i>
+          Create Account
+        </button>
+      </form>
+
+      <!-- Already have an account -->
+      <div class="mt-6 text-center">
+        <p class="text-sm text-gray-600">
+          Already have an account?
+          <a href="/login" class="text-cal-blue hover:underline">Sign in</a>
+        </p>
+      </div>
+
+      <!-- Social Sign-up Options -->
+      <div class="mt-6">
+        <div class="relative">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-gray-300"></div>
+          </div>
+          <div class="relative flex justify-center text-sm">
+            <span class="bg-white px-2 text-gray-500">Or sign up with</span>
+          </div>
+        </div>
+
+        <div class="mt-6 grid grid-cols-2 gap-3">
+          <a
+            href="#"
+            class="flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            <i data-lucide="github" class="h-5 w-5 mr-2"></i>
+            GitHub
+          </a>
+          <a
+            href="#"
+            class="flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            <i data-lucide="mail" class="h-5 w-5 mr-2"></i>
+            Google
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+      lucide.createIcons();
+    </script>
+  </body>
+</html>

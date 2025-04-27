@@ -12,6 +12,8 @@ def home():
 @app.route('/homepage')
 def about():
     return render_template('homepage.html')
-
+@app.route('/welcomePage')
+def welcomePage():
+    return render_template('welcome_page.html')
 if __name__ == '__main__':
     app.run(debug=True) 

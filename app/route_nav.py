@@ -1,9 +1,10 @@
-from . import app, db
-from flask import render_template, flash, session, redirect, url_for
+from . import app, db, csrf
+from flask import render_template, flash, session, redirect, url_for, request
 import sqlalchemy as sa
-from .models import User, Friendship
-from sqlalchemy import and_, or_
+from .models import User, Friendship, DailyMetrics, Exercise, Meal
+from sqlalchemy import and_, or_, desc
 from .auth import login_required
+from datetime import datetime, date
 
 
 @app.route('/dashboard')
@@ -20,7 +21,34 @@ def home():
 @app.route('/upload')
 @login_required
 def upload():
-    return render_template('upload.html', title='Upload')
+    user_id = session.get('user_id')
+    
+    # Fetch recent entries for the current user
+    daily_metrics = db.session.execute(
+        sa.select(DailyMetrics)
+        .where(DailyMetrics.user_id == user_id)
+        .order_by(desc(DailyMetrics.date))
+        .limit(7)
+    ).scalars().all()
+    
+    exercises = db.session.execute(
+        sa.select(Exercise)
+        .where(Exercise.user_id == user_id)
+        .order_by(desc(Exercise.date), desc(Exercise.created_at))
+        .limit(10)
+    ).scalars().all()
+    
+    meals = db.session.execute(
+        sa.select(Meal)
+        .where(Meal.user_id == user_id)
+        .order_by(desc(Meal.date), desc(Meal.created_at))
+        .limit(10)
+    ).scalars().all()
+    
+    return render_template('upload.html', title='Upload', 
+                          daily_metrics=daily_metrics,
+                          exercises=exercises,
+                          meals=meals)
 
 
 @app.route('/visualisation')

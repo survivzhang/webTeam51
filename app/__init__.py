@@ -1,7 +1,7 @@
 from flask import Flask, request, render_template, redirect, url_for, flash, session
 import sys
 import os
-# Add the parent directory to the system path
+# 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import Config
 from flask_sqlalchemy import SQLAlchemy

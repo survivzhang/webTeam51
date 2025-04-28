@@ -29,6 +29,12 @@ class User(db.Model):
         foreign_keys='SharedCalories.sharer_id', back_populates='sharer')
     shared_calories_received: so.Mapped[List['SharedCalories']] = so.relationship(
         foreign_keys='SharedCalories.recipient_id', back_populates='recipient')
+    daily_metrics: so.Mapped[List['DailyMetrics']] = so.relationship(
+        back_populates='user', cascade='all, delete-orphan')
+    exercises: so.Mapped[List['Exercise']] = so.relationship(
+        back_populates='user', cascade='all, delete-orphan')
+    meals: so.Mapped[List['Meal']] = so.relationship(
+        back_populates='user', cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<User {self.username}>'
@@ -109,9 +115,69 @@ class SharedCalories(db.Model):
     def __repr__(self):
         return f'<SharedCalories {self.sharer_id} -> {self.recipient_id}>'
 
+# New models based on 1.md
+class DailyMetrics(db.Model):
+    __tablename__ = 'daily_metrics'
+    
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    date: so.Mapped[date] = so.mapped_column(Date, nullable=False)
+    weight: so.Mapped[Optional[float]] = so.mapped_column(sa.Float)
+    sleep_hours: so.Mapped[Optional[float]] = so.mapped_column(sa.Float)
+    mood: so.Mapped[Optional[str]] = so.mapped_column(sa.String(20))
+    created_at: so.Mapped[datetime] = so.mapped_column(default=datetime.utcnow)
+    
+    # Relationship
+    user: so.Mapped['User'] = so.relationship(back_populates='daily_metrics')
+    
+    # Unique constraint for one entry per user per day
+    __table_args__ = (
+        sa.UniqueConstraint('user_id', 'date', name='unique_user_date_metrics'),
+    )
+    
+    def __repr__(self):
+        return f'<DailyMetrics for user {self.user_id} on {self.date}>'
+
+class Exercise(db.Model):
+    __tablename__ = 'exercises'
+    
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    date: so.Mapped[date] = so.mapped_column(Date, nullable=False)
+    exercise_type: so.Mapped[str] = so.mapped_column(sa.String(50), nullable=False)
+    duration: so.Mapped[int] = so.mapped_column(nullable=False)  # in minutes
+    calories_burned: so.Mapped[Optional[int]] = so.mapped_column(nullable=True)
+    created_at: so.Mapped[datetime] = so.mapped_column(default=datetime.utcnow)
+    
+    # Relationship
+    user: so.Mapped['User'] = so.relationship(back_populates='exercises')
+    
+    def __repr__(self):
+        return f'<Exercise {self.exercise_type} for user {self.user_id} on {self.date}>'
+
+class Meal(db.Model):
+    __tablename__ = 'meals'
+    
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    date: so.Mapped[date] = so.mapped_column(Date, nullable=False)
+    meal_type: so.Mapped[str] = so.mapped_column(sa.String(50), nullable=False)
+    food_detail: so.Mapped[str] = so.mapped_column(sa.Text, nullable=False)
+    calories: so.Mapped[int] = so.mapped_column(nullable=False)
+    created_at: so.Mapped[datetime] = so.mapped_column(default=datetime.utcnow)
+    
+    # Relationship
+    user: so.Mapped['User'] = so.relationship(back_populates='meals')
+    
+    def __repr__(self):
+        return f'<Meal {self.meal_type} for user {self.user_id} on {self.date}>'
+
 # Create indexes (SQLAlchemy 2.0 style)
 sa.Index('idx_entries_user_date', CalorieEntry.user_id, CalorieEntry.date)
 sa.Index('idx_shared_conditions', SharedCalories.recipient_id, SharedCalories.created_at)
 sa.Index('idx_friendships_status', Friendship.user_id, Friendship.status)
+sa.Index('idx_daily_metrics_user_date', DailyMetrics.user_id, DailyMetrics.date)
+sa.Index('idx_exercises_user_date', Exercise.user_id, Exercise.date)
+sa.Index('idx_meals_user_date', Meal.user_id, Meal.date)
 
    

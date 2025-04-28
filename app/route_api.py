@@ -1,7 +1,7 @@
 from . import app, db, csrf
 from flask import request, jsonify, session, redirect, url_for, flash
 import sqlalchemy as sa
-from .models import User, Friendship, SharedCalories, CalorieEntry, DailyMetrics, Exercise, Meal
+from .models import User, Friendship, SharedCalories, CalorieEntry, DailyMetrics, CalorieBurn, ExerciseType, MealType
 from sqlalchemy import and_, or_, desc
 from datetime import datetime, date
 import json
@@ -421,68 +421,37 @@ def save_exercise():
     today = date.today()
     
     # Get form data
-    exercise_type = request.form.get('exercise_type')
+    exercise_type_id = request.form.get('exercise_type_id', type=int)
     duration = request.form.get('duration', type=int)
     calories_burned = request.form.get('calories_burned', type=int)
     
     # Validate required fields
-    if not exercise_type or not duration:
+    if not exercise_type_id or not duration:
         flash('Please select an exercise type and enter duration', 'error')
         return redirect(url_for('upload'))
     
     try:
-        # Create new exercise entry
-        new_exercise = Exercise(
+        # Verify exercise type exists
+        exercise_type = db.session.get(ExerciseType, exercise_type_id)
+        if not exercise_type:
+            flash('Invalid exercise type', 'error')
+            return redirect(url_for('upload'))
+        
+        # Create new calorie burn entry
+        new_burn = CalorieBurn(
             user_id=user_id,
             date=today,
-            exercise_type=exercise_type,
+            exercise_type_id=exercise_type_id,
             duration=duration,
             calories_burned=calories_burned
         )
         
-        db.session.add(new_exercise)
+        db.session.add(new_burn)
         db.session.commit()
         flash('Exercise added successfully!', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'Error saving exercise: {str(e)}', 'error')
-    
-    return redirect(url_for('upload'))
-
-
-@csrf.exempt
-@app.route('/api/save_meal', methods=['POST'])
-@login_required
-def save_meal():
-    user_id = session.get('user_id')
-    today = date.today()
-    
-    # Get form data
-    meal_type = request.form.get('meal_type')
-    food_detail = request.form.get('food_detail')
-    calories = request.form.get('calories', type=int)
-    
-    # Validate required fields
-    if not meal_type or not food_detail or calories is None:
-        flash('Please fill in all required fields for the meal', 'error')
-        return redirect(url_for('upload'))
-    
-    try:
-        # Create new meal entry
-        new_meal = Meal(
-            user_id=user_id,
-            date=today,
-            meal_type=meal_type,
-            food_detail=food_detail,
-            calories=calories
-        )
-        
-        db.session.add(new_meal)
-        db.session.commit()
-        flash('Meal added successfully!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error saving meal: {str(e)}', 'error')
     
     return redirect(url_for('upload'))
 
@@ -494,17 +463,18 @@ def get_user_data_options():
     user_id = session.get('user_id')
     
     try:
-        # exercise_type
+        # exercise types
         exercise_types = db.session.execute(
-            sa.select(Exercise.exercise_type)
-            .where(Exercise.user_id == user_id)
+            sa.select(ExerciseType.id, ExerciseType.display_name)
             .distinct()
-        ).scalars().all()
+        ).all()
         
-        # meal_type
+        exercise_type_options = [{'id': et.id, 'name': et.display_name} for et in exercise_types]
+        
+        # meal types
         meal_types = db.session.execute(
-            sa.select(Meal.meal_type)
-            .where(Meal.user_id == user_id)
+            sa.select(CalorieEntry.meal_type_id)
+            .where(CalorieEntry.user_id == user_id)
             .distinct()
         ).scalars().all()
         
@@ -523,7 +493,7 @@ def get_user_data_options():
         return json_response({
             'status': 'success',
             'data': {
-                'exercise_types': exercise_types,
+                'exercise_types': exercise_type_options,
                 'meal_types': meal_types,
                 'date_range': {
                     'min': min_date,
@@ -536,3 +506,102 @@ def get_user_data_options():
         print(f"Error in get_user_data_options: {str(e)}")
         print(traceback.format_exc())
         return json_response({'status': 'error', 'message': f'Error retrieving data options: {str(e)}'}, 500)
+
+
+@csrf.exempt
+@app.route('/api/save_meal', methods=['POST'])
+@login_required
+def save_meal():
+    user_id = session.get('user_id')
+    today = date.today()
+    
+    # Get form data
+    meal_type_id = request.form.get('meal_type_id', type=int)
+    calories = request.form.get('calories', type=int)
+    food_detail = request.form.get('food_detail')
+    
+    # Validate required fields
+    if not meal_type_id or not calories:
+        flash('Please select a meal type and enter calories', 'error')
+        return redirect(url_for('upload'))
+    
+    try:
+        # Verify meal type exists
+        meal_type = db.session.get(MealType, meal_type_id)
+        if not meal_type:
+            flash('Invalid meal type', 'error')
+            return redirect(url_for('upload'))
+        
+        # Create new calorie entry
+        new_entry = CalorieEntry(
+            user_id=user_id,
+            date=today,
+            meal_type_id=meal_type_id,
+            calories=calories,
+            food_detail=food_detail
+        )
+        
+        db.session.add(new_entry)
+        db.session.commit()
+        flash('Meal added successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error saving meal: {str(e)}', 'error')
+    
+    return redirect(url_for('upload'))
+
+
+@csrf.exempt
+@app.route('/api/get_all_data', methods=['GET'])
+@login_required
+def get_all_data():
+    user_id = session.get('user_id')
+    
+    try:
+        # Get calorie entries
+        calorie_entries = db.session.execute(
+            sa.select(CalorieEntry).join(MealType)
+            .where(CalorieEntry.user_id == user_id)
+            .order_by(desc(CalorieEntry.date))
+        ).scalars().all()
+        
+        # Get calorie burns
+        calorie_burns = db.session.execute(
+            sa.select(CalorieBurn).join(ExerciseType)
+            .where(CalorieBurn.user_id == user_id)
+            .order_by(desc(CalorieBurn.date))
+        ).scalars().all()
+        
+        # Format data
+        entries = []
+        for entry in calorie_entries:
+            entries.append({
+                'type': 'meal',
+                'date': entry.date.strftime('%Y-%m-%d'),
+                'meal_type': entry.meal_type.display_name,
+                'calories': entry.calories,
+                'detail': entry.food_detail
+            })
+            
+        for burn in calorie_burns:
+            entries.append({
+                'type': 'exercise',
+                'date': burn.date.strftime('%Y-%m-%d'),
+                'exercise_type': burn.exercise_type.display_name,
+                'duration': burn.duration,
+                'calories_burned': burn.calories_burned
+            })
+            
+        # Sort by date descending
+        entries.sort(key=lambda x: x['date'], reverse=True)
+        
+        return json_response({
+            'status': 'success',
+            'data': entries
+        })
+        
+    except Exception as e:
+        import traceback
+        print(f"Error in get_all_data: {str(e)}")
+        print(traceback.format_exc())
+        return json_response({'status': 'error', 'message': f'Error retrieving data: {str(e)}'}, 500)

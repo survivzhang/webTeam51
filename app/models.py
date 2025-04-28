@@ -31,9 +31,7 @@ class User(db.Model):
         foreign_keys='SharedCalories.recipient_id', back_populates='recipient')
     daily_metrics: so.Mapped[List['DailyMetrics']] = so.relationship(
         back_populates='user', cascade='all, delete-orphan')
-    exercises: so.Mapped[List['Exercise']] = so.relationship(
-        back_populates='user', cascade='all, delete-orphan')
-    meals: so.Mapped[List['Meal']] = so.relationship(
+    calorie_burns: so.Mapped[List['CalorieBurn']] = so.relationship(
         back_populates='user', cascade='all, delete-orphan')
 
     def __repr__(self):
@@ -62,7 +60,6 @@ class CalorieEntry(db.Model):
     date: so.Mapped[date] = so.mapped_column(Date, nullable=False)
     calories: so.Mapped[int] = so.mapped_column(nullable=False)
     food_detail: so.Mapped[Optional[str]] = so.mapped_column(sa.Text)
-    photo_url: so.Mapped[Optional[str]] = so.mapped_column(sa.String(255))
     created_at: so.Mapped[datetime] = so.mapped_column(default=datetime.utcnow)
     
     # Relationships
@@ -138,46 +135,43 @@ class DailyMetrics(db.Model):
     def __repr__(self):
         return f'<DailyMetrics for user {self.user_id} on {self.date}>'
 
-class Exercise(db.Model):
-    __tablename__ = 'exercises'
+class ExerciseType(db.Model):
+    __tablename__ = 'exercise_types'
+    
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    name: so.Mapped[str] = so.mapped_column(sa.String(50), unique=True, nullable=False)
+    display_name: so.Mapped[str] = so.mapped_column(sa.String(50), nullable=False)
+    
+    # Relationship
+    calorie_burns: so.Mapped[List['CalorieBurn']] = so.relationship(
+        back_populates='exercise_type')
+
+    def __repr__(self):
+        return f'<ExerciseType {self.display_name}>'
+
+class CalorieBurn(db.Model):
+    __tablename__ = 'calorie_burns'
     
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     date: so.Mapped[date] = so.mapped_column(Date, nullable=False)
-    exercise_type: so.Mapped[str] = so.mapped_column(sa.String(50), nullable=False)
+    exercise_type_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('exercise_types.id'), nullable=False)
     duration: so.Mapped[int] = so.mapped_column(nullable=False)  # in minutes
     calories_burned: so.Mapped[Optional[int]] = so.mapped_column(nullable=True)
     created_at: so.Mapped[datetime] = so.mapped_column(default=datetime.utcnow)
     
-    # Relationship
-    user: so.Mapped['User'] = so.relationship(back_populates='exercises')
+    # Relationships
+    user: so.Mapped['User'] = so.relationship(back_populates='calorie_burns')
+    exercise_type: so.Mapped['ExerciseType'] = so.relationship(back_populates='calorie_burns')
     
     def __repr__(self):
-        return f'<Exercise {self.exercise_type} for user {self.user_id} on {self.date}>'
-
-class Meal(db.Model):
-    __tablename__ = 'meals'
-    
-    id: so.Mapped[int] = so.mapped_column(primary_key=True)
-    user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
-    date: so.Mapped[date] = so.mapped_column(Date, nullable=False)
-    meal_type: so.Mapped[str] = so.mapped_column(sa.String(50), nullable=False)
-    food_detail: so.Mapped[str] = so.mapped_column(sa.Text, nullable=False)
-    calories: so.Mapped[int] = so.mapped_column(nullable=False)
-    created_at: so.Mapped[datetime] = so.mapped_column(default=datetime.utcnow)
-    
-    # Relationship
-    user: so.Mapped['User'] = so.relationship(back_populates='meals')
-    
-    def __repr__(self):
-        return f'<Meal {self.meal_type} for user {self.user_id} on {self.date}>'
+        return f'<CalorieBurn {self.exercise_type.display_name} for user {self.user_id} on {self.date}>'
 
 # Create indexes (SQLAlchemy 2.0 style)
 sa.Index('idx_entries_user_date', CalorieEntry.user_id, CalorieEntry.date)
 sa.Index('idx_shared_conditions', SharedCalories.recipient_id, SharedCalories.created_at)
 sa.Index('idx_friendships_status', Friendship.user_id, Friendship.status)
 sa.Index('idx_daily_metrics_user_date', DailyMetrics.user_id, DailyMetrics.date)
-sa.Index('idx_exercises_user_date', Exercise.user_id, Exercise.date)
-sa.Index('idx_meals_user_date', Meal.user_id, Meal.date)
+sa.Index('idx_calorie_burns_user_date', CalorieBurn.user_id, CalorieBurn.date)
 
    

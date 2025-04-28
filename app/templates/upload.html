@@ -2,81 +2,15 @@
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
-    <!-- Recent Entries Section -->
-    <div class="mb-8">
-        <h2 class="text-2xl font-bold text-gray-800 mb-4">Recent Entries</h2>
-        <div class="bg-white rounded-lg shadow-md p-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <!-- Daily Metrics -->
-                <div class="border rounded-lg p-4">
-                    <h3 class="text-lg font-semibold text-gray-700 mb-2">Daily Metrics</h3>
-                    <div class="space-y-2">
-                        {% for metric in recent_metrics %}
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-600">{{ metric.date.strftime('%Y-%m-%d') }}</span>
-                            <div class="flex gap-4">
-                                {% if metric.weight %}
-                                <span class="text-blue-600">{{ metric.weight }}kg</span>
-                                {% endif %}
-                                {% if metric.sleep_hours %}
-                                <span class="text-green-600">{{ metric.sleep_hours }}h</span>
-                                {% endif %}
-                                {% if metric.mood %}
-                                <span class="text-purple-600">{{ metric.mood }}</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                
-                <!-- Exercises -->
-                <div class="border rounded-lg p-4">
-                    <h3 class="text-lg font-semibold text-gray-700 mb-2">Exercises</h3>
-                    <div class="space-y-2">
-                        {% for exercise in recent_exercises %}
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-600">{{ exercise.date.strftime('%Y-%m-%d') }}</span>
-                            <div class="flex gap-4">
-                                <span class="text-blue-600">{{ exercise.exercise_type }}</span>
-                                <span class="text-green-600">{{ exercise.duration }}min</span>
-                                {% if exercise.calories_burned %}
-                                <span class="text-red-600">{{ exercise.calories_burned }}cal</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                
-                <!-- Meals -->
-                <div class="border rounded-lg p-4">
-                    <h3 class="text-lg font-semibold text-gray-700 mb-2">Meals</h3>
-                    <div class="space-y-2">
-                        {% for meal in recent_meals %}
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-600">{{ meal.date.strftime('%Y-%m-%d') }}</span>
-                            <div class="flex gap-4">
-                                <span class="text-blue-600">{{ meal.meal_type }}</span>
-                                <span class="text-green-600">{{ meal.calories }}cal</span>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="mb-8">
         <h1 class="text-3xl font-bold text-center text-primary">Track Your Health</h1>
-        <p class="text-center text-gray-600 mt-2">Record your daily metrics, exercises, and meals</p>
+        <p class="text-center text-gray-600 mt-2">Record your daily metrics, exercises and meals</p>
     </div>
     
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- Daily Metrics Form -->
-        <div class="bg-white rounded-lg shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-102 hover:shadow-xl hover:bg-blue-50">
-            <div class="px-4 py-3">
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="px-4 py-4">
                 <h3 class="text-xl font-semibold text-black text-center">Daily Metrics</h3>
             </div>
             <div class="p-5">
@@ -115,8 +49,8 @@
         </div>
         
         <!-- Exercise Tracking Form -->
-        <div class="bg-white rounded-lg shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-102 hover:shadow-xl hover:bg-blue-50">
-            <div class="px-4 py-3">
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="px-4 py-4">
                 <h3 class="text-xl font-semibold text-black text-center">Exercise Tracking</h3>
             </div>
             <div class="p-5">
@@ -124,15 +58,12 @@
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <div class="mb-4">
                         <label for="exercise-type" class="block text-gray-700 font-medium mb-2">Exercise Type:</label>
-                        <select id="exercise-type" name="exercise_type" 
+                        <select id="exercise-type" name="exercise_type_id" 
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary transition-all">
                             <option value="">-- Select Exercise --</option>
-                            <option value="running">Running 🏃</option>
-                            <option value="walking">Walking 🚶</option>
-                            <option value="cycling">Cycling 🚴</option>
-                            <option value="swimming">Swimming 🏊</option>
-                            <option value="yoga">Yoga 🧘</option>
-                            <option value="weights">Weight Training 🏋️</option>
+                            {% for exercise_type in exercise_types %}
+                            <option value="{{ exercise_type.id }}">{{ exercise_type.display_name }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                     <div class="mb-4">
@@ -157,10 +88,10 @@
                 </form>
             </div>
         </div>
-        
+
         <!-- Meal Tracking Form -->
-        <div class="bg-white rounded-lg shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-102 hover:shadow-xl hover:bg-blue-50">
-            <div class="px-4 py-3">
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="px-4 py-4">
                 <h3 class="text-xl font-semibold text-black text-center">Meal Tracking</h3>
             </div>
             <div class="p-5">
@@ -168,32 +99,42 @@
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <div class="mb-4">
                         <label for="meal-type" class="block text-gray-700 font-medium mb-2">Meal Type:</label>
-                        <select id="meal-type" name="meal_type" 
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent transition-all">
+                        <select id="meal-type" name="meal_type_id" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary transition-all">
                             <option value="">-- Select Meal --</option>
-                            <option value="breakfast">Breakfast 🍳</option>
-                            <option value="lunch">Lunch 🍲</option>
-                            <option value="dinner">Dinner 🍽️</option>
-                            <option value="snack">Snack 🍌</option>
+                            {% for meal_type in meal_types %}
+                            <option value="{{ meal_type.id }}">{{ meal_type.display_name }}</option>
+                            {% endfor %}
                         </select>
-                    </div>
-                    <div class="mb-4">
-                        <label for="food-detail" class="block text-gray-700 font-medium mb-2">Food Description:</label>
-                        <input type="text" id="food-detail" name="food_detail" 
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent transition-all" 
-                               placeholder="e.g., Oatmeal with berries">
                     </div>
                     <div class="mb-4">
                         <label for="calories" class="block text-gray-700 font-medium mb-2">Calories:</label>
                         <input type="number" id="calories" name="calories" 
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent transition-all" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary transition-all" 
                                min="0">
                     </div>
+                    <div class="mb-4">
+                        <label for="food-detail" class="block text-gray-700 font-medium mb-2">Food Detail:</label>
+                        <textarea id="food-detail" name="food_detail" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                               rows="3"></textarea>
+                    </div>
                     <button type="submit" 
-                            class="w-full bg-blue-400 hover:bg-accent-dark text-white py-2 px-4 rounded-md transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-opacity-50 transform hover:scale-105">
+                            class="w-full bg-blue-400 hover:bg-primary-dark text-white py-2 px-4 rounded-md transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 transform hover:scale-105">
                         Add Meal
                     </button>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Entries Section -->
+    <div class="mt-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Recent Entries</h2>
+        <div class="bg-white rounded-lg shadow-md p-4">
+            <div class="grid grid-cols-1 gap-4" id="recent-entries">
+                <!-- Loading indicator -->
+                <p class="text-center text-gray-500" id="loading-message">Loading recent entries...</p>
             </div>
         </div>
     </div>
@@ -203,40 +144,19 @@
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Tab switching functionality
-        const tabButtons = document.querySelectorAll('.tab-button');
-        const tabPanels = document.querySelectorAll('.tab-panel');
-        
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                // Deactivate all buttons
-                tabButtons.forEach(btn => {
-                    btn.classList.remove('text-primary', 'border-b-2', 'border-primary');
-                    btn.classList.add('text-gray-500');
-                });
-                
-                // Activate current button
-                button.classList.remove('text-gray-500');
-                button.classList.add('text-primary', 'border-b-2', 'border-primary');
-                
-                // Hide all panels
-                tabPanels.forEach(panel => {
-                    panel.classList.add('hidden');
-                });
-                
-                // Show target panel
-                const targetPanel = document.getElementById(button.dataset.target);
-                targetPanel.classList.remove('hidden');
-            });
+        // Remove hover effects from cards
+        const formCards = document.querySelectorAll('.bg-white.rounded-lg.shadow-lg');
+        formCards.forEach(card => {
+            card.classList.remove('transform', 'transition-all', 'duration-300', 'hover:scale-102', 'hover:shadow-xl', 'hover:bg-blue-50');
         });
-        
+
         // Form validation and animations
         const metricsForm = document.getElementById('metrics-form');
         const exerciseForm = document.getElementById('exercise-form');
         const mealForm = document.getElementById('meal-form');
         
         // Add animation to form fields
-        const formInputs = document.querySelectorAll('input, select');
+        const formInputs = document.querySelectorAll('input, select, textarea');
         formInputs.forEach(input => {
             input.addEventListener('focus', () => {
                 input.parentElement.classList.add('scale-105');
@@ -260,12 +180,14 @@
         
         // MET values for different exercises (rough estimates)
         const metValues = {
-            'running': 10,
-            'walking': 3.5,
-            'cycling': 8,
-            'swimming': 7,
-            'yoga': 3,
-            'weights': 5
+            '1': 10, // running
+            '2': 7,  // swimming
+            '3': 8,  // cycling
+            '4': 5,  // weightlifting
+            '5': 3,  // yoga
+            '6': 3.5,// walking
+            '7': 8,  // hiit
+            '8': 3   // pilates
         };
         
         function updateCalorieEstimation() {
@@ -319,15 +241,14 @@
                 showValidationError('Please select an exercise type and enter duration');
             }
         });
-        
+
         mealForm.addEventListener('submit', function(e) {
             const mealType = document.getElementById('meal-type').value;
-            const foodDetail = document.getElementById('food-detail').value;
             const calories = document.getElementById('calories').value;
             
-            if (!mealType || !foodDetail || !calories) {
+            if (!mealType || !calories) {
                 e.preventDefault();
-                showValidationError('Please fill in all required fields');
+                showValidationError('Please select a meal type and enter calories');
             }
         });
         
@@ -392,6 +313,59 @@
             
             return valid;
         }
+
+        // Fetch recent entries using the API
+        async function fetchRecentEntries() {
+            try {
+                const response = await fetch('/api/get_all_data');
+                const data = await response.json();
+                
+                const entriesContainer = document.getElementById('recent-entries');
+                entriesContainer.innerHTML = ''; // Clear loading message
+                
+                if (data.status === 'success' && data.data.length > 0) {
+                    data.data.forEach(entry => {
+                        const entryElement = document.createElement('div');
+                        entryElement.className = 'border rounded-lg p-4';
+                        
+                        if (entry.type === 'meal') {
+                            entryElement.innerHTML = `
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">${entry.date}</span>
+                                    <div class="flex gap-4">
+                                        <span class="text-blue-600">${entry.meal_type}</span>
+                                        <span class="text-green-600">${entry.calories} cal</span>
+                                    </div>
+                                </div>
+                                ${entry.detail ? `<div class="text-gray-500 text-sm mt-2">${entry.detail}</div>` : ''}
+                            `;
+                        } else {
+                            entryElement.innerHTML = `
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">${entry.date}</span>
+                                    <div class="flex gap-4">
+                                        <span class="text-blue-600">${entry.exercise_type}</span>
+                                        <span class="text-green-600">${entry.duration} min</span>
+                                        ${entry.calories_burned ? `<span class="text-red-600">${entry.calories_burned} cal</span>` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        
+                        entriesContainer.appendChild(entryElement);
+                    });
+                } else {
+                    entriesContainer.innerHTML = '<p class="text-center text-gray-500">No entries found</p>';
+                }
+            } catch (error) {
+                console.error('Error fetching recent entries:', error);
+                document.getElementById('recent-entries').innerHTML = 
+                    '<p class="text-center text-red-500">Error loading entries. Please try again.</p>';
+            }
+        }
+        
+        // Fetch data on page load
+        fetchRecentEntries();
     });
 </script>
 
@@ -413,13 +387,8 @@
         transition: transform 0.3s ease;
     }
     
-    .hover\:scale-102:hover {
-        transform: scale(1.02);
-    }
-    
     /* Ensure Tailwind utilities are included */
     .transition-all { transition-property: all; }
     .duration-300 { transition-duration: 300ms; }
-    .hover\:shadow-xl:hover { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
 </style>
 {% endblock %}

@@ -1,7 +1,425 @@
 {% extends "base.html" %}
 
 {% block content %}
-<body>
-    It is a test page for update.html
-</body>
+<div class="container mx-auto px-4 py-8">
+    <!-- Recent Entries Section -->
+    <div class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Recent Entries</h2>
+        <div class="bg-white rounded-lg shadow-md p-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Daily Metrics -->
+                <div class="border rounded-lg p-4">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-2">Daily Metrics</h3>
+                    <div class="space-y-2">
+                        {% for metric in recent_metrics %}
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">{{ metric.date.strftime('%Y-%m-%d') }}</span>
+                            <div class="flex gap-4">
+                                {% if metric.weight %}
+                                <span class="text-blue-600">{{ metric.weight }}kg</span>
+                                {% endif %}
+                                {% if metric.sleep_hours %}
+                                <span class="text-green-600">{{ metric.sleep_hours }}h</span>
+                                {% endif %}
+                                {% if metric.mood %}
+                                <span class="text-purple-600">{{ metric.mood }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Exercises -->
+                <div class="border rounded-lg p-4">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-2">Exercises</h3>
+                    <div class="space-y-2">
+                        {% for exercise in recent_exercises %}
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">{{ exercise.date.strftime('%Y-%m-%d') }}</span>
+                            <div class="flex gap-4">
+                                <span class="text-blue-600">{{ exercise.exercise_type }}</span>
+                                <span class="text-green-600">{{ exercise.duration }}min</span>
+                                {% if exercise.calories_burned %}
+                                <span class="text-red-600">{{ exercise.calories_burned }}cal</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Meals -->
+                <div class="border rounded-lg p-4">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-2">Meals</h3>
+                    <div class="space-y-2">
+                        {% for meal in recent_meals %}
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">{{ meal.date.strftime('%Y-%m-%d') }}</span>
+                            <div class="flex gap-4">
+                                <span class="text-blue-600">{{ meal.meal_type }}</span>
+                                <span class="text-green-600">{{ meal.calories }}cal</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-center text-primary">Track Your Health</h1>
+        <p class="text-center text-gray-600 mt-2">Record your daily metrics, exercises, and meals</p>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Daily Metrics Form -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-102 hover:shadow-xl hover:bg-blue-50">
+            <div class="px-4 py-3">
+                <h3 class="text-xl font-semibold text-black text-center">Daily Metrics</h3>
+            </div>
+            <div class="p-5">
+                <form id="metrics-form" method="POST" action="{{ url_for('save_daily_metrics') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="mb-4">
+                        <label for="weight" class="block text-gray-700 font-medium mb-2">Weight (kg):</label>
+                        <input type="number" id="weight" name="weight" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary transition-all" 
+                               step="0.1">
+                    </div>
+                    <div class="mb-4">
+                        <label for="sleep" class="block text-gray-700 font-medium mb-2">Sleep Hours:</label>
+                        <input type="number" id="sleep" name="sleep_hours" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary transition-all" 
+                               step="0.5" min="0" max="24">
+                    </div>
+                    <div class="mb-4">
+                        <label for="mood" class="block text-gray-700 font-medium mb-2">Mood:</label>
+                        <select id="mood" name="mood" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary transition-all">
+                            <option value="">-- Select Mood --</option>
+                            <option value="great" class="mood-option" data-emoji="😄">Great 😄</option>
+                            <option value="good" class="mood-option" data-emoji="🙂">Good 🙂</option>
+                            <option value="okay" class="mood-option" data-emoji="😐">Okay 😐</option>
+                            <option value="tired" class="mood-option" data-emoji="😴">Tired 😴</option>
+                            <option value="stressed" class="mood-option" data-emoji="😰">Stressed 😰</option>
+                        </select>
+                    </div>
+                    <button type="submit" 
+                            class="w-full bg-blue-400 hover:bg-primary-dark text-white py-2 px-4 rounded-md transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 transform hover:scale-105">
+                        Add Metrics
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Exercise Tracking Form -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-102 hover:shadow-xl hover:bg-blue-50">
+            <div class="px-4 py-3">
+                <h3 class="text-xl font-semibold text-black text-center">Exercise Tracking</h3>
+            </div>
+            <div class="p-5">
+                <form id="exercise-form" method="POST" action="{{ url_for('save_exercise') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="mb-4">
+                        <label for="exercise-type" class="block text-gray-700 font-medium mb-2">Exercise Type:</label>
+                        <select id="exercise-type" name="exercise_type" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary transition-all">
+                            <option value="">-- Select Exercise --</option>
+                            <option value="running">Running 🏃</option>
+                            <option value="walking">Walking 🚶</option>
+                            <option value="cycling">Cycling 🚴</option>
+                            <option value="swimming">Swimming 🏊</option>
+                            <option value="yoga">Yoga 🧘</option>
+                            <option value="weights">Weight Training 🏋️</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="duration" class="block text-gray-700 font-medium mb-2">Duration (minutes):</label>
+                        <input type="number" id="duration" name="duration" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary transition-all" 
+                               min="1">
+                    </div>
+                    <div class="mb-4">
+                        <label for="calories-burned" class="block text-gray-700 font-medium mb-2">Calories Burned:</label>
+                        <input type="number" id="calories-burned" name="calories_burned" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary transition-all" 
+                               min="0">
+                        <div id="calorie-estimation" class="text-gray-500 text-sm mt-1 hidden">
+                            Estimated: <span id="estimated-calories">0</span> calories
+                        </div>
+                    </div>
+                    <button type="submit" 
+                            class="w-full bg-blue-400 hover:bg-secondary-dark text-white py-2 px-4 rounded-md transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-opacity-50 transform hover:scale-105">
+                        Add Exercise
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Meal Tracking Form -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-102 hover:shadow-xl hover:bg-blue-50">
+            <div class="px-4 py-3">
+                <h3 class="text-xl font-semibold text-black text-center">Meal Tracking</h3>
+            </div>
+            <div class="p-5">
+                <form id="meal-form" method="POST" action="{{ url_for('save_meal') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="mb-4">
+                        <label for="meal-type" class="block text-gray-700 font-medium mb-2">Meal Type:</label>
+                        <select id="meal-type" name="meal_type" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent transition-all">
+                            <option value="">-- Select Meal --</option>
+                            <option value="breakfast">Breakfast 🍳</option>
+                            <option value="lunch">Lunch 🍲</option>
+                            <option value="dinner">Dinner 🍽️</option>
+                            <option value="snack">Snack 🍌</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="food-detail" class="block text-gray-700 font-medium mb-2">Food Description:</label>
+                        <input type="text" id="food-detail" name="food_detail" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent transition-all" 
+                               placeholder="e.g., Oatmeal with berries">
+                    </div>
+                    <div class="mb-4">
+                        <label for="calories" class="block text-gray-700 font-medium mb-2">Calories:</label>
+                        <input type="number" id="calories" name="calories" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent transition-all" 
+                               min="0">
+                    </div>
+                    <button type="submit" 
+                            class="w-full bg-blue-400 hover:bg-accent-dark text-white py-2 px-4 rounded-md transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-opacity-50 transform hover:scale-105">
+                        Add Meal
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tab switching functionality
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabPanels = document.querySelectorAll('.tab-panel');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Deactivate all buttons
+                tabButtons.forEach(btn => {
+                    btn.classList.remove('text-primary', 'border-b-2', 'border-primary');
+                    btn.classList.add('text-gray-500');
+                });
+                
+                // Activate current button
+                button.classList.remove('text-gray-500');
+                button.classList.add('text-primary', 'border-b-2', 'border-primary');
+                
+                // Hide all panels
+                tabPanels.forEach(panel => {
+                    panel.classList.add('hidden');
+                });
+                
+                // Show target panel
+                const targetPanel = document.getElementById(button.dataset.target);
+                targetPanel.classList.remove('hidden');
+            });
+        });
+        
+        // Form validation and animations
+        const metricsForm = document.getElementById('metrics-form');
+        const exerciseForm = document.getElementById('exercise-form');
+        const mealForm = document.getElementById('meal-form');
+        
+        // Add animation to form fields
+        const formInputs = document.querySelectorAll('input, select');
+        formInputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.classList.add('scale-105');
+                input.classList.add('bg-blue-50');
+                setTimeout(() => {
+                    input.parentElement.classList.remove('scale-105');
+                }, 300);
+            });
+            
+            input.addEventListener('blur', () => {
+                input.classList.remove('bg-blue-50');
+            });
+        });
+        
+        // Exercise calorie estimation
+        const exerciseTypeSelect = document.getElementById('exercise-type');
+        const durationInput = document.getElementById('duration');
+        const caloriesBurnedInput = document.getElementById('calories-burned');
+        const calorieEstimation = document.getElementById('calorie-estimation');
+        const estimatedCalories = document.getElementById('estimated-calories');
+        
+        // MET values for different exercises (rough estimates)
+        const metValues = {
+            'running': 10,
+            'walking': 3.5,
+            'cycling': 8,
+            'swimming': 7,
+            'yoga': 3,
+            'weights': 5
+        };
+        
+        function updateCalorieEstimation() {
+            const exerciseType = exerciseTypeSelect.value;
+            const duration = durationInput.value;
+            
+            if (exerciseType && duration && !caloriesBurnedInput.value) {
+                // Assume 70kg weight for estimation
+                const weightKg = 70;
+                const met = metValues[exerciseType] || 5;
+                const durationHours = duration / 60;
+                
+                // Calories = MET × weight (kg) × duration (hours)
+                const calories = Math.round(met * weightKg * durationHours);
+                
+                estimatedCalories.textContent = calories;
+                calorieEstimation.classList.remove('hidden');
+            } else {
+                calorieEstimation.classList.add('hidden');
+            }
+        }
+        
+        exerciseTypeSelect.addEventListener('change', updateCalorieEstimation);
+        durationInput.addEventListener('input', updateCalorieEstimation);
+        caloriesBurnedInput.addEventListener('input', () => {
+            if (caloriesBurnedInput.value) {
+                calorieEstimation.classList.add('hidden');
+            } else {
+                updateCalorieEstimation();
+            }
+        });
+        
+        // Form validation with visual feedback
+        metricsForm.addEventListener('submit', function(e) {
+            const weight = document.getElementById('weight').value;
+            const sleep = document.getElementById('sleep').value;
+            const mood = document.getElementById('mood').value;
+            
+            if (!weight && !sleep && !mood) {
+                e.preventDefault();
+                showValidationError('Please fill in at least one field');
+            }
+        });
+        
+        exerciseForm.addEventListener('submit', function(e) {
+            const exerciseType = document.getElementById('exercise-type').value;
+            const duration = document.getElementById('duration').value;
+            
+            if (!exerciseType || !duration) {
+                e.preventDefault();
+                showValidationError('Please select an exercise type and enter duration');
+            }
+        });
+        
+        mealForm.addEventListener('submit', function(e) {
+            const mealType = document.getElementById('meal-type').value;
+            const foodDetail = document.getElementById('food-detail').value;
+            const calories = document.getElementById('calories').value;
+            
+            if (!mealType || !foodDetail || !calories) {
+                e.preventDefault();
+                showValidationError('Please fill in all required fields');
+            }
+        });
+        
+        function showValidationError(message) {
+            // Create and show a toast notification
+            const toast = document.createElement('div');
+            toast.classList.add(
+                'fixed', 'bottom-4', 'right-4', 'bg-red-500', 'text-white', 
+                'py-2', 'px-4', 'rounded-lg', 'shadow-lg', 'z-50',
+                'transform', 'transition-transform', 'duration-300'
+            );
+            toast.style.transform = 'translateY(100px)';
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            // Animate in
+            setTimeout(() => {
+                toast.style.transform = 'translateY(0)';
+            }, 10);
+            
+            // Animate out and remove
+            setTimeout(() => {
+                toast.style.transform = 'translateY(100px)';
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+        
+        // Helper function to validate form fields and highlight errors
+        function validateForm(form, requiredFields) {
+            let valid = true;
+            
+            form.querySelectorAll('.invalid-feedback').forEach(el => el.remove());
+            
+            requiredFields.forEach(field => {
+                const element = form.elements[field];
+                if (!element.value.trim()) {
+                    valid = false;
+                    
+                    // Add invalid class
+                    element.classList.add('border-red-500');
+                    element.classList.remove('border-gray-300');
+                    
+                    // Add invalid feedback message
+                    const feedback = document.createElement('p');
+                    feedback.classList.add('text-red-500', 'text-xs', 'mt-1', 'invalid-feedback');
+                    feedback.textContent = 'This field is required';
+                    element.parentNode.appendChild(feedback);
+                    
+                    // Shake animation
+                    element.classList.add('shake');
+                    setTimeout(() => {
+                        element.classList.remove('shake');
+                    }, 500);
+                } else {
+                    element.classList.remove('border-red-500');
+                    element.classList.add('border-gray-300');
+                }
+            });
+            
+            return valid;
+        }
+    });
+</script>
+
+<style>
+    /* Add some custom animations */
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        50% { transform: translateX(5px); }
+        75% { transform: translateX(-5px); }
+    }
+    
+    .shake {
+        animation: shake 0.5s ease-in-out;
+    }
+    
+    .scale-105 {
+        transform: scale(1.05);
+        transition: transform 0.3s ease;
+    }
+    
+    .hover\:scale-102:hover {
+        transform: scale(1.02);
+    }
+    
+    /* Ensure Tailwind utilities are included */
+    .transition-all { transition-property: all; }
+    .duration-300 { transition-duration: 300ms; }
+    .hover\:shadow-xl:hover { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+</style>
 {% endblock %}

@@ -1,9 +1,9 @@
 from . import app, db, csrf
-from flask import request, jsonify, session
+from flask import request, jsonify, session, redirect, url_for, flash
 import sqlalchemy as sa
-from .models import User, Friendship, SharedCalories, CalorieEntry
-from sqlalchemy import and_, or_
-from datetime import datetime
+from .models import User, Friendship, SharedCalories, CalorieEntry, DailyMetrics, Exercise, Meal
+from sqlalchemy import and_, or_, desc
+from datetime import datetime, date
 import json
 from .auth import login_required
 from .app_utils import json_response
@@ -359,3 +359,180 @@ def search_users():
         print(f"Error in search_users: {str(e)}")
         print(traceback.format_exc())
         return json_response({'users': [], 'error': str(e)})
+
+
+@csrf.exempt
+@app.route('/api/save_daily_metrics', methods=['POST'])
+@login_required
+def save_daily_metrics():
+    user_id = session.get('user_id')
+    today = date.today()
+    
+    # Get form data
+    weight = request.form.get('weight', type=float)
+    sleep_hours = request.form.get('sleep_hours', type=float)
+    mood = request.form.get('mood')
+    
+    # Check if at least one field is filled
+    if not any([weight, sleep_hours, mood]):
+        flash('Please fill in at least one field', 'error')
+        return redirect(url_for('upload'))
+    
+    try:
+        # Check if entry already exists for today
+        existing_entry = db.session.execute(
+            sa.select(DailyMetrics)
+            .where(and_(DailyMetrics.user_id == user_id, DailyMetrics.date == today))
+        ).scalar_one_or_none()
+        
+        if existing_entry:
+            # Update existing entry
+            if weight is not None:
+                existing_entry.weight = weight
+            if sleep_hours is not None:
+                existing_entry.sleep_hours = sleep_hours
+            if mood:
+                existing_entry.mood = mood
+        else:
+            # Create new entry
+            new_entry = DailyMetrics(
+                user_id=user_id,
+                date=today,
+                weight=weight,
+                sleep_hours=sleep_hours,
+                mood=mood
+            )
+            db.session.add(new_entry)
+        
+        db.session.commit()
+        flash('Daily metrics updated successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error saving daily metrics: {str(e)}', 'error')
+    
+    return redirect(url_for('upload'))
+
+
+@csrf.exempt
+@app.route('/api/save_exercise', methods=['POST'])
+@login_required
+def save_exercise():
+    user_id = session.get('user_id')
+    today = date.today()
+    
+    # Get form data
+    exercise_type = request.form.get('exercise_type')
+    duration = request.form.get('duration', type=int)
+    calories_burned = request.form.get('calories_burned', type=int)
+    
+    # Validate required fields
+    if not exercise_type or not duration:
+        flash('Please select an exercise type and enter duration', 'error')
+        return redirect(url_for('upload'))
+    
+    try:
+        # Create new exercise entry
+        new_exercise = Exercise(
+            user_id=user_id,
+            date=today,
+            exercise_type=exercise_type,
+            duration=duration,
+            calories_burned=calories_burned
+        )
+        
+        db.session.add(new_exercise)
+        db.session.commit()
+        flash('Exercise added successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error saving exercise: {str(e)}', 'error')
+    
+    return redirect(url_for('upload'))
+
+
+@csrf.exempt
+@app.route('/api/save_meal', methods=['POST'])
+@login_required
+def save_meal():
+    user_id = session.get('user_id')
+    today = date.today()
+    
+    # Get form data
+    meal_type = request.form.get('meal_type')
+    food_detail = request.form.get('food_detail')
+    calories = request.form.get('calories', type=int)
+    
+    # Validate required fields
+    if not meal_type or not food_detail or calories is None:
+        flash('Please fill in all required fields for the meal', 'error')
+        return redirect(url_for('upload'))
+    
+    try:
+        # Create new meal entry
+        new_meal = Meal(
+            user_id=user_id,
+            date=today,
+            meal_type=meal_type,
+            food_detail=food_detail,
+            calories=calories
+        )
+        
+        db.session.add(new_meal)
+        db.session.commit()
+        flash('Meal added successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error saving meal: {str(e)}', 'error')
+    
+    return redirect(url_for('upload'))
+
+
+@csrf.exempt
+@app.route('/api/user/data_options', methods=['GET'])
+@login_required
+def get_user_data_options():
+    user_id = session.get('user_id')
+    
+    try:
+        # exercise_type
+        exercise_types = db.session.execute(
+            sa.select(Exercise.exercise_type)
+            .where(Exercise.user_id == user_id)
+            .distinct()
+        ).scalars().all()
+        
+        # meal_type
+        meal_types = db.session.execute(
+            sa.select(Meal.meal_type)
+            .where(Meal.user_id == user_id)
+            .distinct()
+        ).scalars().all()
+        
+        # date_range
+        date_range = db.session.execute(
+            sa.select(
+                sa.func.min(DailyMetrics.date),
+                sa.func.max(DailyMetrics.date)
+            )
+            .where(DailyMetrics.user_id == user_id)
+        ).first()
+        
+        min_date = date_range[0].strftime('%Y-%m-%d') if date_range[0] else None
+        max_date = date_range[1].strftime('%Y-%m-%d') if date_range[1] else None
+        
+        return json_response({
+            'status': 'success',
+            'data': {
+                'exercise_types': exercise_types,
+                'meal_types': meal_types,
+                'date_range': {
+                    'min': min_date,
+                    'max': max_date
+                }
+            }
+        })
+    except Exception as e:
+        import traceback
+        print(f"Error in get_user_data_options: {str(e)}")
+        print(traceback.format_exc())
+        return json_response({'status': 'error', 'message': f'Error retrieving data options: {str(e)}'}, 500)

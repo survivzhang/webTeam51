@@ -1,10 +1,13 @@
 from flask import Flask, request, render_template, redirect, url_for, flash, session
-from webTeam51.config import Config
+import sys
+import os
+# Add the parent directory to the system path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
 from datetime import timedelta
-import os
 from functools import wraps
 from sqlalchemy import and_, or_
 

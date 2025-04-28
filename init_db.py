@@ -16,16 +16,17 @@ def init_database():
             # Create initial users
             admin = User(
                 username='admin@example.com',
+                email='admin@example.com',
                 password_hash=generate_password_hash('root'),
                 created_at=datetime.utcnow()
             )
             db.session.add(admin)
 
             guests = [
-                User(username='guest1@example.com', password_hash=generate_password_hash('guest1'), created_at=datetime.utcnow()),
-                User(username='guest2@example.com', password_hash=generate_password_hash('guest2'), created_at=datetime.utcnow()),
-                User(username='guest3@example.com', password_hash=generate_password_hash('guest3'), created_at=datetime.utcnow()),
-                User(username='guest4@example.com', password_hash=generate_password_hash('guest4'), created_at=datetime.utcnow())
+                User(username='guest1@example.com', email='guest1@example.com', password_hash=generate_password_hash('guest1'), created_at=datetime.utcnow()),
+                User(username='guest2@example.com', email='guest2@example.com', password_hash=generate_password_hash('guest2'), created_at=datetime.utcnow()),
+                User(username='guest3@example.com', email='guest3@example.com', password_hash=generate_password_hash('guest3'), created_at=datetime.utcnow()),
+                User(username='guest4@example.com', email='guest4@example.com', password_hash=generate_password_hash('guest4'), created_at=datetime.utcnow())
             ]
             db.session.add_all(guests)
             

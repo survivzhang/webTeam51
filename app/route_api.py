@@ -199,43 +199,127 @@ def get_friend_data(friend_id):
         except json.JSONDecodeError:
             return json_response({'status': 'error', 'message': 'Error parsing sharing settings'}, 500)
         
-        # Get data based on conditions
-        query = sa.select(CalorieEntry).where(CalorieEntry.user_id == friend_id)
-        
-        # Apply condition filters
-        if 'date_from' in conditions and conditions['date_from']:
-            try:
-                date_from = datetime.strptime(conditions['date_from'], '%Y-%m-%d').date()
-                query = query.where(CalorieEntry.date >= date_from)
-            except Exception as e:
-                print(f"Error parsing date_from: {e}")
-        
-        if 'date_to' in conditions and conditions['date_to']:
-            try:
-                date_to = datetime.strptime(conditions['date_to'], '%Y-%m-%d').date()
-                query = query.where(CalorieEntry.date <= date_to)
-            except Exception as e:
-                print(f"Error parsing date_to: {e}")
-        
-        if 'meal_types' in conditions and conditions['meal_types']:
-            query = query.where(CalorieEntry.meal_type_id.in_(conditions['meal_types']))
-        
-        entries = db.session.execute(query).scalars().all()
-        
-        # Format chart data
         result = []
-        for entry in entries:
-            result.append({
-                'date': entry.date.strftime('%Y-%m-%d'),
-                'calories': entry.calories,
-                'meal_type_id': entry.meal_type_id,
-                'food_detail': entry.food_detail
-            })
+
+        # Get calorie entries based on conditions if meal_types are shared
+        if 'meal_types' in conditions and conditions['meal_types']:
+            query = sa.select(CalorieEntry).join(MealType).where(CalorieEntry.user_id == friend_id)
+            
+            # Apply date filters
+            if 'date_from' in conditions and conditions['date_from']:
+                try:
+                    date_from = datetime.strptime(conditions['date_from'], '%Y-%m-%d').date()
+                    query = query.where(CalorieEntry.date >= date_from)
+                except Exception as e:
+                    print(f"Error parsing date_from: {e}")
+            
+            if 'date_to' in conditions and conditions['date_to']:
+                try:
+                    date_to = datetime.strptime(conditions['date_to'], '%Y-%m-%d').date()
+                    query = query.where(CalorieEntry.date <= date_to)
+                except Exception as e:
+                    print(f"Error parsing date_to: {e}")
+            
+            # Apply meal type filter
+            query = query.where(CalorieEntry.meal_type_id.in_(conditions['meal_types']))
+            
+            entries = db.session.execute(query).scalars().all()
+            
+            # Format meal data
+            for entry in entries:
+                result.append({
+                    'date': entry.date.strftime('%Y-%m-%d'),
+                    'type': 'meal',
+                    'value': entry.calories,
+                    'meal_type': entry.meal_type.display_name,
+                    'calories': entry.calories
+                })
+        
+        # Get exercise data if exercise_types are shared
+        if 'exercise_types' in conditions and conditions['exercise_types']:
+            query = sa.select(CalorieBurn).join(ExerciseType).where(CalorieBurn.user_id == friend_id)
+            
+            # Apply date filters
+            if 'date_from' in conditions and conditions['date_from']:
+                try:
+                    date_from = datetime.strptime(conditions['date_from'], '%Y-%m-%d').date()
+                    query = query.where(CalorieBurn.date >= date_from)
+                except Exception as e:
+                    print(f"Error parsing date_from: {e}")
+            
+            if 'date_to' in conditions and conditions['date_to']:
+                try:
+                    date_to = datetime.strptime(conditions['date_to'], '%Y-%m-%d').date()
+                    query = query.where(CalorieBurn.date <= date_to)
+                except Exception as e:
+                    print(f"Error parsing date_to: {e}")
+            
+            # Apply exercise type filter
+            query = query.where(ExerciseType.name.in_(conditions['exercise_types']))
+            
+            burns = db.session.execute(query).scalars().all()
+            
+            # Format exercise data
+            for burn in burns:
+                result.append({
+                    'date': burn.date.strftime('%Y-%m-%d'),
+                    'type': 'exercise',
+                    'value': burn.calories_burned or 0,
+                    'exercise_type': burn.exercise_type.display_name,
+                    'duration': burn.duration,
+                    'calories_burned': burn.calories_burned
+                })
+        
+        # Get daily metrics if shared
+        if 'daily_metrics' in conditions and conditions['daily_metrics']:
+            query = sa.select(DailyMetrics).where(DailyMetrics.user_id == friend_id)
+            
+            # Apply date filters
+            if 'date_from' in conditions and conditions['date_from']:
+                try:
+                    date_from = datetime.strptime(conditions['date_from'], '%Y-%m-%d').date()
+                    query = query.where(DailyMetrics.date >= date_from)
+                except Exception as e:
+                    print(f"Error parsing date_from: {e}")
+            
+            if 'date_to' in conditions and conditions['date_to']:
+                try:
+                    date_to = datetime.strptime(conditions['date_to'], '%Y-%m-%d').date()
+                    query = query.where(DailyMetrics.date <= date_to)
+                except Exception as e:
+                    print(f"Error parsing date_to: {e}")
+            
+            metrics = db.session.execute(query).scalars().all()
+            
+            # Filter out metrics that aren't shared
+            for metric in metrics:
+                metric_data = {}
+                metric_data['date'] = metric.date.strftime('%Y-%m-%d')
+                metric_data['type'] = 'metrics'
+                
+                # Add value based on which metric type is being shown
+                if 'weight' in conditions['daily_metrics'] and metric.weight:
+                    metric_data['weight'] = metric.weight
+                    metric_data['value'] = metric.weight
+                elif 'sleep' in conditions['daily_metrics'] and metric.sleep_hours:
+                    metric_data['sleep_hours'] = metric.sleep_hours
+                    metric_data['value'] = metric.sleep_hours
+                elif 'mood' in conditions['daily_metrics'] and metric.mood:
+                    metric_data['mood'] = metric.mood
+                    metric_data['value'] = 0  # Mood doesn't have a numeric value
+                
+                # Only add if at least one metric is shared
+                if len(metric_data) > 3:  # date, type and value are always included
+                    result.append(metric_data)
+        
+        # Sort all data by date (descending)
+        result.sort(key=lambda x: x['date'], reverse=True)
         
         return json_response({
             'status': 'success',
             'data': result,
-            'username': friend.username
+            'username': friend.username,
+            'sharing_conditions': conditions
         })
         
     except Exception as e:
@@ -296,6 +380,14 @@ def update_share_settings():
         # Ensure meal_types is a list
         if 'meal_types' not in conditions or not isinstance(conditions['meal_types'], list):
             conditions['meal_types'] = []
+            
+        # Ensure exercise_types is a list
+        if 'exercise_types' not in conditions or not isinstance(conditions['exercise_types'], list):
+            conditions['exercise_types'] = []
+            
+        # Ensure daily_metrics is a list
+        if 'daily_metrics' not in conditions or not isinstance(conditions['daily_metrics'], list):
+            conditions['daily_metrics'] = []
         
         # Check if sharing settings already exist
         existing = db.session.execute(
@@ -518,7 +610,6 @@ def save_meal():
     # Get form data
     meal_type_id = request.form.get('meal_type_id', type=int)
     calories = request.form.get('calories', type=int)
-    food_detail = request.form.get('food_detail')
     
     # Validate required fields
     if not meal_type_id or not calories:
@@ -537,8 +628,7 @@ def save_meal():
             user_id=user_id,
             date=today,
             meal_type_id=meal_type_id,
-            calories=calories,
-            food_detail=food_detail
+            calories=calories
         )
         
         db.session.add(new_entry)
@@ -579,8 +669,7 @@ def get_all_data():
                 'type': 'meal',
                 'date': entry.date.strftime('%Y-%m-%d'),
                 'meal_type': entry.meal_type.display_name,
-                'calories': entry.calories,
-                'detail': entry.food_detail
+                'calories': entry.calories
             })
             
         for burn in calorie_burns:

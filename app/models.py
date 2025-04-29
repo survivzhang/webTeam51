@@ -59,7 +59,6 @@ class CalorieEntry(db.Model):
     meal_type_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('meal_types.id'), nullable=False)
     date: so.Mapped[date] = so.mapped_column(Date, nullable=False)
     calories: so.Mapped[int] = so.mapped_column(nullable=False)
-    food_detail: so.Mapped[Optional[str]] = so.mapped_column(sa.Text)
     created_at: so.Mapped[datetime] = so.mapped_column(default=datetime.utcnow)
     
     # Relationships

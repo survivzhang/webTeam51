@@ -56,7 +56,7 @@ def register():
     register_form = RegistrationForm()
     
     # Debug: Print database file path
-    from webTeam51.config import Config
+    from config import Config
     db_path = Config.SQLALCHEMY_DATABASE_URI
     print(f"Database path: {db_path}")
     db_file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'app.db')

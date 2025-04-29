@@ -11,6 +11,7 @@ from datetime import timedelta
 from functools import wraps
 from sqlalchemy import and_, or_
 
+
 # Create application instance - disable instance folder
 app = Flask(__name__, instance_relative_config=False, instance_path=None)
 app.config.from_object(Config)

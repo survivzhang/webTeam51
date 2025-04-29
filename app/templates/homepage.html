@@ -11,55 +11,68 @@
       <h2 class="text-4xl font-bold text-center">Welcome to CalTrack</h2>
     </div>
     <div class="space-y-4 mt-10 sm:mx-auto sm:w-full sm:max-w-sm flex flex-col">
+      {% with messages = get_flashed_messages() %} {% if messages %}
+      <div
+        class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mb-4"
+      >
+        <ul>
+          {% for message in messages %}
+          <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %} {% endwith %}
+
       <form class="space-y-6" action="{{ url_for('about') }}" method="POST">
+        {{ form.hidden_tag() }}
         <div>
-          <label for="email" class="block text-sm font-medium text-gray-700"
-            >Email address</label
-          >
+          {{ form.email.label(class="block text-sm font-medium text-gray-700")
+          }}
           <div class="relative">
             <div
               class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
             >
               <i data-lucide="mail" class="h-5 w-5 text-gray-400"></i>
             </div>
-            <input
-              type="email"
-              name="email"
-              id="email"
-              required
-              class="pl-10 w-full rounded-md border border-gray-300 py-2 px-3 text-gray-900 placeholder-gray-400 focus:border-cal-blue focus:outline-none focus:ring-1 focus:ring-cal-blue"
-              placeholder="your@email.com"
-            />
+            {{ form.email(class="pl-10 w-full rounded-md border border-gray-300
+            py-2 px-3 text-gray-900 placeholder-gray-400 focus:border-cal-blue
+            focus:outline-none focus:ring-1 focus:ring-cal-blue",
+            placeholder="your@email.com") }}
           </div>
+          {% for error in form.email.errors %}
+          <p class="mt-1 text-xs text-red-500">{{ error }}</p>
+          {% endfor %}
         </div>
         <div>
-          <label for="password" class="block text-sm font-medium text-gray-700"
-            >Password</label
-          >
+          {{ form.password.label(class="block text-sm font-medium
+          text-gray-700") }}
           <div class="relative">
             <div
               class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
             >
               <i data-lucide="lock" class="h-5 w-5 text-gray-400"></i>
             </div>
-            <input
-              type="password"
-              name="password"
-              id="password"
-              required
-              class="pl-10 w-full rounded-md border border-gray-300 py-2 px-3 text-gray-900 placeholder-gray-400 focus:border-cal-blue focus:outline-none focus:ring-1 focus:ring-cal-blue"
-              placeholder="********"
-            />
+            {{ form.password(class="pl-10 w-full rounded-md border
+            border-gray-300 py-2 px-3 text-gray-900 placeholder-gray-400
+            focus:border-cal-blue focus:outline-none focus:ring-1
+            focus:ring-cal-blue", placeholder="********") }}
           </div>
+          {% for error in form.password.errors %}
+          <p class="mt-1 text-xs text-red-500">{{ error }}</p>
+          {% endfor %}
         </div>
+
+        <div class="flex items-center">
+          {{ form.remember_me(class="h-4 w-4 rounded border-gray-300
+          text-cal-blue focus:ring-cal-blue mr-2") }} {{
+          form.remember_me.label(class="text-sm text-gray-700") }}
+        </div>
+
         <div>
-          <button
-            type="submit"
-            class="w-full bg-gradient-to-r from-cal-blue to-cal-blue-light text-white py-2 px-4 rounded-md hover:from-cal-blue-dark hover:to-cal-blue transition duration-300 flex justify-center items-center"
-          >
-            <i data-lucide="log-in" class="h-5 w-5 mr-2"></i>
-            Sign in
-          </button>
+          {{ form.submit(class="w-full bg-gradient-to-r from-cal-blue
+          to-cal-blue-light text-white py-2 px-4 rounded-md
+          hover:from-cal-blue-dark hover:to-cal-blue transition duration-300
+          flex justify-center items-center") }}
         </div>
       </form>
       <p class="mt-6 text-center text-sm text-gray-500">

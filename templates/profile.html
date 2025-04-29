@@ -3,31 +3,31 @@
 {% block content %}
   <!-- Stats Section -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    <div class="bg-gray-800 rounded-xl shadow-lg p-6">
-      <div class="text-sm text-gray-400">BMR</div>
-      <div class="text-3xl font-extrabold text-white mt-1">2,000 kcal</div>
-      <div class="text-xs text-green-400 mt-2">+7.7% vs. last week</div>
+    <div class="bg-white rounded-xl shadow p-6">
+      <div class="text-sm text-gray-500">BMR</div>
+      <div class="text-3xl font-extrabold text-gray-900 mt-1">2,000 kcal</div>
+      <div class="text-xs text-green-600 mt-2">+7.7% vs. last week</div>
     </div>
-    <div class="bg-gray-800 rounded-xl shadow-lg p-6">
-      <div class="text-sm text-gray-400">Net Daily Calories</div>
-      <div class="text-3xl font-extrabold text-white mt-1">1,500 kcal</div>
-      <div class="text-xs text-red-400 mt-2">-1.7% vs. yesterday</div>
+    <div class="bg-white rounded-xl shadow p-6">
+      <div class="text-sm text-gray-500">Net Daily Calories</div>
+      <div class="text-3xl font-extrabold text-gray-900 mt-1">1,500 kcal</div>
+      <div class="text-xs text-red-600 mt-2">-1.7% vs. yesterday</div>
     </div>
-    <div class="bg-gray-800 rounded-xl shadow-lg p-6">
-      <div class="text-sm text-gray-400">Target Progress</div>
+    <div class="bg-white rounded-xl shadow p-6">
+      <div class="text-sm text-gray-500">Target Progress</div>
       <div class="flex items-center justify-between mt-1">
-        <span class="text-3xl font-extrabold text-white">72%</span>
+        <span class="text-3xl font-extrabold text-gray-900">72%</span>
       </div>
-      <div class="w-full bg-gray-700 rounded-full h-2 mt-4">
-        <div class="bg-indigo-500 h-2 rounded-full" style="width: 72%;"></div>
+      <div class="w-full bg-gray-200 rounded-full h-2 mt-4">
+        <div class="bg-cal-blue h-2 rounded-full" style="width: 72%;"></div>
       </div>
     </div>
   </div>
 
   <!-- Profile Section -->
-  <div class="bg-gray-800 rounded-xl shadow-lg p-8">
-    <h2 class="text-2xl font-semibold text-white mb-2">Profile</h2>
-    <p class="text-sm text-gray-400 mb-6">
+  <div class="bg-white rounded-xl shadow p-8">
+    <h2 class="text-2xl font-semibold text-gray-900 mb-2">Profile</h2>
+    <p class="text-sm text-gray-600 mb-6">
       Manage your name, password, and account settings.
     </p>
 
@@ -35,10 +35,10 @@
       <img
         src="https://via.placeholder.com/100"
         alt="Profile Photo"
-        class="w-24 h-24 rounded-full object-cover border-2 border-gray-700"
+        class="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
       />
       <button
-        class="px-6 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-500"
+        class="px-6 py-2 bg-cal-blue text-white text-sm font-medium rounded-lg hover:bg-cal-blue-dark focus:outline-none focus:ring-2 focus:ring-cal-blue"
       >
         Upload Photo
       </button>
@@ -47,86 +47,86 @@
     <form class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label for="fullName" class="block text-gray-300 mb-1">Full Name</label>
+          <label for="fullName" class="block text-gray-700 mb-1">Full Name</label>
           <input
             id="fullName"
             type="text"
             placeholder="Maria Boone"
-            class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-500"
+            class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-cal-blue"
           />
         </div>
         <div>
-          <label for="email" class="block text-gray-300 mb-1">Email</label>
+          <label for="email" class="block text-gray-700 mb-1">Email</label>
           <input
             id="email"
             type="email"
             placeholder="maria@site.com"
-            class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-500"
+            class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-cal-blue"
           />
         </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label for="password" class="block text-gray-300 mb-1">Password</label>
+          <label for="password" class="block text-gray-700 mb-1">Password</label>
           <input
             id="password"
             type="password"
             placeholder="Enter new password"
-            class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-500"
+            class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-cal-blue"
           />
         </div>
         <div>
-          <label for="phone" class="block text-gray-300 mb-1">Phone (Optional)</label>
+          <label for="phone" class="block text-gray-700 mb-1">Phone (Optional)</label>
           <input
             id="phone"
             type="tel"
             placeholder="+1 (xxx) xxx-xx-xx"
-            class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-500"
+            class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-cal-blue"
           />
         </div>
       </div>
 
       <div class="flex flex-col md:flex-row md:space-x-6">
         <div class="flex-1">
-          <span class="block text-gray-300 mb-2">Gender</span>
+          <span class="block text-gray-700 mb-2">Gender</span>
           <div class="flex items-center space-x-6">
             <label class="flex items-center space-x-2">
               <input
                 type="radio"
                 name="gender"
                 value="male"
-                class="text-indigo-500 focus:ring-0"
+                class="text-cal-blue focus:ring-0"
               />
-              <span class="text-gray-300">Male</span>
+              <span class="text-gray-700">Male</span>
             </label>
             <label class="flex items-center space-x-2">
               <input
                 type="radio"
                 name="gender"
                 value="female"
-                class="text-indigo-500 focus:ring-0"
+                class="text-cal-blue focus:ring-0"
               />
-              <span class="text-gray-300">Female</span>
+              <span class="text-gray-700">Female</span>
             </label>
             <label class="flex items-center space-x-2">
               <input
                 type="radio"
                 name="gender"
                 value="other"
-                class="text-indigo-500 focus:ring-0"
+                class="text-cal-blue focus:ring-0"
               />
-              <span class="text-gray-300">Other</span>
+              <span class="text-gray-700">Other</span>
             </label>
           </div>
         </div>
         <div class="flex-1">
-          <label for="bio" class="block text-gray-300 mb-1">BIO</label>
+          <label for="bio" class="block text-gray-700 mb-1">BIO</label>
           <textarea
             id="bio"
             rows="4"
             placeholder="Type your message..."
-            class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-500"
+            class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-cal-blue"
           ></textarea>
         </div>
       </div>
@@ -134,7 +134,7 @@
       <div class="flex justify-end">
         <button
           type="submit"
-          class="px-6 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-500"
+          class="px-6 py-2 bg-cal-blue text-white font-medium rounded-lg hover:bg-cal-blue-dark focus:outline-none focus:ring-2 focus:ring-cal-blue"
         >
           Save Changes
         </button>

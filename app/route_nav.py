@@ -111,10 +111,3 @@ def sharing():
 def profile():
     return render_template('profile.html', title='Profile') 
 
-@app.route('/welcomePage')
-def welcomePage():
-    return render_template('welcome_page.html')
-
-@app.route('/update', endpoint='update')
-def update():
-    return render_template('update.html')

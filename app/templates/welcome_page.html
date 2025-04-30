@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome Page</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/output.css') }}"
+    />
+    <!-- 使用最新的 Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Welcome to the Application!</h1>
+      <p>You already with us for ... days</p>
+    </div>
+
+    <!-- 确保画布有足够的大小 -->
+    <canvas id="statistics" width="400" height="200"></canvas>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const DATA_COUNT = 7;
+        const labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"];
+        const data = {
+          labels: labels,
+          datasets: [
+            {
+              label: "calories in",
+              data: Array.from({ length: DATA_COUNT }, () =>
+                Math.floor(Math.random() * 200 - 100)
+              ),
+              borderColor: "red",
+              backgroundColor: "rgba(255, 0, 0, 0.5)",
+            },
+            {
+              label: "calories out",
+              data: Array.from({ length: DATA_COUNT }, () =>
+                Math.floor(Math.random() * 200 - 100)
+              ),
+              borderColor: "blue",
+              backgroundColor: "rgba(0, 0, 255, 0.5)",
+            },
+          ],
+        };
+
+        const config = {
+          type: "bar",
+          data: data,
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                position: "top",
+              },
+              title: {
+                display: true,
+                text: "Chart.js Bar Chart",
+              },
+            },
+          },
+        };
+
+        const ctx = document.getElementById("statistics").getContext("2d");
+        new Chart(ctx, config);
+      });
+    </script>
+  </body>
+</html>

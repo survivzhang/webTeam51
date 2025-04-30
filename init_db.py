@@ -2,6 +2,7 @@ from app import app, db
 from app.models import User, MealType, CalorieEntry, Friendship, SharedCalories, ExerciseType, CalorieBurn, DailyMetrics
 from werkzeug.security import generate_password_hash
 from datetime import datetime
+import sqlalchemy as sa
 
 def init_database():
     """Initialize the database by creating all tables"""
@@ -20,8 +21,17 @@ def init_database():
                 MealType(name="dinner", display_name="Dinner"),
                 MealType(name="snacks", display_name="Snacks")
             ]
-            # Add meal types
-            db.session.add_all(meal_types)
+            
+            # Add meal types if they don't exist
+            for meal_type in meal_types:
+                existing = db.session.execute(
+                    sa.select(MealType).where(MealType.name == meal_type.name)
+                ).scalar_one_or_none()
+                
+                if not existing:
+                    db.session.add(meal_type)
+            
+            db.session.commit()
             print("Added default meal types")
             
             # Create exercise types
@@ -36,12 +46,17 @@ def init_database():
                 ExerciseType(name="pilates", display_name="Pilates")
             ]
             
-            # Add exercise types
-            db.session.add_all(exercise_types)
-            print("Added default exercise types")
+            # Add exercise types if they don't exist
+            for exercise_type in exercise_types:
+                existing = db.session.execute(
+                    sa.select(ExerciseType).where(ExerciseType.name == exercise_type.name)
+                ).scalar_one_or_none()
+                
+                if not existing:
+                    db.session.add(exercise_type)
             
-            # Commit all changes
             db.session.commit()
+            print("Added default exercise types")
             
             # Check database status
             user_count = db.session.query(User).count()

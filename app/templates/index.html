@@ -1,27 +1,167 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Flask with Tailwind CSS</title>
-    <link
-      href="{{ url_for('static', filename='css/output.css') }}"
-      rel="stylesheet"
-    />
-  </head>
-  <body class="bg-gray-100">
-    <div class="container mx-auto px-4 py-8">
-      <h1 class="text-3xl font-bold text-center text-blue-600">
-        Welcome to the Flask App
-      </h1>
-      <p class="text-center mt-4 text-gray-600">
-        This is a test page combining Flask and Tailwind CSS.
-      </p>
-      <button
-        class="mt-6 mx-auto block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-      >
-        Click Me
-      </button>
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center">
+    <!-- Auth container with clean design -->
+    <div class="relative z-10 w-full max-w-md">
+        <!-- Login Form -->
+        <div id="login-form" class="bg-white rounded-lg shadow-md overflow-hidden p-8 transition-all duration-500">
+            <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Login</h1>
+            
+            <form action="{{ url_for('login') }}" method="post" class="space-y-6">
+                {{ login_form.csrf_token }}
+                
+                <div class="space-y-2">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <i data-lucide="user" class="h-5 w-5 text-gray-500"></i>
+                        </div>
+                        {{ login_form.email(class="w-full pl-10 pr-4 py-3 border border-gray-300 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg", placeholder="Username or Email") }}
+                    </div>
+                </div>
+                
+                <div class="space-y-2">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <i data-lucide="lock" class="h-5 w-5 text-gray-500"></i>
+                        </div>
+                        {{ login_form.password(class="w-full pl-10 pr-10 py-3 border border-gray-300 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg", placeholder="Password") }}
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                            <button type="button" id="toggle-password" class="text-gray-500 hover:text-gray-700 focus:outline-none">
+                                <i data-lucide="eye" class="h-5 w-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        {{ login_form.remember(class="h-4 w-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500") }}
+                        <label for="{{ login_form.remember.id }}" class="ml-2 text-sm text-gray-600">Remember me</label>
+                    </div>
+                    <a href="#" class="text-sm text-blue-500 hover:underline">Forgot Password?</a>
+                </div>
+                
+                <button type="submit" class="w-full py-3 px-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition duration-200">
+                    Login
+                </button>
+            </form>
+            
+            <div class="text-center mt-6">
+                <p class="text-gray-600">Don't have an account? 
+                    <a href="#" id="show-register" class="font-semibold text-blue-500 hover:underline">Register</a>
+                </p>
+            </div>
+        </div>
+        
+        <!-- Register Form -->
+        <div id="register-form" class="hidden bg-white rounded-lg shadow-md overflow-hidden p-8 transition-all duration-500">
+            <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Register</h1>
+            
+            <form action="{{ url_for('register') }}" method="post" class="space-y-6">
+                {{ register_form.csrf_token }}
+                
+                <div class="space-y-2">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <i data-lucide="user" class="h-5 w-5 text-gray-500"></i>
+                        </div>
+                        {{ register_form.username(class="w-full pl-10 pr-4 py-3 border border-gray-300 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg", placeholder="Username") }}
+                    </div>
+                </div>
+                
+                <div class="space-y-2">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <i data-lucide="mail" class="h-5 w-5 text-gray-500"></i>
+                        </div>
+                        {{ register_form.email(class="w-full pl-10 pr-4 py-3 border border-gray-300 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg", placeholder="Email") }}
+                    </div>
+                </div>
+                
+                <div class="space-y-2">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <i data-lucide="lock" class="h-5 w-5 text-gray-500"></i>
+                        </div>
+                        {{ register_form.password(class="w-full pl-10 pr-10 py-3 border border-gray-300 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg", placeholder="Password") }}
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                            <button type="button" id="toggle-reg-password" class="text-gray-500 hover:text-gray-700 focus:outline-none">
+                                <i data-lucide="eye" class="h-5 w-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="space-y-2">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <i data-lucide="lock" class="h-5 w-5 text-gray-500"></i>
+                        </div>
+                        {{ register_form.confirm_password(class="w-full pl-10 pr-4 py-3 border border-gray-300 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg", placeholder="Confirm Password") }}
+                    </div>
+                </div>
+                
+                <button type="submit" class="w-full py-3 px-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition duration-200">
+                    Create Account
+                </button>
+            </form>
+            
+            <div class="text-center mt-6">
+                <p class="text-gray-600">Already have an account? 
+                    <a href="#" id="show-login" class="font-semibold text-blue-500 hover:underline">Login</a>
+                </p>
+            </div>
+        </div>
     </div>
-  </body>
-</html>
+</div>
+
+<script>
+    // Toggle password visibility
+    document.getElementById('toggle-password').addEventListener('click', function() {
+        const passwordInput = document.getElementById('{{ login_form.password.id }}');
+        const icon = this.querySelector('i');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.setAttribute('data-lucide', 'eye-off');
+        } else {
+            passwordInput.type = 'password';
+            icon.setAttribute('data-lucide', 'eye');
+        }
+        lucide.createIcons();
+    });
+    
+    document.getElementById('toggle-reg-password').addEventListener('click', function() {
+        const passwordInput = document.getElementById('{{ register_form.password.id }}');
+        const icon = this.querySelector('i');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.setAttribute('data-lucide', 'eye-off');
+        } else {
+            passwordInput.type = 'password';
+            icon.setAttribute('data-lucide', 'eye');
+        }
+        lucide.createIcons();
+    });
+    
+    // Switch between login and register forms
+    document.getElementById('show-register').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('login-form').classList.add('hidden');
+        document.getElementById('register-form').classList.remove('hidden');
+    });
+    
+    document.getElementById('show-login').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('register-form').classList.add('hidden');
+        document.getElementById('login-form').classList.remove('hidden');
+    });
+    
+    // Initialize Lucide icons
+    document.addEventListener('DOMContentLoaded', function() {
+        lucide.createIcons();
+    });
+</script>
+{% endblock %}

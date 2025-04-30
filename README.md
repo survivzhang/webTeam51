@@ -1,6 +1,14 @@
 # webTeam51
 
-Group_51 in CITS5505
+Group_51 in CITS5505 2025 Semester 1.
+
+| UWA ID       | Name             | GitHub Username     |
+|--------------|------------------|---------------------|
+| 24064091     | Zichen Zhang     | survivzhang         |
+| 23773086     | Jinshu Zhang     | JocelynZhang01      |
+| 24042674     | Zhaoyang Lin     | adamslin            |
+| 24455032     | Anvesh Reddy M   | anvesh1903          |
+
 
 A webapp for Caltracker
 

@@ -1,7 +1,85 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block content %}
+<div class="bg-white p-8 rounded-lg shadow-md">
+  <h1 class="text-3xl font-bold mb-4 text-center brand-text">
+    Welcome to CalTrack!
+  </h1>
+  <p class="text-center text-gray-600 mb-8">
+    You have been with us for 210 days
+  </p>
 
-{% block content %}
-<body>
-    It is a test page for home.html
-</body>
+  <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+    <!-- 确保画布有足够的大小 -->
+    <canvas id="statistics" width="100%" height="80px"></canvas>
+  </div>
+
+  <div class="flex justify-center">
+    <a
+      href="{{ url_for('upload') }}"
+      class="bg-gradient-to-r from-cal-blue to-cal-blue-light text-white py-2 px-6 rounded-md hover:from-cal-blue-dark hover:to-cal-blue transition duration-300 flex items-center"
+    >
+      <i data-lucide="plus-circle" class="h-5 w-5 mr-2"></i>
+      Start tracking
+    </a>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const DATA_COUNT = 7;
+    const labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"];
+    const data = {
+      labels: labels,
+      datasets: [
+        {
+          label: "Calories In",
+          data: Array.from({ length: DATA_COUNT }, () =>
+            Math.floor(Math.random() * 200 - 100)
+          ),
+          borderColor: "#63b3ed",
+          backgroundColor: "rgba(99, 179, 237, 0.5)",
+        },
+        {
+          label: "Calories Out",
+          data: Array.from({ length: DATA_COUNT }, () =>
+            Math.floor(Math.random() * 200 - 100)
+          ),
+          borderColor: "#fbccef",
+          backgroundColor: "rgba(246, 216, 239, 0.5)",
+        },
+      ],
+    };
+
+    const config = {
+      type: "bar",
+      data: data,
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: "top",
+          },
+          title: {
+            display: true,
+            text: "Your Calorie Tracking Overview",
+          },
+        },
+        scales: {
+          x: {
+            barPercentage: 0.9,
+            categoryPercentage: 0.6,
+          },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 10,
+            },
+          },
+        },
+      },
+    };
+
+    const ctx = document.getElementById("statistics").getContext("2d");
+    new Chart(ctx, config);
+  });
+</script>
 {% endblock %}

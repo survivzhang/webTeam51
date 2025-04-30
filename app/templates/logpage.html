@@ -50,7 +50,7 @@
       background-clip: text;
       color: transparent;
     }
-    /* Updated back-to-top button styling with lighter blue */
+    /* Back-to-top button styling */
     #backToTopBtn {
       display: block;
       position: fixed;
@@ -70,23 +70,73 @@
       padding: 10px;
       transition: background-color 0.3s, transform 0.3s;
     }
-    
     #backToTopBtn:hover {
       background-color: #90cdf4;
       transform: translateY(-3px);
     }
-    
     .btn {
       @apply bg-blue-100 hover:bg-blue-200 text-sm px-3 py-1 rounded shadow;
     }
     .btn-primary {
       @apply bg-cal-blue text-white px-4 py-2 rounded hover:bg-cal-blue-dark;
     }
-    .food-img {
-      width: 70px;
-      height: 70px;
-      object-fit: cover;
-      border-radius: 5px;
+    .btn-burn {
+      @apply bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow;
+    }
+    .card {
+      @apply border p-4 rounded-lg shadow-sm bg-white;
+    }
+    /* Tab and carousel styles */
+    .tab {
+      transition: color 0.3s ease, border-color 0.3s ease;
+    }
+    .tab.active {
+      color: #63b3ed;
+      border-bottom: 2px solid #63b3ed;
+    }
+    .tab:hover {
+      color: #4299e1;
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .carousel-item {
+      flex: 0 0 auto;
+      width: 280px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      scroll-snap-align: start;
+    }
+    .carousel-item:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    }
+    .carousel-nav {
+      transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+    .carousel-nav:hover {
+      transform: scale(1.1);
+    }
+    .icon-sticker {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      transition: transform 0.3s ease;
+    }
+    .food-item .icon-sticker {
+      background-color: #e0f2fe; /* cal-blue-light/10 */
+    }
+    .exercise-item .icon-sticker {
+      background-color: #fee2e2; /* red-100 */
+    }
+    .carousel-item:hover .icon-sticker {
+      transform: scale(1.1);
     }
   </style>
 </head>
@@ -99,7 +149,6 @@
         <i data-lucide="activity" class="w-6 h-6 mr-2 text-cal-blue"></i>
         <span class="brand-text">CalTrack</span>
       </a>
-      
       <!-- Center Navigation -->
       <div class="hidden md:flex items-center space-x-1">
         <a href="#" class="nav-link flex items-center active">
@@ -115,7 +164,6 @@
           Sharing
         </a>
       </div>
-      
       <!-- Right Navigation -->
       <div class="flex items-center">
         <a href="#" class="nav-link flex items-center">
@@ -126,13 +174,8 @@
     </div>
   </nav>
 
-  <div class="container mx-auto mt-24 px-4">
+  <div class="container mx-auto mt-24 px-24">
     <h1 class="text-3xl font-bold mb-6">Calorie Log</h1>
-
-    <!-- Search Bar -->
-    <div class="mb-4">
-      <input type="text" id="searchInput" onkeyup="filterFoods()" placeholder="Search food items..." class="w-full p-2 border border-gray-300 rounded" />
-    </div>
 
     <!-- Meal Selector -->
     <div class="mb-6">
@@ -154,16 +197,18 @@
     </div>
 
     <!-- Custom Food Entry -->
-    <div class="mb-8 bg-white p-4 rounded-lg shadow">
-      <h2 class="text-xl font-semibold mb-3">Add Custom Food</h2>
+    <div class="mb-8 card">
+      <h2 class="text-xl font-semibold mb-3">Didn't find food below? Add Custom Food</h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <label class="block mb-1 text-sm font-medium">Food Name</label>
-          <input type="text" id="customFoodName" placeholder="Enter food name" class="w-full p-2 border border-gray-300 rounded" />
+          <input type="text" id="customFoodName" placeholder="Enter food name" 
+                 class="w-full p-2 border border-gray-300 rounded" aria-label="Food name"/>
         </div>
         <div>
           <label class="block mb-1 text-sm font-medium">Amount (grams)</label>
-          <input type="number" id="customFoodGrams" placeholder="Enter grams consumed" class="w-full p-2 border border-gray-300 rounded" />
+          <input type="number" id="customFoodGrams" placeholder="Enter grams consumed" 
+                 class="w-full p-2 border border-gray-300 rounded" aria-label="Grams consumed" min="1"/>
         </div>
         <div class="flex items-end">
           <button onclick="searchCustomFood()" class="btn-primary w-full">
@@ -175,73 +220,162 @@
     </div>
 
     <!-- Food Categories -->
-    <div id="foodCategories"></div>
+    <div class="mb-8">
+      <h2 class="text-xl font-semibold mb-4">Food Categories</h2>
+      <div class="card">
+        <div class="flex flex-wrap gap-2 mb-4 border-b border-gray-200">
+          <button class="tab px-4 py-2 text-sm font-semibold text-gray-600 hover:text-cal-blue transition-colors" 
+                  data-category="Bakery" onclick="loadFoods('Bakery')">Bakery</button>
+          <button class="tab px-4 py-2 text-sm font-semibold text-gray-600 hover:text-cal-blue transition-colors" 
+                  data-category="Vegetables" onclick="loadFoods('Vegetables')">Vegetables</button>
+          <button class="tab px-4 py-2 text-sm font-semibold text-gray-600 hover:text-cal-blue transition-colors" 
+                  data-category="Fruits" onclick="loadFoods('Fruits')">Fruits</button>
+          <button class="tab px-4 py-2 text-sm font-semibold text-gray-600 hover:text-cal-blue transition-colors" 
+                  data-category="Drinks" onclick="loadFoods('Drinks')">Drinks</button>
+          <button class="tab px-4 py-2 text-sm font-semibold text-gray-600 hover:text-cal-blue transition-colors" 
+                  data-category="Nuts" onclick="loadFoods('Nuts')">Nuts</button>
+        </div>
+        <div class="relative">
+          <button id="prevFood" class="absolute left-0 top-1/2 transform -translate-y-1/2 bg-cal-blue text-white p-2 rounded-full shadow-md hover:bg-cal-blue-dark z-10 hidden carousel-nav">
+            <i data-lucide="chevron-left" class="w-5 h-5"></i>
+          </button>
+          <div id="foodCarousel" class="flex overflow-x-auto snap-x snap-mandatory scroll-smooth gap-4 p-4 hide-scrollbar"></div>
+          <button id="nextFood" class="absolute right-0 top-1/2 transform -translate-y-1/2 bg-cal-blue text-white p-2 rounded-full shadow-md hover:bg-cal-blue-dark z-10 hidden carousel-nav">
+            <i data-lucide="chevron-right" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Back to top button -->
+    <button id="backToTopBtn" title="Go to top" aria-label="Back to top">
+      <i data-lucide="arrow-up" class="w-full h-full"></i>
+    </button>
+
+    <!-- Exercise Tracker -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold mb-6">Exercise Tracker</h1>
+      <div class="card">
+        <div class="flex flex-wrap gap-2 mb-4 border-b border-gray-200">
+          <button class="tab px-4 py-2 text-sm font-semibold text-gray-600 hover:text-cal-blue transition-colors" 
+                  data-category="daily" onclick="loadExercises('daily')">Daily Activities</button>
+          <button class="tab px-4 py-2 text-sm font-semibold text-gray-600 hover:text-cal-blue transition-colors" 
+                  data-category="heavy" onclick="loadExercises('heavy')">Heavy Activity</button>
+          <button class="tab px-4 py-2 text-sm font-semibold text-gray-600 hover:text-cal-blue transition-colors" 
+                  data-category="gym" onclick="loadExercises('gym')">Gym</button>
+          <button class="tab px-4 py-2 text-sm font-semibold text-gray-600 hover:text-cal-blue transition-colors" 
+                  data-category="light" onclick="loadExercises('light')">Light Outdoor</button>
+          <button class="tab px-4 py-2 text-sm font-semibold text-gray-600 hover:text-cal-blue transition-colors" 
+                  data-category="yoga" onclick="loadExercises('yoga')">Yoga</button>
+        </div>
+        <div class="relative">
+          <button id="prevExercise" class="absolute left-0 top-1/2 transform -translate-y-1/2 bg-cal-blue text-white p-2 rounded-full shadow-md hover:bg-cal-blue-dark z-10 hidden carousel-nav">
+            <i data-lucide="chevron-left" class="w-5 h-5"></i>
+          </button>
+          <div id="exerciseCarousel" class="flex overflow-x-auto snap-x snap-mandatory scroll-smooth gap-4 p-4 hide-scrollbar"></div>
+          <button id="nextExercise" class="absolute right-0 top-1/2 transform -translate-y-1/2 bg-cal-blue text-white p-2 rounded-full shadow-md hover:bg-cal-blue-dark z-10 hidden carousel-nav">
+            <i data-lucide="chevron-right" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- Log -->
-    <div class="mt-10 mb-16">
+    <div class="mt-0 mb-16 card">
       <h2 class="text-xl font-semibold mb-2">Logged Items</h2>
       <ul id="logList" class="list-disc pl-6 space-y-1"></ul>
-      <p class="mt-4 text-lg font-bold">Net Calories: <span id="netCal">0</span> kcal</p>
-      <button onclick="submitLog()" class="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Submit</button>
+      <button onclick="submitLog()" class="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+        Submit Log
+      </button>
     </div>
   </div>
-
-  <!-- Back to top button -->
-  <button id="backToTopBtn" title="Go to top">
-    <i data-lucide="arrow-up" class="w-full h-full"></i>
-  </button>
 
   <script>
     // Core data structures
     let logItems = [];
+    let totalFoodCalories = 0;
+    let totalExerciseCalories = 0;
     let netCalories = 0;
+    const userWeight = 70; // Assume extracted from profile in kg
 
-    // Food database with web images
+    // Food database with icons
     const foods = {
       Bakery: [
-        { name: 'Bread', kcalPer100g: 265, image: 'https://cdn.pixabay.com/photo/2016/03/26/18/23/bread-1280768_640.jpg' },
-        { name: 'Muffin', kcalPer100g: 340, image: 'https://cdn.pixabay.com/photo/2015/05/07/15/38/muffins-756601_640.jpg' }
+        { name: 'Bread', kcalPer100g: 265, icon: 'bread' },
+        { name: 'Muffin', kcalPer100g: 340, icon: 'bread' }
       ],
       Vegetables: [
-        { name: 'Carrot', kcalPer100g: 41, image: 'https://cdn.pixabay.com/photo/2015/03/14/14/00/carrots-673184_640.jpg' },
-        { name: 'Spinach', kcalPer100g: 23, image: 'https://cdn.pixabay.com/photo/2016/01/10/22/52/spinach-1132412_640.jpg' }
+        { name: 'Carrot', kcalPer100g: 41, icon: 'carrot' },
+        { name: 'Spinach', kcalPer100g: 23, icon: 'carrot' }
       ],
       Fruits: [
-        { name: 'Apple', kcalPer100g: 52, image: 'https://cdn.pixabay.com/photo/2016/01/05/13/58/apple-1122537_640.jpg' },
-        { name: 'Banana', kcalPer100g: 89, image: 'https://cdn.pixabay.com/photo/2014/12/21/23/50/bananas-575773_640.png' }
+        { name: 'Apple', kcalPer100g: 52, icon: 'apple' },
+        { name: 'Banana', kcalPer100g: 89, icon: 'apple' }
       ],
       Drinks: [
-        { name: 'Orange Juice', kcalPer100g: 45, image: 'https://cdn.pixabay.com/photo/2016/10/25/13/30/orange-juice-1768774_640.jpg' },
-        { name: 'Milk', kcalPer100g: 42, image: 'https://cdn.pixabay.com/photo/2017/07/05/15/41/milk-2474993_640.jpg' }
+        { name: 'Orange Juice', kcalPer100g: 45, icon: 'coffee' },
+        { name: 'Milk', kcalPer100g: 42, icon: 'coffee' }
       ],
       Nuts: [
-        { name: 'Almonds', kcalPer100g: 579, image: 'https://cdn.pixabay.com/photo/2017/05/13/20/41/almonds-2310611_640.jpg' },
-        { name: 'Cashews', kcalPer100g: 553, image: 'https://cdn.pixabay.com/photo/2019/03/14/03/06/cashews-4054346_640.jpg' }
+        { name: 'Almonds', kcalPer100g: 579, icon: 'nut' },
+        { name: 'Cashews', kcalPer100g: 553, icon: 'nut' }
       ]
     };
 
     // Simulated food database for custom searches
     const foodDatabase = {
-      "apple pie": { calories: 237, image: "https://cdn.pixabay.com/photo/2016/01/22/16/42/apple-pie-1156685_640.jpg" },
-      "chicken breast": { calories: 165, image: "https://cdn.pixabay.com/photo/2015/03/26/10/28/chicken-691691_640.jpg" },
-      "rice": { calories: 130, image: "https://cdn.pixabay.com/photo/2014/10/22/18/43/rice-498688_640.jpg" },
-      "pasta": { calories: 131, image: "https://cdn.pixabay.com/photo/2014/11/05/15/57/pasta-518434_640.jpg" },
-      "salad": { calories: 33, image: "https://cdn.pixabay.com/photo/2016/08/18/18/40/salad-1603608_640.jpg" },
-      "pizza": { calories: 266, image: "https://cdn.pixabay.com/photo/2017/09/30/15/10/plate-2802332_640.jpg" },
-      "burger": { calories: 295, image: "https://cdn.pixabay.com/photo/2016/03/05/19/02/hamburger-1238246_640.jpg" },
-      "chocolate": { calories: 546, image: "https://cdn.pixabay.com/photo/2013/09/18/18/24/chocolate-183543_640.jpg" },
-      "cookie": { calories: 353, image: "https://cdn.pixabay.com/photo/2018/02/17/21/35/cookies-3160651_640.jpg" },
-      "sandwich": { calories: 289, image: "https://cdn.pixabay.com/photo/2017/05/10/17/27/sandwich-2301387_640.jpg" }
+      "apple pie": { calories: 237, icon: "utensils" },
+      "chicken breast": { calories: 165, icon: "utensils" },
+      "rice": { calories: 130, icon: "utensils" },
+      "pasta": { calories: 131, icon: "utensils" },
+      "salad": { calories: 33, icon: "utensils" },
+      "pizza": { calories: 266, icon: "utensils" },
+      "burger": { calories: 295, icon: "utensils" },
+      "chocolate": { calories: 546, icon: "utensils" },
+      "cookie": { calories: 353, icon: "utensils" },
+      "sandwich": { calories: 289, icon: "utensils" }
+    };
+
+    // Exercise database with icons
+    const exercises = {
+      daily: [
+        { name: "Walking (2 mph)", met: 2.5, icon: "footprints" },
+        { name: "Walking (3 mph)", met: 3.3, icon: "footprints" },
+        { name: "Housework (light)", met: 2.5, icon: "brush" },
+        { name: "Gardening (active)", met: 4.0, icon: "sprout" },
+        { name: "Cycling (leisurely)", met: 3.5, icon: "bike" }
+      ],
+      heavy: [
+        { name: "Running", met: 11.5, icon: "run" },
+        { name: "Swimming", met: 10, icon: "waves" },
+        { name: "Basketball", met: 8.0, icon: "target" }
+      ],
+      gym: [
+        { name: "Weight Lifting", met: 6, icon: "dumbbell" },
+        { name: "Treadmill", met: 8, icon: "run" }
+      ],
+      light: [
+        { name: "Walking", met: 3.5, icon: "footprints" },
+        { name: "Cycling", met: 6, icon: "bike" }
+      ],
+      yoga: [
+        { name: "Yoga", met: 2.5, icon: "yoga" }
+      ]
     };
 
     // Initialize the UI when the page loads
     window.onload = () => {
       renderFoodCategories();
+      loadExercises('daily'); // Load default category
       lucide.createIcons();
-      
-      // Back to top functionality
       const backToTopBtn = document.getElementById("backToTopBtn");
-      
+      window.addEventListener("scroll", function() {
+        if (window.pageYOffset > 300) {
+          backToTopBtn.style.display = "block";
+        } else {
+          backToTopBtn.style.display = "none";
+        }
+      });
       backToTopBtn.addEventListener("click", function() {
         window.scrollTo({
           top: 0,
@@ -250,18 +384,29 @@
       });
     };
 
+    // Validate number input
+    function validateNumberInput(value, min = 0, max = 10000) {
+      const num = parseFloat(value);
+      return !isNaN(num) && num >= min && num <= max;
+    }
+
     // Search for custom food
     function searchCustomFood() {
       const foodName = document.getElementById("customFoodName").value.toLowerCase().trim();
       const grams = parseFloat(document.getElementById("customFoodGrams").value);
       const resultDiv = document.getElementById("customFoodResult");
       
-      if (!foodName || !grams || isNaN(grams) || grams <= 0) {
-        alert("Please enter both a food name and valid amount in grams");
+      if (!foodName || !validateNumberInput(grams, 1)) {
+        alert("Please enter both a food name and valid amount in grams (minimum 1g)");
+        return;
+      }
+      
+      const meal = document.querySelector('input[name="meal_type"]:checked')?.value;
+      if (!meal) {
+        alert("Please select a meal type.");
         return;
       }
 
-      // Simulate a search with loading state
       resultDiv.innerHTML = `
         <div class="text-center py-4">
           <i data-lucide="loader" class="animate-spin mx-auto mb-2"></i>
@@ -271,16 +416,11 @@
       resultDiv.classList.remove("hidden");
       lucide.createIcons();
       
-      // Simulated delay to mimic web search
       setTimeout(() => {
-        // Check our simple database (in real implementation, this would be an API call)
         let found = false;
-        
-        // Try to find exact match
         if (foodDatabase[foodName]) {
           found = foodName;
         } else {
-          // Try to find partial match
           for (const key of Object.keys(foodDatabase)) {
             if (key.includes(foodName) || foodName.includes(key)) {
               found = key;
@@ -297,7 +437,9 @@
           resultDiv.innerHTML = `
             <div class="bg-green-50 border border-green-200 rounded p-4">
               <div class="flex items-center">
-                <img src="${item.image}" alt="${found}" class="food-img mr-4" onerror="this.src='https://via.placeholder.com/70'">
+                <div class="icon-sticker mr-4">
+                  <i data-lucide="${item.icon}" class="w-6 h-6 text-cal-blue"></i>
+                </div>
                 <div>
                   <h3 class="font-semibold text-lg capitalize">${found}</h3>
                   <p>${item.calories} kcal per 100g</p>
@@ -327,134 +469,307 @@
 
     // Add custom food to log
     function addCustomFoodToLog(name, calories) {
+      console.log("addCustomFoodToLog called for:", name, calories);
       const meal = document.querySelector('input[name="meal_type"]:checked')?.value;
       if (!meal) {
-        return alert("Please select a meal type.");
+        console.warn("No meal type selected");
+        alert("Please select a meal type.");
+        return;
       }
 
-      logItems.push({ name, calories, meal });
-      netCalories += calories;
-      updateLog();
-      
-      // Clear form
-      document.getElementById("customFoodName").value = "";
-      document.getElementById("customFoodGrams").value = "";
-      document.getElementById("customFoodResult").classList.add("hidden");
-      
-      // Show success notification
-      const resultDiv = document.getElementById("customFoodResult");
-      resultDiv.innerHTML = `
-        <div class="bg-green-50 border border-green-200 rounded p-4 text-green-800">
-          Added ${name} (${calories} kcal) to your ${meal} log!
-        </div>
-      `;
-      resultDiv.classList.remove("hidden");
-      
-      // Hide notification after a few seconds
-      setTimeout(() => {
-        resultDiv.classList.add("hidden");
-      }, 3000);
-    }
+      try {
+        logItems.push({ type: 'food', name, calories, meal });
+        totalFoodCalories += calories;
+        updateNetCalories();
+        updateLog();
 
-    // Render all food categories and items
-    function renderFoodCategories() {
-      const container = document.getElementById("foodCategories");
-      for (const category in foods) {
-        const sectionId = category.toLowerCase();
-        const section = document.createElement("div");
-        section.className = "border rounded mb-6";
-        section.innerHTML = `
-          <button class="w-full p-3 text-left font-semibold bg-gray-100" onclick="toggleSection('${sectionId}')">
-            ${category}
-          </button>
-          <div id="${sectionId}" class="hidden p-4">
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              ${foods[category].map(item => `
-                <div class="bg-white p-3 rounded shadow text-center food-item">
-                  <img src="${item.image}" class="food-img mx-auto mb-2" onerror="this.src='https://via.placeholder.com/70'" />
-                  <h3 class="font-semibold mb-1">${item.name}</h3>
-                  <p class="text-sm text-gray-600 mb-2">${item.kcalPer100g} kcal per 100g</p>
+        const customFoodName = document.getElementById("customFoodName");
+        const customFoodGrams = document.getElementById("customFoodGrams");
+        const customFoodResult = document.getElementById("customFoodResult");
+        if (!customFoodName || !customFoodGrams || !customFoodResult) {
+          console.error("Custom food input elements not found");
+          return;
+        }
 
-                  <div class="flex flex-col gap-2">
-                    <input type="number" placeholder="grams" id="${item.name.replace(/\s+/g, '')}Grams" class="w-full p-1 border rounded" />
-                    <span class="text-gray-500 text-sm">or</span>
-                    <input type="number" placeholder="calories" id="${item.name.replace(/\s+/g, '')}Calories" class="w-full p-1 border rounded" />
-                  </div>
+        customFoodName.value = "";
+        customFoodGrams.value = "";
+        customFoodResult.classList.add("hidden");
 
-                  <button class="btn mt-2" onclick="logFood('${item.name}', ${item.kcalPer100g})">Add</button>
-                </div>
-              `).join('')}
-            </div>
+        customFoodResult.innerHTML = `
+          <div class="bg-green-50 border border-green-200 rounded p-4 text-green-800">
+            Added ${name} (${calories} kcal) to your ${meal} log!
           </div>
         `;
-        container.appendChild(section);
+        customFoodResult.classList.remove("hidden");
+
+        setTimeout(() => {
+          customFoodResult.classList.add("hidden");
+        }, 3000);
+      } catch (error) {
+        console.error("Error in addCustomFoodToLog:", error);
       }
     }
 
-    // Toggle visibility of a food category section
-    function toggleSection(id) {
-      document.getElementById(id).classList.toggle("hidden");
+    // Render food categories tabs
+    function renderFoodCategories() {
+      loadFoods('Bakery'); // Load default category
+    }
+
+    // Load foods for selected category
+    function loadFoods(category) {
+      try {
+        console.log("loadFoods called for:", category);
+        const tabs = document.querySelectorAll(".tab[data-category]");
+        tabs.forEach(tab => {
+          tab.classList.toggle("active", tab.dataset.category === category);
+        });
+
+        const carousel = document.getElementById("foodCarousel");
+        const prevBtn = document.getElementById("prevFood");
+        const nextBtn = document.getElementById("nextFood");
+        carousel.innerHTML = "";
+
+        if (!category || !foods[category]) {
+          prevBtn.classList.add("hidden");
+          nextBtn.classList.add("hidden");
+          return;
+        }
+
+        foods[category].forEach(item => {
+          const div = document.createElement("div");
+          div.className = "carousel-item food-item bg-white rounded-lg shadow-sm p-4";
+          div.innerHTML = `
+            <div class="flex items-center mb-3">
+              <div class="icon-sticker mr-3">
+                <i data-lucide="${item.icon}" class="w-6 h-6 text-cal-blue"></i>
+              </div>
+              <h3 class="font-semibold">${item.name}</h3>
+            </div>
+            <p class="text-sm text-gray-600 mb-2">${item.kcalPer100g} kcal/100g</p>
+            <input type="number" id="food-${btoa(item.name).slice(0, 10)}Grams" 
+                   placeholder="Grams" class="w-full p-2 border rounded mb-1 text-sm" min="1"
+                   aria-label="Grams of ${item.name}"/>
+            <span class="text-gray-500 text-sm block text-center mb-1">or</span>
+            <input type="number" id="food-${btoa(item.name).slice(0, 10)}Calories" 
+                   placeholder="Calories" class="w-full p-2 border rounded mb-3 text-sm" min="1"
+                   aria-label="Calories of ${item.name}"/>
+            <button onclick="logFood('${item.name}', ${item.kcalPer100g})" 
+                    class="btn-primary w-full text-sm transition-transform hover:scale-105"
+                    aria-label="Add ${item.name} to log">
+              <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Add
+            </button>
+          `;
+          carousel.appendChild(div);
+        });
+
+        prevBtn.classList.toggle("hidden", foods[category].length <= 1);
+        nextBtn.classList.toggle("hidden", foods[category].length <= 1);
+
+        prevBtn.onclick = () => carousel.scrollBy({ left: -280, behavior: "smooth" });
+        nextBtn.onclick = () => carousel.scrollBy({ left: 280, behavior: "smooth" });
+
+        lucide.createIcons();
+      } catch (error) {
+        console.error("Error in loadFoods:", error);
+      }
     }
 
     // Log a food item to the daily log
     function logFood(name, kcalPer100g) {
-      const grams = parseFloat(document.getElementById(name.replace(/\s+/g, '') + 'Grams').value);
-      const caloriesInput = parseFloat(document.getElementById(name.replace(/\s+/g, '') + 'Calories').value);
-      let calories;
-
-      if (!isNaN(grams) && grams > 0) {
-        calories = (grams / 100) * kcalPer100g;
-      } else if (!isNaN(caloriesInput) && caloriesInput > 0) {
-        calories = caloriesInput;
-      } else {
-        return alert("Please enter either grams or calories.");
-      }
-
+      console.log("logFood called for:", name, kcalPer100g);
       const meal = document.querySelector('input[name="meal_type"]:checked')?.value;
       if (!meal) {
-        return alert("Please select a meal type.");
+        console.warn("No meal type selected");
+        alert("Please select a meal type before adding food.");
+        return;
       }
 
-      logItems.push({ name, calories: Math.round(calories), meal });
-      netCalories += calories;
-      updateLog();
+      try {
+        const gramsInput = document.getElementById(`food-${btoa(name).slice(0, 10)}Grams`);
+        const caloriesInput = document.getElementById(`food-${btoa(name).slice(0, 10)}Calories`);
+        if (!gramsInput || !caloriesInput) {
+          console.error("Input elements not found for:", name);
+          return;
+        }
 
-      // Clear inputs after adding
-      document.getElementById(name.replace(/\s+/g, '') + 'Grams').value = "";
-      document.getElementById(name.replace(/\s+/g, '') + 'Calories').value = "";
+        const grams = parseFloat(gramsInput.value);
+        const caloriesInputValue = parseFloat(caloriesInput.value);
+        let calories;
+
+        if (validateNumberInput(grams, 1)) {
+          calories = (grams / 100) * kcalPer100g;
+        } else if (validateNumberInput(caloriesInputValue, 1)) {
+          calories = caloriesInputValue;
+        } else {
+          console.warn("Invalid input for grams or calories");
+          alert("Please enter either grams (minimum 1g) or calories (minimum 1 kcal).");
+          return;
+        }
+
+        console.log("Adding to logItems:", { type: 'food', name, calories: Math.round(calories), meal });
+        logItems.push({ type: 'food', name, calories: Math.round(calories), meal });
+        totalFoodCalories += Math.round(calories);
+        updateNetCalories();
+        updateLog();
+
+        gramsInput.value = "";
+        caloriesInput.value = "";
+      } catch (error) {
+        console.error("Error in logFood:", error);
+      }
+    }
+
+    // Update dashboard and log
+    function updateNetCalories() {
+      try {
+        netCalories = totalFoodCalories - totalExerciseCalories;
+        console.log("Net calories updated:", { totalFoodCalories, totalExerciseCalories, netCalories });
+      } catch (error) {
+        console.error("Error in updateNetCalories:", error);
+      }
     }
 
     // Update the log display
     function updateLog() {
-      const list = document.getElementById("logList");
-      list.innerHTML = "";
-      logItems.forEach(item => {
-        const li = document.createElement("li");
-        li.textContent = `${item.name} - ${item.calories} kcal (${item.meal})`;
-        list.appendChild(li);
-      });
-      document.getElementById("netCal").textContent = Math.round(netCalories);
+      try {
+        console.log("updateLog called, logItems:", logItems);
+        const list = document.getElementById("logList");
+        if (!list) {
+          console.error("logList element not found");
+          return;
+        }
+        list.innerHTML = "";
+        logItems.forEach(item => {
+          const li = document.createElement("li");
+          if (item.type === 'food') {
+            li.textContent = `${item.name} - ${item.calories} kcal (${item.meal})`;
+            li.classList.add("text-blue-600");
+          } else if (item.type === 'exercise') {
+            li.textContent = `${item.name} - ${item.calories} kcal burned`;
+            li.classList.add("text-red-500");
+          }
+          list.appendChild(li);
+        });
+      } catch (error) {
+        console.error("Error in updateLog:", error);
+      }
     }
 
-    // Filter food items based on search input
-    function filterFoods() {
-      const query = document.getElementById("searchInput").value.toLowerCase();
-      const items = document.querySelectorAll(".food-item");
-      items.forEach(item => {
-        const name = item.querySelector("h3").textContent.toLowerCase();
-        item.style.display = name.includes(query) ? "block" : "none";
-      });
+    // Load exercises based on selected category
+    function loadExercises(category) {
+      try {
+        console.log("loadExercises called for:", category);
+        const tabs = document.querySelectorAll(".tab[data-category]");
+        tabs.forEach(tab => {
+          tab.classList.toggle("active", tab.dataset.category === category);
+        });
+
+        const carousel = document.getElementById("exerciseCarousel");
+        const prevBtn = document.getElementById("prevExercise");
+        const nextBtn = document.getElementById("nextExercise");
+        carousel.innerHTML = "";
+
+        if (!category || !exercises[category]) {
+          prevBtn.classList.add("hidden");
+          nextBtn.classList.add("hidden");
+          return;
+        }
+
+        exercises[category].forEach(ex => {
+          const div = document.createElement("div");
+          div.className = "carousel-item exercise-item bg-white rounded-lg shadow-sm p-4";
+          div.innerHTML = `
+            <div class="flex items-center mb-3">
+              <div class="icon-sticker mr-3">
+                <i data-lucide="${ex.icon}" class="w-6 h-6 text-red-500"></i>
+              </div>
+              <h3 class="font-semibold">${ex.name}</h3>
+            </div>
+            <p class="text-sm text-gray-600 mb-2">Est. ${Math.round((ex.met * 3.5 * userWeight / 200) * 30)} kcal/30min</p>
+            <input type="number" id="${ex.name.replace(/[^a-zA-Z0-9]/g, '')}Time" 
+                   placeholder="Time (min)" class="w-full p-2 border rounded mb-1 text-sm" min="1"
+                   aria-label="Time in minutes for ${ex.name}"/>
+            <input type="number" id="${ex.name.replace(/[^a-zA-Z0-9]/g, '')}Calories" 
+                   placeholder="Calories burnt" class="w-full p-2 border rounded mb-3 text-sm" min="1"
+                   aria-label="Calories burned for ${ex.name}"/>
+            <button onclick="logBurnt('${ex.name}', ${ex.met})" 
+                    class="btn-burn w-full text-sm transition-transform hover:scale-105"
+                    aria-label="Log ${ex.name} exercise">
+              <i data-lucide="flame" class="w-4 h-4 mr-1"></i> Log Burn
+            </button>
+          `;
+          carousel.appendChild(div);
+        });
+
+        prevBtn.classList.toggle("hidden", exercises[category].length <= 1);
+        nextBtn.classList.toggle("hidden", exercises[category].length <= 1);
+
+        prevBtn.onclick = () => carousel.scrollBy({ left: -280, behavior: "smooth" });
+        nextBtn.onclick = () => carousel.scrollBy({ left: 280, behavior: "smooth" });
+
+        lucide.createIcons();
+      } catch (error) {
+        console.error("Error in loadExercises:", error);
+      }
+    }
+
+    // Log burnt calories
+    function logBurnt(exercise, met) {
+      console.log("logBurnt called for:", exercise, met);
+      try {
+        const timeInput = document.getElementById(`${exercise.replace(/[^a-zA-Z0-9]/g, '')}Time`);
+        const caloriesInput = document.getElementById(`${exercise.replace(/[^a-zA-Z0-9]/g, '')}Calories`);
+
+        if (!timeInput || !caloriesInput) {
+          console.error("Exercise input elements not found for:", exercise);
+          return;
+        }
+
+        const time = parseFloat(timeInput.value);
+        const caloriesEntered = parseFloat(caloriesInput.value);
+
+        let burntCalories = 0;
+
+        if (validateNumberInput(caloriesEntered, 1)) {
+          burntCalories = caloriesEntered;
+        } else if (validateNumberInput(time, 1)) {
+          burntCalories = (met * 3.5 * userWeight / 200) * time;
+        } else {
+          console.warn("Invalid input for time or calories");
+          alert('Please enter either time (minimum 1 minute) or calories (minimum 1 kcal).');
+          return;
+        }
+
+        console.log("Adding to logItems:", { type: 'exercise', name: exercise, calories: Math.round(burntCalories) });
+        logItems.push({ type: 'exercise', name: exercise, calories: Math.round(burntCalories) });
+        totalExerciseCalories += Math.round(burntCalories);
+        updateNetCalories();
+        updateLog();
+
+        timeInput.value = "";
+        caloriesInput.value = "";
+      } catch (error) {
+        console.error("Error in logBurnt:", error);
+      }
     }
 
     // Submit the log
     function submitLog() {
-      if (logItems.length > 0) {
-        alert("Your log has been submitted!");
-        logItems = [];
-        netCalories = 0;
-        updateLog();
-      } else {
-        alert("Please log some food before submitting.");
+      try {
+        console.log("submitLog called, logItems:", logItems);
+        if (logItems.length > 0) {
+          alert("Your log has been submitted!");
+          logItems = [];
+          totalFoodCalories = 0;
+          totalExerciseCalories = 0;
+          netCalories = 0;
+          updateLog();
+          updateNetCalories();
+        } else {
+          alert("Please log some items before submitting.");
+        }
+      } catch (error) {
+        console.error("Error in submitLog:", error);
       }
     }
   </script>

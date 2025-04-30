@@ -8,86 +8,56 @@
     </p>
   </div>
 
-  <!-- Date Range Selector -->
-  <div class="bg-white rounded-lg shadow-md p-4 mb-6">
-    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-      <div class="flex items-center gap-4">
-        <div>
-          <label for="date-from" class="block text-sm font-medium text-gray-700"
-            >From</label
-          >
-          <input
-            type="date"
-            id="date-from"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-        <div>
-          <label for="date-to" class="block text-sm font-medium text-gray-700"
-            >To</label
-          >
-          <input
-            type="date"
-            id="date-to"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-      </div>
-      <button
-        id="update-charts"
-        class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
-      >
-        Update Charts
-      </button>
-    </div>
-  </div>
-
-  <!-- Calorie In-->
+  <!-- Calorie In & Out Section -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-    <!-- Health Score -->
+    <!-- Calorie In -->
     <div class="bg-white rounded-lg shadow-md p-4">
-      <h2 class="text-xl font-semibold text-gray-800 mb-4">Calorie In</h2>
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">
+        Calorie Intake Distribution
+      </h2>
       <div class="h-80">
-        <canvas id="Calorie In"></canvas>
+        <canvas id="calorieInChart"></canvas>
       </div>
     </div>
 
     <!-- Calorie Out -->
-    <div class="bg-white rounded-lg shadow-md p-6">
-      <h2 class="text-xl font-semibold text-gray-800 mb-4">Calorie Out</h2>
-      <div id="Calorie Out" class="space-y-4">
-        <!-- Insights will be dynamically populated -->
+    <div class="bg-white rounded-lg shadow-md p-4">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">
+        Calorie Burn Distribution
+      </h2>
+      <div class="h-80">
+        <canvas id="calorieOutChart"></canvas>
       </div>
     </div>
   </div>
 
-  <!-- Visualization Selector -->
-  <div class="mb-6">
-    <select
-      id="visualization-selector"
-      class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-    >
-      <option value="calorie-trends">Calorie Trends</option>
-      <option value="exercise-analysis">Exercise Distribution</option>
-      <!-- <option value="weight-sleep">Weight & Sleep Hours</option> -->
-      <option value="nutrition-analysis">Nutrition Analysis</option>
-      <option value="meal-distribution">Meal Type Distribution</option>
-    </select>
+  <!-- Calorie Trends -->
+  <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">Calorie Trends</h2>
+    <div class="h-80">
+      <canvas id="calorieTrendsChart"></canvas>
+    </div>
   </div>
 
-  <!-- Visualization Container -->
+  <!-- Nutrition Analysis -->
+  <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">Nutrition Analysis</h2>
+    <div class="h-80">
+      <canvas id="nutritionAnalysisChart"></canvas>
+    </div>
+    <div id="nutritionRecommendations" class="mt-4 p-4 bg-blue-50 rounded-lg">
+      <!-- Recommendations will be displayed here -->
+    </div>
+  </div>
+
+  <!-- Exercise Analysis -->
   <div class="bg-white rounded-lg shadow-md p-4">
-    <div id="visualization-container" class="h-96">
-      <!-- Selected visualization will be displayed here -->
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">Exercise Analysis</h2>
+    <div id="exerciseRecommendations" class="mt-4 p-4 bg-green-50 rounded-lg">
+      <!-- Recommendations will be displayed here -->
     </div>
   </div>
 </div>
 {% endblock %} {% block scripts %}
-<!-- Required Libraries -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-<script src="https://cdn.jsdelivr.net/npm/moment"></script>
-
-<script></script>
+<script src="{{ url_for('static', filename='js/visualisation.js') }}"></script>
 {% endblock %}

@@ -44,7 +44,7 @@ def login():
         # Login success, record user ID in session
         session['user_id'] = user.id
         # Redirect to sharing interface
-        return redirect(url_for('sharing'))
+        return redirect(url_for('home'))
     else:
         flash('Invalid email/username or password', 'error')
         return redirect(url_for('index'))

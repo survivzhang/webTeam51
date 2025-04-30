@@ -1,167 +1,224 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block content %}
 
-{% block content %}
-<div class="min-h-screen flex items-center justify-center">
-    <!-- Auth container with clean design -->
-    <div class="relative z-10 w-full max-w-md">
-        <!-- Login Form -->
-        <div id="login-form" class="bg-white rounded-lg shadow-md overflow-hidden p-8 transition-all duration-500">
-            <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Login</h1>
-            
-            <form action="{{ url_for('login') }}" method="post" class="space-y-6">
-                {{ login_form.csrf_token }}
-                
-                <div class="space-y-2">
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                            <i data-lucide="user" class="h-5 w-5 text-gray-500"></i>
-                        </div>
-                        {{ login_form.email(class="w-full pl-10 pr-4 py-3 border border-gray-300 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg", placeholder="Username or Email") }}
-                    </div>
-                </div>
-                
-                <div class="space-y-2">
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                            <i data-lucide="lock" class="h-5 w-5 text-gray-500"></i>
-                        </div>
-                        {{ login_form.password(class="w-full pl-10 pr-10 py-3 border border-gray-300 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg", placeholder="Password") }}
-                        <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-                            <button type="button" id="toggle-password" class="text-gray-500 hover:text-gray-700 focus:outline-none">
-                                <i data-lucide="eye" class="h-5 w-5"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        {{ login_form.remember(class="h-4 w-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500") }}
-                        <label for="{{ login_form.remember.id }}" class="ml-2 text-sm text-gray-600">Remember me</label>
-                    </div>
-                    <a href="#" class="text-sm text-blue-500 hover:underline">Forgot Password?</a>
-                </div>
-                
-                <button type="submit" class="w-full py-3 px-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition duration-200">
-                    Login
-                </button>
-            </form>
-            
-            <div class="text-center mt-6">
-                <p class="text-gray-600">Don't have an account? 
-                    <a href="#" id="show-register" class="font-semibold text-blue-500 hover:underline">Register</a>
-                </p>
-            </div>
-        </div>
-        
-        <!-- Register Form -->
-        <div id="register-form" class="hidden bg-white rounded-lg shadow-md overflow-hidden p-8 transition-all duration-500">
-            <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Register</h1>
-            
-            <form action="{{ url_for('register') }}" method="post" class="space-y-6">
-                {{ register_form.csrf_token }}
-                
-                <div class="space-y-2">
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                            <i data-lucide="user" class="h-5 w-5 text-gray-500"></i>
-                        </div>
-                        {{ register_form.username(class="w-full pl-10 pr-4 py-3 border border-gray-300 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg", placeholder="Username") }}
-                    </div>
-                </div>
-                
-                <div class="space-y-2">
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                            <i data-lucide="mail" class="h-5 w-5 text-gray-500"></i>
-                        </div>
-                        {{ register_form.email(class="w-full pl-10 pr-4 py-3 border border-gray-300 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg", placeholder="Email") }}
-                    </div>
-                </div>
-                
-                <div class="space-y-2">
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                            <i data-lucide="lock" class="h-5 w-5 text-gray-500"></i>
-                        </div>
-                        {{ register_form.password(class="w-full pl-10 pr-10 py-3 border border-gray-300 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg", placeholder="Password") }}
-                        <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-                            <button type="button" id="toggle-reg-password" class="text-gray-500 hover:text-gray-700 focus:outline-none">
-                                <i data-lucide="eye" class="h-5 w-5"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="space-y-2">
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                            <i data-lucide="lock" class="h-5 w-5 text-gray-500"></i>
-                        </div>
-                        {{ register_form.confirm_password(class="w-full pl-10 pr-4 py-3 border border-gray-300 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg", placeholder="Confirm Password") }}
-                    </div>
-                </div>
-                
-                <button type="submit" class="w-full py-3 px-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition duration-200">
-                    Create Account
-                </button>
-            </form>
-            
-            <div class="text-center mt-6">
-                <p class="text-gray-600">Already have an account? 
-                    <a href="#" id="show-login" class="font-semibold text-blue-500 hover:underline">Login</a>
-                </p>
-            </div>
-        </div>
+<!-- Welcome Section + Auth Form -->
+<section class="grid md:grid-cols-2 gap-10 items-center mt-10">
+  <div class="space-y-6 flex flex-col items-center justify-center text-center">
+    <div class="sm:mx-auto sm:w-full sm:max-w-sm">
+      <img
+        class="mx-auto h-12 w-auto"
+        src="{{ url_for('static', filename='images/logo.svg') }}"
+        alt="CalTrack Logo"
+      />
+      <h2 class="text-4xl font-bold text-center">Welcome to CalTrack</h2>
     </div>
-</div>
 
+    <!-- Login/Register Form Section -->
+    <div class="relative z-10 w-full max-w-md">
+      <!-- Login -->
+      <div
+        id="login-form"
+        class="bg-white rounded-lg shadow-md overflow-hidden p-8 transition-all duration-500"
+      >
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Login</h1>
+        <form method="post" action="{{ url_for('login') }}" class="space-y-6">
+          {{ login_form.csrf_token }}
+
+          <div class="relative">
+            <div
+              class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+            >
+              <i data-lucide="user" class="h-5 w-5 text-gray-500"></i>
+            </div>
+            {{ login_form.email(class="w-full pl-10 pr-4 py-3 border
+            border-gray-300 text-gray-700 placeholder-gray-400 rounded-lg",
+            placeholder="Email") }}
+          </div>
+
+          <div class="relative">
+            <div
+              class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+            >
+              <i data-lucide="lock" class="h-5 w-5 text-gray-500"></i>
+            </div>
+            {{ login_form.password(class="w-full pl-10 pr-10 py-3 border
+            border-gray-300 text-gray-700 placeholder-gray-400 rounded-lg",
+            placeholder="Password", id=login_form.password.id) }}
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+              <button type="button" id="toggle-password" class="text-gray-500">
+                <i data-lucide="eye" class="h-5 w-5"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              {{ login_form.remember(class="h-4 w-4 border-gray-300
+              text-blue-500") }}
+              <label
+                for="{{ login_form.remember.id }}"
+                class="ml-2 text-sm text-gray-600"
+                >Remember me</label
+              >
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            class="w-full py-3 bg-blue-500 text-white font-semibold rounded-lg"
+          >
+            Login
+          </button>
+        </form>
+
+        <p class="text-center mt-6 text-sm text-gray-600">
+          Don't have an account?
+          <a href="#" id="show-register" class="text-blue-500 hover:underline"
+            >Register</a
+          >
+        </p>
+      </div>
+
+      <!-- Register -->
+      <div
+        id="register-form"
+        class="hidden bg-white rounded-lg shadow-md overflow-hidden p-8 transition-all duration-500"
+      >
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">
+          Register
+        </h1>
+        <form
+          method="post"
+          action="{{ url_for('register') }}"
+          class="space-y-6"
+        >
+          {{ register_form.csrf_token }}
+
+          <div class="relative">
+            {{ register_form.username(class="w-full pl-10 pr-4 py-3 border
+            border-gray-300 text-gray-700 rounded-lg", placeholder="Username")
+            }}
+          </div>
+
+          <div class="relative">
+            {{ register_form.email(class="w-full pl-10 pr-4 py-3 border
+            border-gray-300 text-gray-700 rounded-lg", placeholder="Email") }}
+          </div>
+
+          <div class="relative">
+            {{ register_form.password(class="w-full pl-10 pr-10 py-3 border
+            border-gray-300 text-gray-700 rounded-lg", placeholder="Password",
+            id=register_form.password.id) }}
+          </div>
+
+          <div class="relative">
+            {{ register_form.confirm_password(class="w-full pl-10 pr-4 py-3
+            border border-gray-300 text-gray-700 rounded-lg",
+            placeholder="Confirm Password") }}
+          </div>
+
+          <button
+            type="submit"
+            class="w-full py-3 bg-blue-500 text-white font-semibold rounded-lg"
+          >
+            Create Account
+          </button>
+        </form>
+
+        <p class="text-center mt-6 text-sm text-gray-600">
+          Already have an account?
+          <a href="#" id="show-login" class="text-blue-500 hover:underline"
+            >Login</a
+          >
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Image -->
+  <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+    <img
+      src="{{ url_for('static', filename='images/healthy-food.jpg') }}"
+      alt="Healthy Food"
+      class="w-full object-cover"
+    />
+    <div class="p-6">
+      <h2 class="font-bold text-xl mb-2">Start Your Health Journey Today</h2>
+      <p class="text-gray-600">
+        Track your meals, monitor your exercise, and achieve your health goals
+        with CalTrack's comprehensive tools and intuitive interface.
+      </p>
+    </div>
+  </div>
+</section>
+<section class="grid md:grid-cols-3 gap-6 mt-16">
+  <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+    <div class="bg-blue-100 p-2 inline-block rounded-xl mb-4">
+      <i data-lucide="utensils" class="w-12 h-12 text-cal-blue"></i>
+    </div>
+    <h3 class="font-semibold mb-1">Smart Meal Tracking</h3>
+    <p class="text-gray-600 text-sm">
+      Easily log your meals and track nutritional information with our
+      comprehensive database.
+    </p>
+  </div>
+
+  <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+    <div class="bg-blue-100 p-2 inline-block rounded-xl mb-4">
+      <i data-lucide="dumbbell" class="w-12 h-12 text-cal-blue"></i>
+    </div>
+    <h3 class="font-semibold mb-1">Exercise Analytics</h3>
+    <p class="text-gray-600 text-sm">
+      Monitor your workouts and see detailed statistics about your physical
+      activities.
+    </p>
+  </div>
+
+  <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+    <div class="bg-blue-100 p-2 inline-block rounded-xl mb-4">
+      <i data-lucide="trending-up" class="w-12 h-12 text-cal-blue"></i>
+    </div>
+    <h3 class="font-semibold mb-1">Progress Insights</h3>
+    <p class="text-gray-600 text-sm">
+      Get detailed insights and visualizations of your health journey progress.
+    </p>
+  </div>
+</section>
 <script>
-    // Toggle password visibility
-    document.getElementById('toggle-password').addEventListener('click', function() {
-        const passwordInput = document.getElementById('{{ login_form.password.id }}');
-        const icon = this.querySelector('i');
-        
-        if (passwordInput.type === 'password') {
-            passwordInput.type = 'text';
-            icon.setAttribute('data-lucide', 'eye-off');
-        } else {
-            passwordInput.type = 'password';
-            icon.setAttribute('data-lucide', 'eye');
-        }
-        lucide.createIcons();
+  document
+    .getElementById("show-register")
+    ?.addEventListener("click", function (e) {
+      e.preventDefault();
+      document.getElementById("login-form").classList.add("hidden");
+      document.getElementById("register-form").classList.remove("hidden");
     });
-    
-    document.getElementById('toggle-reg-password').addEventListener('click', function() {
-        const passwordInput = document.getElementById('{{ register_form.password.id }}');
-        const icon = this.querySelector('i');
-        
-        if (passwordInput.type === 'password') {
-            passwordInput.type = 'text';
-            icon.setAttribute('data-lucide', 'eye-off');
-        } else {
-            passwordInput.type = 'password';
-            icon.setAttribute('data-lucide', 'eye');
-        }
-        lucide.createIcons();
+
+  document
+    .getElementById("show-login")
+    ?.addEventListener("click", function (e) {
+      e.preventDefault();
+      document.getElementById("register-form").classList.add("hidden");
+      document.getElementById("login-form").classList.remove("hidden");
     });
-    
-    // Switch between login and register forms
-    document.getElementById('show-register').addEventListener('click', function(e) {
-        e.preventDefault();
-        document.getElementById('login-form').classList.add('hidden');
-        document.getElementById('register-form').classList.remove('hidden');
+
+  document
+    .getElementById("toggle-password")
+    ?.addEventListener("click", function () {
+      const passwordInput = document.getElementById(
+        "{{ login_form.password.id }}"
+      );
+      const icon = this.querySelector("i");
+      passwordInput.type =
+        passwordInput.type === "password" ? "text" : "password";
+      icon.setAttribute(
+        "data-lucide",
+        passwordInput.type === "password" ? "eye" : "eye-off"
+      );
+      lucide.createIcons();
     });
-    
-    document.getElementById('show-login').addEventListener('click', function(e) {
-        e.preventDefault();
-        document.getElementById('register-form').classList.add('hidden');
-        document.getElementById('login-form').classList.remove('hidden');
-    });
-    
-    // Initialize Lucide icons
-    document.addEventListener('DOMContentLoaded', function() {
-        lucide.createIcons();
-    });
+
+  document.addEventListener("DOMContentLoaded", function () {
+    lucide.createIcons();
+  });
 </script>
+
 {% endblock %}

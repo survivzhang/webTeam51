@@ -9,7 +9,7 @@
 
   <div class="bg-white p-6 rounded-lg shadow-md mb-8">
     <!-- 确保画布有足够的大小 -->
-    <canvas id="statistics" width="100%" height="80px"></canvas>
+    <canvas id="statistics" width="100%" height="40px"></canvas>
   </div>
 
   <div class="flex justify-center">
@@ -33,7 +33,7 @@
         {
           label: "Calories In",
           data: Array.from({ length: DATA_COUNT }, () =>
-            Math.floor(Math.random() * 200 - 100)
+            Math.floor(Math.random() * 100)
           ),
           borderColor: "#63b3ed",
           backgroundColor: "rgba(99, 179, 237, 0.5)",
@@ -41,10 +41,10 @@
         {
           label: "Calories Out",
           data: Array.from({ length: DATA_COUNT }, () =>
-            Math.floor(Math.random() * 200 - 100)
+            Math.floor(Math.random() * 100)
           ),
-          borderColor: "#fbccef",
-          backgroundColor: "rgba(246, 216, 239, 0.5)",
+          borderColor: "#72ee3f",
+          backgroundColor: "rgba(153, 244, 115, 0.5)",
         },
       ],
     };

@@ -955,4 +955,35 @@ document
 // Initialize Lucide icons after DOM is fully loaded
 document.addEventListener("DOMContentLoaded", function () {
   lucide.createIcons();
+
+  document
+    .getElementById("share-all-data")
+    .addEventListener("change", function () {
+      const isChecked = this.checked;
+      const selectors = [
+        ".meal-type-checkbox",
+        ".metrics-checkbox",
+        ".exercise-type-checkbox",
+      ];
+      selectors.forEach((selector) => {
+        document.querySelectorAll(selector).forEach((checkbox) => {
+          checkbox.checked = isChecked;
+        });
+      });
+    });
+
+  // 自动同步取消“全选”勾选状态
+  document
+    .querySelectorAll(
+      ".meal-type-checkbox, .metrics-checkbox, .exercise-type-checkbox"
+    )
+    .forEach((checkbox) => {
+      checkbox.addEventListener("change", function () {
+        const allCheckboxes = document.querySelectorAll(
+          ".meal-type-checkbox, .metrics-checkbox, .exercise-type-checkbox"
+        );
+        const allChecked = Array.from(allCheckboxes).every((cb) => cb.checked);
+        document.getElementById("share-all-data").checked = allChecked;
+      });
+    });
 });

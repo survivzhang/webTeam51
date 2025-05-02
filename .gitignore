@@ -173,3 +173,10 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 .Ds_Store
+# SQLite database files
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm

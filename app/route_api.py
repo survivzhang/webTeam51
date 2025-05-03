@@ -607,37 +607,45 @@ def save_meal():
     user_id = session.get('user_id')
     today = date.today()
     
-    # Get form data
+    # 获取表单字段（前端提交的是 multipart/form-data）
     meal_type_id = request.form.get('meal_type_id', type=int)
-    calories = request.form.get('calories', type=int)
-    
-    # Validate required fields
-    if not meal_type_id or not calories:
-        flash('Please select a meal type and enter calories', 'error')
+    energy_kcal = request.form.get('energy_kcal', type=float) or request.form.get('calories', type=float)
+    carbohydrates = request.form.get('carbohydrates', type=float)
+    proteins = request.form.get('proteins', type=float)
+    fats = request.form.get('fats', type=float)
+    sugars = request.form.get('sugars', type=float)
+    fiber = request.form.get('fiber', type=float)
+
+    # 校验字段
+    if not meal_type_id or energy_kcal is None:
+        flash('Please select a meal type and enter energy', 'error')
         return redirect(url_for('upload'))
-    
+
     try:
-        # Verify meal type exists
         meal_type = db.session.get(MealType, meal_type_id)
         if not meal_type:
             flash('Invalid meal type', 'error')
             return redirect(url_for('upload'))
         
-        # Create new calorie entry
         new_entry = CalorieEntry(
             user_id=user_id,
             date=today,
             meal_type_id=meal_type_id,
-            calories=calories
+            energy_kcal=energy_kcal,
+            carbohydrates=carbohydrates,
+            proteins=proteins,
+            fats=fats,
+            sugars=sugars,
+            fiber=fiber
         )
-        
+
         db.session.add(new_entry)
         db.session.commit()
         flash('Meal added successfully!', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'Error saving meal: {str(e)}', 'error')
-    
+
     return redirect(url_for('upload'))
 
 

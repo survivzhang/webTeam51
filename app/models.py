@@ -73,6 +73,13 @@ class CalorieEntry(db.Model):
 
     def __repr__(self):
         return f'<CalorieEntry {self.id} for user {self.user_id}>'
+    @property
+    def calories(self):
+        return self.energy_kcal
+
+    @calories.setter
+    def calories(self, value):
+        self.energy_kcal = value
 
 class Friendship(db.Model):
     __tablename__ = 'friendships'

@@ -180,3 +180,6 @@ cython_debug/
 *.db-journal
 *.db-wal
 *.db-shm
+
+# Profile photos
+app/static/profile_photos/

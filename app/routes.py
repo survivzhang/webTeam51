@@ -62,89 +62,65 @@ def login():
 def register():
     login_form = LoginForm()
     register_form = RegistrationForm()
-    
-    # Debug: Print database file path
     from config import Config
     db_path = Config.SQLALCHEMY_DATABASE_URI
     print(f"Database path: {db_path}")
     db_file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'app.db')
     print(f"Database file exists: {os.path.exists(db_file_path)}")
-    
     if register_form.validate_on_submit():
         username = register_form.username.data
         email = register_form.email.data
         password = register_form.password.data
-        
         try:
-            # Check if username and email already exist
             if not valid_regist(username, email):
                 flash('Username or email already exists', 'error')
                 return redirect(url_for('index'))
-            
             try:
-                # Create new user
                 new_user = User(
                     username=username,
                     email=email,
                     password_hash=generate_password_hash(password),
                     created_at=datetime.utcnow()
                 )
-                
-                # Debug print
                 print(f"Creating user: {username}, email: {email}")
-                
-                # Add to session
                 db.session.add(new_user)
-                
-                # Explicitly flush to check for errors before commit
                 db.session.flush()
-                
-                # Commit changes
                 db.session.commit()
-                
-                # Verify user in database
                 saved_user = db.session.execute(
                     sa.select(User).where(User.username == username)
                 ).scalar_one_or_none()
-                
                 if saved_user:
                     print(f"User created and verified, ID: {saved_user.id}")
+                    # Log in the user and redirect to complete-profile
+                    session['user_id'] = saved_user.id
+                    return redirect(url_for('complete_profile'))
                 else:
                     print("Error: User not found in database after commit!")
-                    # Try direct SQL as fallback
                     try:
                         direct_insert_user(username, email, password)
                     except Exception as sql_error:
                         print(f"Direct SQL insertion also failed: {str(sql_error)}")
-                
                 flash('Registration successful! You can now log in', 'success')
                 return redirect(url_for('index'))
-            
             except Exception as orm_error:
                 db.session.rollback()
                 print(f"ORM error: {str(orm_error)}")
-                
-                # Try direct SQL insertion as fallback
                 try:
                     direct_insert_user(username, email, password)
                     flash('Registration successful! You can now log in', 'success')
                     return redirect(url_for('index'))
                 except Exception as sql_error:
                     print(f"Direct SQL insertion also failed: {str(sql_error)}")
-                    raise orm_error  # Rethrow original error
-        
+                    raise orm_error
         except Exception as e:
             db.session.rollback()
             error_details = traceback.format_exc()
             print(f"Registration error: {str(e)}\n{error_details}")
             flash(f'Error during registration process: {str(e)}', 'error')
             return redirect(url_for('index'))
-    
-    # If form validation fails, show errors
     for field, errors in register_form.errors.items():
         for error in errors:
             flash(f"{error}", 'error')
-    
     return render_template('index.html', title='Login', login_form=login_form, register_form=register_form)
 
 

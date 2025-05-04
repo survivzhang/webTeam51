@@ -125,27 +125,11 @@ def profile():
         user.bio = request.form.get('bio', user.bio)
         user.phone = request.form.get('phone', user.phone)
 
-        # Handle photo upload
-        file = request.files.get('photo')
-        if file and file.filename:
-            ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-            def allowed_file(filename):
-                return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-            if allowed_file(file.filename):
-                upload_folder = os.path.join(current_app.static_folder, 'profile_photos')
-                os.makedirs(upload_folder, exist_ok=True)
-                filename = secure_filename(file.filename)
-                unique_filename = f"{uuid.uuid4().hex}_{filename}"
-                file_path = os.path.join(upload_folder, unique_filename)
-                file.save(file_path)
-                # Remove old photo if exists
-                if user.photo:
-                    old_photo_path = os.path.join(upload_folder, user.photo)
-                    if os.path.exists(old_photo_path):
-                        os.remove(old_photo_path)
-                user.photo = unique_filename
-            else:
-                flash('Invalid file type for photo.', 'error')
+        # Save selected default photo
+        selected_photo = request.form.get('photo')
+        if selected_photo:
+            user.photo = selected_photo
+
         try:
             db.session.commit()
             flash('Profile updated successfully!', 'success')

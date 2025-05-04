@@ -17,6 +17,10 @@ class User(db.Model):
     password_hash: so.Mapped[Optional[str]] = so.mapped_column(sa.String(120), nullable=False)
     email: so.Mapped[str] = so.mapped_column(sa.String(120), unique=True, nullable=False)
     created_at: so.Mapped[datetime] = so.mapped_column(default=datetime.utcnow)
+    photo: so.Mapped[Optional[str]] = so.mapped_column(sa.String(255), nullable=True)  # Store filename of profile photo
+    gender: so.Mapped[Optional[str]] = so.mapped_column(sa.String(20), nullable=True)
+    bio: so.Mapped[Optional[str]] = so.mapped_column(sa.Text, nullable=True)
+    phone: so.Mapped[Optional[str]] = so.mapped_column(sa.String(30), nullable=True)
     
     # Relationships
     calorie_entries: so.Mapped[List['CalorieEntry']] = so.relationship(

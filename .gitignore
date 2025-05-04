@@ -181,5 +181,3 @@ cython_debug/
 *.db-wal
 *.db-shm
 
-# Profile photos
-app/static/profile_photos/

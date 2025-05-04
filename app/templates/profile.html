@@ -29,27 +29,44 @@
     Manage your name, password, and account settings.
   </p>
 
-  <div class="flex items-center space-x-6 mb-8">
-    <img
-      src="https://via.placeholder.com/100"
-      alt="Profile Photo"
-      class="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
-    />
-    <button
-      class="px-6 py-2 bg-cal-blue text-white text-sm font-medium rounded-lg hover:bg-cal-blue-dark focus:outline-none focus:ring-2 focus:ring-cal-blue"
-    >
-      Upload Photo
-    </button>
-  </div>
+  <form class="space-y-6" method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="flex items-center space-x-6 mb-8">
+      <img
+        src="{{ url_for('static', filename='profile_photos/' + current_user.photo if current_user.photo else 'default_profile.png') }}"
+        alt="Profile Photo"
+        class="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
+        id="profile-photo-preview"
+      />
+      <div>
+        <input
+          type="file"
+          id="photo-upload"
+          name="photo"
+          accept="image/*"
+          class="hidden"
+          onchange="previewPhoto(event)"
+        />
+        <button
+          type="button"
+          onclick="document.getElementById('photo-upload').click()"
+          class="px-6 py-2 bg-cal-blue text-white text-sm font-medium rounded-lg hover:bg-cal-blue-dark focus:outline-none focus:ring-2 focus:ring-cal-blue"
+        >
+          Upload Photo
+        </button>
+        <p class="text-xs text-gray-500 mt-2">Max file size: 5MB</p>
+      </div>
+    </div>
 
-  <form class="space-y-6">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
         <label for="fullName" class="block text-gray-700 mb-1">Full Name</label>
         <input
           id="fullName"
+          name="fullName"
           type="text"
-          placeholder="Maria Boone"
+          value="{{ current_user.username }}"
+          placeholder="Full Name"
           class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-cal-blue"
         />
       </div>
@@ -57,8 +74,10 @@
         <label for="email" class="block text-gray-700 mb-1">Email</label>
         <input
           id="email"
+          name="email"
           type="email"
-          placeholder="maria@site.com"
+          value="{{ current_user.email }}"
+          placeholder="Email"
           class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-cal-blue"
         />
       </div>
@@ -69,17 +88,17 @@
         <label for="password" class="block text-gray-700 mb-1">Password</label>
         <input
           id="password"
+          name="password"
           type="password"
           placeholder="Enter new password"
           class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-cal-blue"
         />
       </div>
       <div>
-        <label for="phone" class="block text-gray-700 mb-1"
-          >Phone (Optional)</label
-        >
+        <label for="phone" class="block text-gray-700 mb-1">Phone (Optional)</label>
         <input
           id="phone"
+          name="phone"
           type="tel"
           placeholder="+1 (xxx) xxx-xx-xx"
           class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-cal-blue"
@@ -97,6 +116,7 @@
               name="gender"
               value="male"
               class="text-cal-blue focus:ring-0"
+              {% if current_user.gender == 'male' %}checked{% endif %}
             />
             <span class="text-gray-700">Male</span>
           </label>
@@ -106,6 +126,7 @@
               name="gender"
               value="female"
               class="text-cal-blue focus:ring-0"
+              {% if current_user.gender == 'female' %}checked{% endif %}
             />
             <span class="text-gray-700">Female</span>
           </label>
@@ -115,6 +136,7 @@
               name="gender"
               value="other"
               class="text-cal-blue focus:ring-0"
+              {% if current_user.gender == 'other' %}checked{% endif %}
             />
             <span class="text-gray-700">Other</span>
           </label>
@@ -124,10 +146,11 @@
         <label for="bio" class="block text-gray-700 mb-1">BIO</label>
         <textarea
           id="bio"
+          name="bio"
           rows="4"
           placeholder="Type your message..."
           class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-cal-blue"
-        ></textarea>
+        >{{ current_user.bio if current_user.bio else '' }}</textarea>
       </div>
     </div>
 
@@ -141,4 +164,19 @@
     </div>
   </form>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function previewPhoto(event) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('profile-photo-preview').src = e.target.result;
+    }
+    reader.readAsDataURL(file);
+  }
+}
+</script>
 {% endblock %}

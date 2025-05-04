@@ -29,27 +29,33 @@
     Manage your name, password, and account settings.
   </p>
 
-  <div class="flex items-center space-x-6 mb-8">
-    <img
-      src="https://via.placeholder.com/100"
-      alt="Profile Photo"
-      class="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
-    />
-    <button
-      class="px-6 py-2 bg-cal-blue text-white text-sm font-medium rounded-lg hover:bg-cal-blue-dark focus:outline-none focus:ring-2 focus:ring-cal-blue"
-    >
-      Upload Photo
-    </button>
-  </div>
+  <form class="space-y-6" method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="flex items-center space-x-6 mb-8">
+      <img
+        src="{{ url_for('static', filename='profile_photos/' + current_user.photo if current_user.photo else 'profile_photos/vibrent_1.png') }}"
+        alt="Profile Photo"
+        class="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
+        id="profile-photo-preview"
+      />
+      <div>
+        <button type="button" id="choose-avatar-btn" class="px-6 py-2 bg-cal-blue text-white text-sm font-medium rounded-lg hover:bg-cal-blue-dark focus:outline-none focus:ring-2 focus:ring-cal-blue mb-2">
+          Choose from the default portrait
+        </button>
+        <input type="hidden" name="photo" id="selected-photo" value="{{ current_user.photo }}">
+        <p class="text-xs text-gray-500 mt-2">Choose a default profile photo</p>
+      </div>
+    </div>
 
-  <form class="space-y-6">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
         <label for="fullName" class="block text-gray-700 mb-1">Full Name</label>
         <input
           id="fullName"
+          name="fullName"
           type="text"
-          placeholder="Maria Boone"
+          value="{{ current_user.username }}"
+          placeholder="Full Name"
           class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-cal-blue"
         />
       </div>
@@ -57,8 +63,37 @@
         <label for="email" class="block text-gray-700 mb-1">Email</label>
         <input
           id="email"
+          name="email"
           type="email"
-          placeholder="maria@site.com"
+          value="{{ current_user.email }}"
+          placeholder="Email"
+          class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-cal-blue"
+        />
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <label for="height" class="block text-gray-700 mb-1">Height (cm)</label>
+        <input
+          id="height"
+          name="height"
+          type="number"
+          step="0.1"
+          value="{{ current_user.height if current_user.height is not none else '' }}"
+          placeholder="Enter your height"
+          class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-cal-blue"
+        />
+      </div>
+      <div>
+        <label for="weight" class="block text-gray-700 mb-1">Weight (kg)</label>
+        <input
+          id="weight"
+          name="weight"
+          type="number"
+          step="0.1"
+          value="{{ current_user.weight if current_user.weight is not none else '' }}"
+          placeholder="Enter your weight"
           class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-cal-blue"
         />
       </div>
@@ -69,17 +104,17 @@
         <label for="password" class="block text-gray-700 mb-1">Password</label>
         <input
           id="password"
+          name="password"
           type="password"
           placeholder="Enter new password"
           class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-cal-blue"
         />
       </div>
       <div>
-        <label for="phone" class="block text-gray-700 mb-1"
-          >Phone (Optional)</label
-        >
+        <label for="phone" class="block text-gray-700 mb-1">Phone (Optional)</label>
         <input
           id="phone"
+          name="phone"
           type="tel"
           placeholder="+1 (xxx) xxx-xx-xx"
           class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-cal-blue"
@@ -97,6 +132,7 @@
               name="gender"
               value="male"
               class="text-cal-blue focus:ring-0"
+              {% if current_user.gender == 'male' %}checked{% endif %}
             />
             <span class="text-gray-700">Male</span>
           </label>
@@ -106,6 +142,7 @@
               name="gender"
               value="female"
               class="text-cal-blue focus:ring-0"
+              {% if current_user.gender == 'female' %}checked{% endif %}
             />
             <span class="text-gray-700">Female</span>
           </label>
@@ -115,6 +152,7 @@
               name="gender"
               value="other"
               class="text-cal-blue focus:ring-0"
+              {% if current_user.gender == 'other' %}checked{% endif %}
             />
             <span class="text-gray-700">Other</span>
           </label>
@@ -124,10 +162,11 @@
         <label for="bio" class="block text-gray-700 mb-1">BIO</label>
         <textarea
           id="bio"
+          name="bio"
           rows="4"
           placeholder="Type your message..."
           class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-cal-blue"
-        ></textarea>
+        >{{ current_user.bio if current_user.bio else '' }}</textarea>
       </div>
     </div>
 
@@ -141,4 +180,69 @@
     </div>
   </form>
 </div>
+
+<!-- Modal for avatar selection -->
+<div id="avatar-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+  <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-xl">
+    <h3 class="text-lg font-semibold mb-4">Choose Your Avatar</h3>
+    <div id="default-photos" class="flex flex-wrap gap-4 mb-4 justify-center"></div>
+    <div class="flex justify-end space-x-2">
+      <button type="button" id="cancel-avatar-btn" class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">Cancel</button>
+      <button type="button" id="confirm-avatar-btn" class="px-4 py-2 bg-cal-blue text-white rounded hover:bg-cal-blue-dark">Confirm</button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let selectedAvatar = document.getElementById('selected-photo').value;
+let tempSelectedAvatar = selectedAvatar;
+
+// Open modal
+const modal = document.getElementById('avatar-modal');
+document.getElementById('choose-avatar-btn').onclick = function() {
+  modal.classList.remove('hidden');
+  loadAvatars();
+};
+// Cancel button
+const cancelBtn = document.getElementById('cancel-avatar-btn');
+cancelBtn.onclick = function() {
+  modal.classList.add('hidden');
+  tempSelectedAvatar = selectedAvatar;
+};
+// Confirm button
+const confirmBtn = document.getElementById('confirm-avatar-btn');
+confirmBtn.onclick = function() {
+  selectedAvatar = tempSelectedAvatar;
+  document.getElementById('selected-photo').value = selectedAvatar;
+  document.getElementById('profile-photo-preview').src = '/static/profile_photos/' + selectedAvatar;
+  modal.classList.add('hidden');
+};
+
+function loadAvatars() {
+  fetch('/api/default-photos')
+    .then(res => res.json())
+    .then(data => {
+      const container = document.getElementById('default-photos');
+      container.innerHTML = '';
+      data.photos.forEach(url => {
+        const filename = url.split('/').pop();
+        const img = document.createElement('img');
+        img.src = url;
+        img.className = 'w-16 h-16 rounded-full border-2 cursor-pointer';
+        img.onclick = () => {
+          tempSelectedAvatar = filename;
+          document.querySelectorAll('#default-photos img').forEach(i => i.classList.remove('border-blue-500'));
+          img.classList.add('border-blue-500');
+        };
+        if (filename === tempSelectedAvatar) {
+          img.classList.add('border-blue-500');
+        }
+        container.appendChild(img);
+      });
+    });
+}
+</script>
 {% endblock %}

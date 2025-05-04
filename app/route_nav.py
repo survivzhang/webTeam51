@@ -5,6 +5,10 @@ from .models import User, Friendship, DailyMetrics, CalorieBurn, ExerciseType, M
 from sqlalchemy import and_, or_, desc
 from .auth import login_required
 from datetime import datetime, date
+from werkzeug.security import generate_password_hash
+from werkzeug.utils import secure_filename
+import uuid, os
+from flask import current_app
 
 
 @app.route('/dashboard')
@@ -106,8 +110,35 @@ def sharing():
                              pending_requests=[], friends=[])
 
 
-@app.route('/profile')
+@app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
-    return render_template('profile.html', title='Profile') 
+    user = User.query.get(session['user_id'])
+    if request.method == 'POST':
+        # Update fields
+        user.username = request.form.get('fullName', user.username)
+        user.email = request.form.get('email', user.email)
+        password = request.form.get('password')
+        if password:
+            user.password_hash = generate_password_hash(password)
+        user.gender = request.form.get('gender', user.gender)
+        user.bio = request.form.get('bio', user.bio)
+        user.phone = request.form.get('phone', user.phone)
+        # Save height and weight
+        height = request.form.get('height')
+        weight = request.form.get('weight')
+        user.height = float(height) if height else None
+        user.weight = float(weight) if weight else None
+        # Save selected default photo
+        selected_photo = request.form.get('photo')
+        if selected_photo:
+            user.photo = selected_photo
+        try:
+            db.session.commit()
+            flash('Profile updated successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating profile: {str(e)}', 'error')
+        return redirect(url_for('profile'))
+    return render_template('profile.html', title='Profile', current_user=user) 
 

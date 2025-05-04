@@ -142,3 +142,33 @@ def profile():
         return redirect(url_for('profile'))
     return render_template('profile.html', title='Profile', current_user=user) 
 
+
+@app.route('/complete-profile', methods=['GET', 'POST'])
+@login_required
+def complete_profile():
+    user = User.query.get(session['user_id'])
+    if request.method == 'POST':
+        user.username = request.form.get('fullName', user.username)
+        user.email = request.form.get('email', user.email)
+        password = request.form.get('password')
+        if password:
+            user.password_hash = generate_password_hash(password)
+        user.gender = request.form.get('gender', user.gender)
+        user.bio = request.form.get('bio', user.bio)
+        user.phone = request.form.get('phone', user.phone)
+        height = request.form.get('height')
+        weight = request.form.get('weight')
+        user.height = float(height) if height else None
+        user.weight = float(weight) if weight else None
+        selected_photo = request.form.get('photo')
+        if selected_photo:
+            user.photo = selected_photo
+        try:
+            db.session.commit()
+            flash('Profile completed successfully!', 'success')
+            return redirect(url_for('dashboard'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error saving profile: {str(e)}', 'error')
+    return render_template('complete_profile.html', title='Complete Profile', current_user=user)
+

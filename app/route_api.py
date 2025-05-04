@@ -7,6 +7,7 @@ from datetime import datetime, date
 import json
 from .auth import login_required
 from .app_utils import json_response
+import os
 
 # Exempt API routes from CSRF
 @csrf.exempt
@@ -702,3 +703,11 @@ def get_all_data():
         print(f"Error in get_all_data: {str(e)}")
         print(traceback.format_exc())
         return json_response({'status': 'error', 'message': f'Error retrieving data: {str(e)}'}, 500)
+
+
+@app.route('/api/default-photos')
+def get_default_photos():
+    folder = os.path.join(app.static_folder, 'profile_photos')
+    files = [f for f in os.listdir(folder) if f.startswith('vibrent_') and f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))]
+    urls = [url_for('static', filename=f'profile_photos/{f}') for f in files]
+    return jsonify({'photos': urls})

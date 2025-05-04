@@ -1,5 +1,5 @@
 from typing import Optional, List
-from datetime import datetime, date
+from datetime import datetime
 from sqlalchemy import Date
 import sqlalchemy as sa
 import sqlalchemy.orm as so
@@ -17,6 +17,12 @@ class User(db.Model):
     password_hash: so.Mapped[Optional[str]] = so.mapped_column(sa.String(120), nullable=False)
     email: so.Mapped[str] = so.mapped_column(sa.String(120), unique=True, nullable=False)
     created_at: so.Mapped[datetime] = so.mapped_column(default=datetime.utcnow)
+    photo: so.Mapped[Optional[str]] = so.mapped_column(sa.String(255), nullable=True)  # Store filename of profile photo
+    gender: so.Mapped[Optional[str]] = so.mapped_column(sa.String(20), nullable=True)
+    bio: so.Mapped[Optional[str]] = so.mapped_column(sa.Text, nullable=True)
+    phone: so.Mapped[Optional[str]] = so.mapped_column(sa.String(30), nullable=True)
+    height: so.Mapped[Optional[float]] = so.mapped_column(sa.Float, nullable=True)
+    weight: so.Mapped[Optional[float]] = so.mapped_column(sa.Float, nullable=True)
     
     # Relationships
     calorie_entries: so.Mapped[List['CalorieEntry']] = so.relationship(
@@ -130,7 +136,7 @@ class DailyMetrics(db.Model):
     
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
-    date: so.Mapped[date] = so.mapped_column(Date, nullable=False)
+    date: so.Mapped[datetime.date] = so.mapped_column(Date, nullable=False)
     weight: so.Mapped[Optional[float]] = so.mapped_column(sa.Float)
     sleep_hours: so.Mapped[Optional[float]] = so.mapped_column(sa.Float)
     mood: so.Mapped[Optional[str]] = so.mapped_column(sa.String(20))
@@ -166,7 +172,7 @@ class CalorieBurn(db.Model):
     
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
-    date: so.Mapped[date] = so.mapped_column(Date, nullable=False)
+    date: so.Mapped[datetime.date] = so.mapped_column(Date, nullable=False)
     exercise_type_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('exercise_types.id'), nullable=False)
     duration: so.Mapped[int] = so.mapped_column(nullable=False)  # in minutes
     calories_burned: so.Mapped[Optional[int]] = so.mapped_column(nullable=True)

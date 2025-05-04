@@ -1,5 +1,5 @@
 from . import app, db
-from flask import render_template, request, url_for, redirect, flash, session, jsonify
+from flask import render_template, request, url_for, redirect, flash, session, jsonify, current_app
 import sqlalchemy as sa
 from .models import User
 from datetime import datetime
@@ -9,6 +9,14 @@ from .auth import login_required, valid_login, valid_register, valid_regist
 import traceback
 import os
 import sqlite3
+from werkzeug.utils import secure_filename
+import uuid
+
+# Allowed file extensions for profile photos
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Home/Auth routes
 @app.route('/')
@@ -54,89 +62,65 @@ def login():
 def register():
     login_form = LoginForm()
     register_form = RegistrationForm()
-    
-    # Debug: Print database file path
     from config import Config
     db_path = Config.SQLALCHEMY_DATABASE_URI
     print(f"Database path: {db_path}")
     db_file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'app.db')
     print(f"Database file exists: {os.path.exists(db_file_path)}")
-    
     if register_form.validate_on_submit():
         username = register_form.username.data
         email = register_form.email.data
         password = register_form.password.data
-        
         try:
-            # Check if username and email already exist
             if not valid_regist(username, email):
                 flash('Username or email already exists', 'error')
                 return redirect(url_for('index'))
-            
             try:
-                # Create new user
                 new_user = User(
                     username=username,
                     email=email,
                     password_hash=generate_password_hash(password),
                     created_at=datetime.utcnow()
                 )
-                
-                # Debug print
                 print(f"Creating user: {username}, email: {email}")
-                
-                # Add to session
                 db.session.add(new_user)
-                
-                # Explicitly flush to check for errors before commit
                 db.session.flush()
-                
-                # Commit changes
                 db.session.commit()
-                
-                # Verify user in database
                 saved_user = db.session.execute(
                     sa.select(User).where(User.username == username)
                 ).scalar_one_or_none()
-                
                 if saved_user:
                     print(f"User created and verified, ID: {saved_user.id}")
+                    # Log in the user and redirect to complete-profile
+                    session['user_id'] = saved_user.id
+                    return redirect(url_for('complete_profile'))
                 else:
                     print("Error: User not found in database after commit!")
-                    # Try direct SQL as fallback
                     try:
                         direct_insert_user(username, email, password)
                     except Exception as sql_error:
                         print(f"Direct SQL insertion also failed: {str(sql_error)}")
-                
                 flash('Registration successful! You can now log in', 'success')
                 return redirect(url_for('index'))
-            
             except Exception as orm_error:
                 db.session.rollback()
                 print(f"ORM error: {str(orm_error)}")
-                
-                # Try direct SQL insertion as fallback
                 try:
                     direct_insert_user(username, email, password)
                     flash('Registration successful! You can now log in', 'success')
                     return redirect(url_for('index'))
                 except Exception as sql_error:
                     print(f"Direct SQL insertion also failed: {str(sql_error)}")
-                    raise orm_error  # Rethrow original error
-        
+                    raise orm_error
         except Exception as e:
             db.session.rollback()
             error_details = traceback.format_exc()
             print(f"Registration error: {str(e)}\n{error_details}")
             flash(f'Error during registration process: {str(e)}', 'error')
             return redirect(url_for('index'))
-    
-    # If form validation fails, show errors
     for field, errors in register_form.errors.items():
         for error in errors:
             flash(f"{error}", 'error')
-    
     return render_template('index.html', title='Login', login_form=login_form, register_form=register_form)
 
 
@@ -166,3 +150,51 @@ def logout():
     session.clear()
     flash('You have successfully logged out', 'success')
     return redirect(url_for('index'))
+
+
+@app.route('/profile/upload_photo', methods=['POST'])
+@login_required
+def upload_photo():
+    if 'photo' not in request.files:
+        flash('No file selected', 'error')
+        return redirect(url_for('profile'))
+    
+    file = request.files['photo']
+    if file.filename == '':
+        flash('No file selected', 'error')
+        return redirect(url_for('profile'))
+    
+    if not allowed_file(file.filename):
+        flash('Invalid file type. Allowed types: PNG, JPG, JPEG, GIF', 'error')
+        return redirect(url_for('profile'))
+    
+    try:
+        # Create profile_photos directory if it doesn't exist
+        upload_folder = os.path.join(current_app.static_folder, 'profile_photos')
+        os.makedirs(upload_folder, exist_ok=True)
+        
+        # Generate unique filename
+        filename = secure_filename(file.filename)
+        unique_filename = f"{uuid.uuid4().hex}_{filename}"
+        file_path = os.path.join(upload_folder, unique_filename)
+        
+        # Save the file
+        file.save(file_path)
+        
+        # Update user's photo in database
+        user = User.query.get(session['user_id'])
+        if user.photo:  # Delete old photo if exists
+            old_photo_path = os.path.join(upload_folder, user.photo)
+            if os.path.exists(old_photo_path):
+                os.remove(old_photo_path)
+        
+        user.photo = unique_filename
+        db.session.commit()
+        
+        flash('Profile photo updated successfully', 'success')
+    except Exception as e:
+        flash(f'Error uploading photo: {str(e)}', 'error')
+        print(f"Error in upload_photo: {str(e)}")
+        print(traceback.format_exc())
+    
+    return redirect(url_for('profile'))

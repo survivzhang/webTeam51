@@ -21,6 +21,8 @@ class User(db.Model):
     gender: so.Mapped[Optional[str]] = so.mapped_column(sa.String(20), nullable=True)
     bio: so.Mapped[Optional[str]] = so.mapped_column(sa.Text, nullable=True)
     phone: so.Mapped[Optional[str]] = so.mapped_column(sa.String(30), nullable=True)
+    height: so.Mapped[Optional[float]] = so.mapped_column(sa.Float, nullable=True)
+    weight: so.Mapped[Optional[float]] = so.mapped_column(sa.Float, nullable=True)
     
     # Relationships
     calorie_entries: so.Mapped[List['CalorieEntry']] = so.relationship(

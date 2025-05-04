@@ -39,7 +39,9 @@
         id="profile-photo-preview"
       />
       <div>
-        <div id="default-photos" class="flex flex-wrap gap-4 mb-2"></div>
+        <button type="button" id="choose-avatar-btn" class="px-6 py-2 bg-cal-blue text-white text-sm font-medium rounded-lg hover:bg-cal-blue-dark focus:outline-none focus:ring-2 focus:ring-cal-blue mb-2">
+          Choose from the default portrait
+        </button>
         <input type="hidden" name="photo" id="selected-photo" value="{{ current_user.photo }}">
         <p class="text-xs text-gray-500 mt-2">Choose a default profile photo</p>
       </div>
@@ -151,30 +153,69 @@
     </div>
   </form>
 </div>
+
+<!-- Modal for avatar selection -->
+<div id="avatar-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+  <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-xl">
+    <h3 class="text-lg font-semibold mb-4">Choose Your Avatar</h3>
+    <div id="default-photos" class="flex flex-wrap gap-4 mb-4 justify-center"></div>
+    <div class="flex justify-end space-x-2">
+      <button type="button" id="cancel-avatar-btn" class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">Cancel</button>
+      <button type="button" id="confirm-avatar-btn" class="px-4 py-2 bg-cal-blue text-white rounded hover:bg-cal-blue-dark">Confirm</button>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
 <script>
-fetch('/api/default-photos')
-  .then(res => res.json())
-  .then(data => {
-    const container = document.getElementById('default-photos');
-    data.photos.forEach(url => {
-      const img = document.createElement('img');
-      img.src = url;
-      img.className = 'w-16 h-16 rounded-full border-2 cursor-pointer';
-      img.onclick = () => {
-        document.getElementById('selected-photo').value = url.split('/').pop();
-        document.getElementById('profile-photo-preview').src = url;
-        document.querySelectorAll('#default-photos img').forEach(i => i.classList.remove('border-blue-500'));
-        img.classList.add('border-blue-500');
-      };
-      // Highlight the current photo
-      if (url.endsWith('/' + document.getElementById('selected-photo').value)) {
-        img.classList.add('border-blue-500');
-      }
-      container.appendChild(img);
+let selectedAvatar = document.getElementById('selected-photo').value;
+let tempSelectedAvatar = selectedAvatar;
+
+// Open modal
+const modal = document.getElementById('avatar-modal');
+document.getElementById('choose-avatar-btn').onclick = function() {
+  modal.classList.remove('hidden');
+  loadAvatars();
+};
+// Cancel button
+const cancelBtn = document.getElementById('cancel-avatar-btn');
+cancelBtn.onclick = function() {
+  modal.classList.add('hidden');
+  tempSelectedAvatar = selectedAvatar;
+};
+// Confirm button
+const confirmBtn = document.getElementById('confirm-avatar-btn');
+confirmBtn.onclick = function() {
+  selectedAvatar = tempSelectedAvatar;
+  document.getElementById('selected-photo').value = selectedAvatar;
+  document.getElementById('profile-photo-preview').src = '/static/profile_photos/' + selectedAvatar;
+  modal.classList.add('hidden');
+};
+
+function loadAvatars() {
+  fetch('/api/default-photos')
+    .then(res => res.json())
+    .then(data => {
+      const container = document.getElementById('default-photos');
+      container.innerHTML = '';
+      data.photos.forEach(url => {
+        const filename = url.split('/').pop();
+        const img = document.createElement('img');
+        img.src = url;
+        img.className = 'w-16 h-16 rounded-full border-2 cursor-pointer';
+        img.onclick = () => {
+          tempSelectedAvatar = filename;
+          document.querySelectorAll('#default-photos img').forEach(i => i.classList.remove('border-blue-500'));
+          img.classList.add('border-blue-500');
+        };
+        if (filename === tempSelectedAvatar) {
+          img.classList.add('border-blue-500');
+        }
+        container.appendChild(img);
+      });
     });
-  });
+}
 </script>
 {% endblock %}

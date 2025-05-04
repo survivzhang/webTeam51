@@ -124,12 +124,15 @@ def profile():
         user.gender = request.form.get('gender', user.gender)
         user.bio = request.form.get('bio', user.bio)
         user.phone = request.form.get('phone', user.phone)
-
+        # Save height and weight
+        height = request.form.get('height')
+        weight = request.form.get('weight')
+        user.height = float(height) if height else None
+        user.weight = float(weight) if weight else None
         # Save selected default photo
         selected_photo = request.form.get('photo')
         if selected_photo:
             user.photo = selected_photo
-
         try:
             db.session.commit()
             flash('Profile updated successfully!', 'success')

@@ -390,8 +390,28 @@ function sendFriendRequest(friendId) {
     .then((result) => {
       if (result.status >= 200 && result.status < 300) {
         console.log("Success response:", result.data);
-        showNotification('success', 'Friend Request Sent', result.data.message || 'Friend request has been sent successfully');
-        window.location.reload();
+        
+        // Show success notification and wait for user to click OK before reloading
+        const modal = document.getElementById('notification-modal');
+        const closeBtn = document.getElementById('modal-close-btn');
+        
+        // Create a new function for one-time event handler
+        const handleClose = function() {
+          window.location.reload();
+          closeBtn.removeEventListener('click', handleClose);
+          document.getElementById('modal-overlay').removeEventListener('click', handleClose);
+        };
+        
+        // Replace existing event listeners with new ones
+        closeBtn.removeEventListener('click', hideNotification);
+        document.getElementById('modal-overlay').removeEventListener('click', hideNotification);
+        
+        // Add event listeners with page reload
+        closeBtn.addEventListener('click', handleClose);
+        document.getElementById('modal-overlay').addEventListener('click', handleClose);
+        
+        // Show the notification
+        showNotification('success', 'Friend Request Sent Successfully', result.data.message || 'Friend request has been sent successfully');
       } else {
         console.error("Error response:", result.data);
         showNotification('error', 'Request Failed', result.data.message || 'Failed to send friend request');
@@ -1051,7 +1071,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
 
-  // 自动同步取消"全选"勾选状态
+  // Automatically deselect the ‘Select All’ checkbox
   document
     .querySelectorAll(
       ".meal-type-checkbox, .metrics-checkbox, .exercise-type-checkbox"

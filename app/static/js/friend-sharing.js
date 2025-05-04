@@ -26,6 +26,83 @@ document.querySelectorAll(".sidebar-nav-item").forEach((item) => {
   });
 });
 
+// Create notification modal container if it doesn't exist
+if (!document.getElementById('notification-modal')) {
+  const modalContainer = document.createElement('div');
+  modalContainer.id = 'notification-modal';
+  modalContainer.className = 'fixed inset-0 flex items-center justify-center z-50 hidden';
+  modalContainer.innerHTML = `
+    <div class="fixed inset-0 bg-black bg-opacity-30" id="modal-overlay"></div>
+    <div class="bg-white rounded-lg shadow-lg p-6 max-w-md w-full mx-4 relative z-10 transform transition-all">
+      <div class="flex items-start mb-4">
+        <div id="modal-icon" class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full mr-4"></div>
+        <div class="flex-1">
+          <h3 id="modal-title" class="text-lg font-semibold text-gray-900"></h3>
+          <p id="modal-message" class="mt-2 text-gray-600"></p>
+        </div>
+      </div>
+      <div class="mt-6 flex justify-end">
+        <button id="modal-close-btn" class="px-4 py-2 bg-cal-blue text-white rounded-md hover:bg-cal-blue-dark transition-colors">
+          OK
+        </button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modalContainer);
+  
+  // Close modal when clicking the overlay or close button
+  document.getElementById('modal-overlay').addEventListener('click', hideNotification);
+  document.getElementById('modal-close-btn').addEventListener('click', hideNotification);
+}
+
+// Show notification function
+function showNotification(type, title, message) {
+  const modal = document.getElementById('notification-modal');
+  const modalTitle = document.getElementById('modal-title');
+  const modalMessage = document.getElementById('modal-message');
+  const modalIcon = document.getElementById('modal-icon');
+  
+  modalTitle.textContent = title;
+  modalMessage.textContent = message;
+  
+  // Set icon and color based on notification type
+  if (type === 'success') {
+    modalIcon.innerHTML = '<i data-lucide="check-circle" class="w-8 h-8 text-green-500"></i>';
+    modalIcon.className = 'flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full mr-4 bg-green-100';
+  } else if (type === 'error') {
+    modalIcon.innerHTML = '<i data-lucide="alert-circle" class="w-8 h-8 text-red-500"></i>';
+    modalIcon.className = 'flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full mr-4 bg-red-100';
+  } else if (type === 'info') {
+    modalIcon.innerHTML = '<i data-lucide="info" class="w-8 h-8 text-cal-blue"></i>';
+    modalIcon.className = 'flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full mr-4 bg-blue-100';
+  } else if (type === 'warning') {
+    modalIcon.innerHTML = '<i data-lucide="alert-triangle" class="w-8 h-8 text-yellow-500"></i>';
+    modalIcon.className = 'flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full mr-4 bg-yellow-100';
+  }
+  
+  // Show modal
+  modal.classList.remove('hidden');
+  
+  // Initialize Lucide icons in the modal
+  lucide.createIcons({
+    attrs: {
+      class: ["w-8", "h-8"]
+    },
+    icons: {
+      'check-circle': lucide.icons['check-circle'],
+      'alert-circle': lucide.icons['alert-circle'],
+      'info': lucide.icons['info'],
+      'alert-triangle': lucide.icons['alert-triangle']
+    }
+  });
+}
+
+// Hide notification function
+function hideNotification() {
+  const modal = document.getElementById('notification-modal');
+  modal.classList.add('hidden');
+}
+
 // Friend search functionality
 const searchInput = document.getElementById("friend-search");
 const searchResults = document.getElementById("search-results");
@@ -124,7 +201,7 @@ document
       searchInput.value = "";
       selectedUserId = null;
     } else {
-      alert("Please select a user from the search results");
+      showNotification('warning', 'User Selection Required', 'Please select a user from the search results');
     }
   });
 
@@ -265,14 +342,14 @@ document.addEventListener("click", (e) => {
 // Send friend request function
 function sendFriendRequest(friendId) {
   if (!friendId) {
-    alert("Please select a user first");
+    showNotification('warning', 'Selection Required', 'Please select a user first');
     return;
   }
 
   // Ensure friendId is a number
   friendId = parseInt(friendId, 10);
   if (isNaN(friendId)) {
-    alert("Invalid user ID");
+    showNotification('error', 'Invalid Selection', 'Invalid user ID');
     return;
   }
 
@@ -313,16 +390,16 @@ function sendFriendRequest(friendId) {
     .then((result) => {
       if (result.status >= 200 && result.status < 300) {
         console.log("Success response:", result.data);
-        alert(result.data.message || "Friend request sent");
+        showNotification('success', 'Friend Request Sent', result.data.message || 'Friend request has been sent successfully');
         window.location.reload();
       } else {
         console.error("Error response:", result.data);
-        alert(result.data.message || "Failed to send friend request");
+        showNotification('error', 'Request Failed', result.data.message || 'Failed to send friend request');
       }
     })
     .catch((error) => {
       console.error("Request error:", error);
-      alert("Error occurred while sending friend request: " + error.message);
+      showNotification('error', 'Network Error', 'Error occurred while sending friend request: ' + error.message);
     });
 }
 
@@ -331,7 +408,7 @@ document.querySelectorAll(".accept-request").forEach((button) => {
   button.addEventListener("click", function () {
     const requestElement = this.closest("[data-request-id]");
     if (!requestElement) {
-      alert("Could not identify this request");
+      showNotification('error', 'Request Error', 'Could not identify this request');
       return;
     }
 
@@ -344,7 +421,7 @@ document.querySelectorAll(".decline-request").forEach((button) => {
   button.addEventListener("click", function () {
     const requestElement = this.closest("[data-request-id]");
     if (!requestElement) {
-      alert("Could not identify this request");
+      showNotification('error', 'Request Error', 'Could not identify this request');
       return;
     }
 
@@ -355,14 +432,14 @@ document.querySelectorAll(".decline-request").forEach((button) => {
 
 function respondToRequest(requestId, action) {
   if (!requestId || !action) {
-    alert("Missing necessary information for processing");
+    showNotification('error', 'Missing Information', 'Missing necessary information for processing');
     return;
   }
 
   // Ensure requestId is a number
   requestId = parseInt(requestId, 10);
   if (isNaN(requestId)) {
-    alert("Invalid request ID");
+    showNotification('error', 'Invalid Request', 'Invalid request ID');
     return;
   }
 
@@ -403,7 +480,9 @@ function respondToRequest(requestId, action) {
     .then((result) => {
       if (result.status >= 200 && result.status < 300) {
         console.log("Success response:", result.data);
-        alert(result.data.message || "Friend request processed");
+        
+        const actionText = action === 'accept' ? 'accepted' : 'declined';
+        showNotification('success', 'Request Processed', result.data.message || `Friend request has been ${actionText}`);
 
         // Remove the responded request element
         const requestElement = document.querySelector(
@@ -425,12 +504,12 @@ function respondToRequest(requestId, action) {
         }
       } else {
         console.error("Error response:", result.data);
-        alert(result.data.message || "Failed to process friend request");
+        showNotification('error', 'Process Failed', result.data.message || 'Failed to process friend request');
       }
     })
     .catch((error) => {
       console.error("Request error:", error);
-      alert("Error occurred while processing friend request: " + error.message);
+      showNotification('error', 'Network Error', 'Error occurred while processing friend request: ' + error.message);
     });
 }
 
@@ -972,7 +1051,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
 
-  // 自动同步取消“全选”勾选状态
+  // 自动同步取消"全选"勾选状态
   document
     .querySelectorAll(
       ".meal-type-checkbox, .metrics-checkbox, .exercise-type-checkbox"

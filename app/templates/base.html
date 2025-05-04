@@ -84,6 +84,7 @@
   </head>
   <body class="bg-gray-50 min-h-screen">
     <!-- Navigation Bar -->
+    {% if request.path != '/index' and request.path != '/' %}
     <nav class="bg-white shadow-md p-4 fixed top-0 left-0 right-0 z-10">
       <div class="container mx-auto flex justify-between items-center">
         <!-- Logo/Brand -->
@@ -139,9 +140,10 @@
         </div>
       </div>
     </nav>
+    {% endif %}
 
     <!-- Content Container with Flash Messages -->
-    <div class="container mx-auto mt-24 px-4">
+    <div class="container mx-auto {% if request.path == '/index' or request.path == '/' %}mt-4{% else %}mt-24{% endif %} px-4">
       <!-- Flash Messages -->
       {% with messages = get_flashed_messages(with_categories=true) %} {% if
       messages %} {% for category, message in messages %} {% if category ==

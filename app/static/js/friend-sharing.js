@@ -411,7 +411,7 @@ function sendFriendRequest(friendId) {
         document.getElementById('modal-overlay').addEventListener('click', handleClose);
         
         // Show the notification
-        showNotification('success', 'Friend Request Sent', result.data.message || 'Friend request has been sent successfully');
+        showNotification('success', 'Friend Request Sent Successfully', result.data.message || 'Friend request has been sent successfully');
       } else {
         console.error("Error response:", result.data);
         showNotification('error', 'Request Failed', result.data.message || 'Failed to send friend request');

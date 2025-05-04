@@ -1,5 +1,5 @@
 from . import app, db
-from flask import render_template, request, url_for, redirect, flash, session, jsonify
+from flask import render_template, request, url_for, redirect, flash, session, jsonify, current_app
 import sqlalchemy as sa
 from .models import User
 from datetime import datetime
@@ -9,6 +9,14 @@ from .auth import login_required, valid_login, valid_register, valid_regist
 import traceback
 import os
 import sqlite3
+from werkzeug.utils import secure_filename
+import uuid
+
+# Allowed file extensions for profile photos
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Home/Auth routes
 @app.route('/')
@@ -166,3 +174,51 @@ def logout():
     session.clear()
     flash('You have successfully logged out', 'success')
     return redirect(url_for('index'))
+
+
+@app.route('/profile/upload_photo', methods=['POST'])
+@login_required
+def upload_photo():
+    if 'photo' not in request.files:
+        flash('No file selected', 'error')
+        return redirect(url_for('profile'))
+    
+    file = request.files['photo']
+    if file.filename == '':
+        flash('No file selected', 'error')
+        return redirect(url_for('profile'))
+    
+    if not allowed_file(file.filename):
+        flash('Invalid file type. Allowed types: PNG, JPG, JPEG, GIF', 'error')
+        return redirect(url_for('profile'))
+    
+    try:
+        # Create profile_photos directory if it doesn't exist
+        upload_folder = os.path.join(current_app.static_folder, 'profile_photos')
+        os.makedirs(upload_folder, exist_ok=True)
+        
+        # Generate unique filename
+        filename = secure_filename(file.filename)
+        unique_filename = f"{uuid.uuid4().hex}_{filename}"
+        file_path = os.path.join(upload_folder, unique_filename)
+        
+        # Save the file
+        file.save(file_path)
+        
+        # Update user's photo in database
+        user = User.query.get(session['user_id'])
+        if user.photo:  # Delete old photo if exists
+            old_photo_path = os.path.join(upload_folder, user.photo)
+            if os.path.exists(old_photo_path):
+                os.remove(old_photo_path)
+        
+        user.photo = unique_filename
+        db.session.commit()
+        
+        flash('Profile photo updated successfully', 'success')
+    except Exception as e:
+        flash(f'Error uploading photo: {str(e)}', 'error')
+        print(f"Error in upload_photo: {str(e)}")
+        print(traceback.format_exc())
+    
+    return redirect(url_for('profile'))

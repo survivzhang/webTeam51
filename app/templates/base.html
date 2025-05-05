@@ -1,18 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     {% if title %}
-    <title>{{ title }} - CalTrack</title>
+      <title>{{ title }} - CalTrack</title>
     {% else %}
-    <title>Welcome to CalTrack</title>
+      <title>Welcome to CalTrack</title>
     {% endif %}
+    
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+
     <!-- Lucide Icons CDN -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+
+    <!-- Tailwind Config -->
     <script>
       tailwind.config = {
         theme: {
@@ -28,33 +32,37 @@
         },
       };
     </script>
+
     <style>
       html {
         scroll-behavior: smooth;
       }
+
       .nav-link {
         padding: 0.5rem 1rem;
-        margin-left: 0.5rem;
-        margin-right: 0.5rem;
+        margin: 0 0.5rem;
         border-radius: 0.5rem;
         transition: all 300ms;
         color: #000000;
       }
+
       .nav-link:hover {
         background-color: #90cdf4;
         color: white;
       }
+
       .active {
         color: #63b3ed;
         font-weight: 600;
       }
+
       .brand-text {
         background-image: linear-gradient(to right, #63b3ed, #90cdf4);
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
       }
-      /* Updated back-to-top button styling with lighter blue */
+
       #backToTopBtn {
         display: block;
         position: fixed;
@@ -80,106 +88,103 @@
         transform: translateY(-3px);
       }
     </style>
+
     {% block head %}{% endblock %}
   </head>
+
   <body class="bg-gray-50 min-h-screen">
-    <!-- Navigation Bar -->
+    <!-- Navbar -->
     <nav class="bg-white shadow-md p-4 fixed top-0 left-0 right-0 z-10">
       <div class="container mx-auto flex justify-between items-center">
-        <!-- Logo/Brand -->
         <a
           href="{{ url_for('home') }}"
-          class="font-bold text-2xl flex items-center {% if request.path == '/index' or request.path == '/' %}active{% endif %}"
+          class="font-bold text-2xl flex items-center {% if request.path == '/' or request.path == '/index' %}active{% endif %}"
         >
           <i data-lucide="activity" class="w-6 h-6 mr-2 text-cal-blue"></i>
           <span class="brand-text">CalTrack</span>
         </a>
 
-        <!-- Center Navigation -->
         <div class="hidden md:flex items-center space-x-1">
-          <a
-            href="{{ url_for('upload') }}"
-            class="nav-link flex items-center {% if request.path == '/upload' %}active{% endif %}"
-          >
-            <i data-lucide="edit" class="w-4 h-4 mr-1"></i>
-            Upload
+          <a href="{{ url_for('upload') }}"
+             class="nav-link flex items-center {% if request.path == '/upload' %}active{% endif %}">
+            <i data-lucide="edit" class="w-4 h-4 mr-1"></i>Upload
           </a>
-          <a
-            href="{{ url_for('visualisation') }}"
-            class="nav-link flex items-center {% if request.path == '/visualisation' %}active{% endif %}"
-          >
-            <i data-lucide="bar-chart" class="w-4 h-4 mr-1"></i>
-            Visualisation
+          <a href="{{ url_for('visualisation') }}"
+             class="nav-link flex items-center {% if request.path == '/visualisation' %}active{% endif %}">
+            <i data-lucide="bar-chart" class="w-4 h-4 mr-1"></i>Visualisation
           </a>
-          <a
-            href="{{ url_for('sharing') }}"
-            class="nav-link flex items-center {% if request.path == '/sharing' %}active{% endif %}"
-          >
-            <i data-lucide="share-2" class="w-4 h-4 mr-1"></i>
-            Sharing
+          <a href="{{ url_for('sharing') }}"
+             class="nav-link flex items-center {% if request.path == '/sharing' %}active{% endif %}">
+            <i data-lucide="share-2" class="w-4 h-4 mr-1"></i>Sharing
           </a>
         </div>
 
-        <!-- Right Navigation -->
         <div class="flex items-center">
-          <a
-            href="{{ url_for('profile') }}"
-            class="nav-link flex items-center {% if request.path == '/profile' %}active{% endif %}"
-          >
-            <i data-lucide="user" class="w-4 h-4 mr-1"></i>
-            Profile
+          <a href="{{ url_for('profile') }}"
+             class="nav-link flex items-center {% if request.path == '/profile' %}active{% endif %}">
+            <i data-lucide="user" class="w-4 h-4 mr-1"></i>Profile
           </a>
-          <a
-            href="{{ url_for('logout') }}"
-            class="nav-link flex items-center bg-white-100 hover:bg-blue-200 text-black-600 ml-2"
-          >
-            <i data-lucide="log-out" class="w-4 h-4 mr-1"></i>
-            Logout
+          <a href="{{ url_for('logout') }}"
+             class="nav-link flex items-center ml-2 hover:bg-blue-200">
+            <i data-lucide="log-out" class="w-4 h-4 mr-1"></i>Logout
           </a>
         </div>
       </div>
     </nav>
 
-    <!-- Content Container with Flash Messages -->
+    <!-- Main Content -->
     <div class="container mx-auto mt-24 px-4">
-      <!-- Flash Messages -->
-      {% with messages = get_flashed_messages(with_categories=true) %} {% if
-      messages %} {% for category, message in messages %} {% if category ==
-      'error' %}
-      <div
-        class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4"
-        role="alert"
-      >
-        <p>{{ message }}</p>
-      </div>
-      {% else %}
-      <div
-        class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4"
-        role="alert"
-      >
-        <p>{{ message }}</p>
-      </div>
-      {% endif %} {% endfor %} {% endif %} {% endwith %} {% block content %}{%
-      endblock %}
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="p-4 mb-4 border-l-4 {{ 'bg-red-100 border-red-500 text-red-700' if category == 'error' else 'bg-green-100 border-green-500 text-green-700' }}">
+              <p>{{ message }}</p>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
     </div>
 
-    <!-- Updated back-to-top button with single arrow -->
+    <!-- Back to Top Button -->
     <button id="backToTopBtn" title="Go to top">
       <i data-lucide="arrow-up" class="w-full h-full"></i>
     </button>
 
-    <!-- Initialize Lucide Icons -->
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-300 mt-12">
+      <div class="container mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+        <div class="flex space-x-4">
+          <a href="#" class="text-gray-600 hover:text-cal-blue transition-colors" aria-label="Facebook">
+            <i data-lucide="facebook" class="w-5 h-5"></i>
+          </a>
+          <a href="#" class="text-gray-600 hover:text-cal-blue transition-colors" aria-label="Instagram">
+            <i data-lucide="instagram" class="w-5 h-5"></i>
+          </a>
+          <a href="#" class="text-gray-600 hover:text-cal-blue transition-colors" aria-label="Twitter">
+            <i data-lucide="twitter" class="w-5 h-5"></i>
+          </a>
+          <a href="#" class="text-gray-600 hover:text-cal-blue transition-colors" aria-label="GitHub">
+            <i data-lucide="github" class="w-5 h-5"></i>
+          </a>
+          <a href="#" class="text-gray-600 hover:text-cal-blue transition-colors" aria-label="YouTube">
+            <i data-lucide="youtube" class="w-5 h-5"></i>
+          </a>
+        </div>
+        <p class="text-sm text-gray-500 text-center md:text-right">
+          © 2025 CalTrack. All rights reserved.
+        </p>
+      </div>
+    </footer>
+
+    <!-- Scripts -->
     <script>
       lucide.createIcons();
 
-      // Back to top functionality
-      const backToTopBtn = document.getElementById("backToTopBtn");
-
-      backToTopBtn.addEventListener("click", function () {
-        window.scrollTo({
-          top: 0,
-          behavior: "smooth",
-        });
+      // Smooth scroll to top
+      document.getElementById("backToTopBtn").addEventListener("click", () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
       });
     </script>
 

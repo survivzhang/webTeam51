@@ -2,11 +2,11 @@
 <html lang="en">
   <head>
     {% if title %}
-      <title>{{ title }} - CalTrack</title>
+    <title>{{ title }} - CalTrack</title>
     {% else %}
-      <title>Welcome to CalTrack</title>
+    <title>Welcome to CalTrack</title>
     {% endif %}
-    
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -93,7 +93,8 @@
   </head>
 
   <body class="bg-gray-50 min-h-screen">
-    <!-- Navbar -->
+    <!-- Navigation Bar -->
+    {% if request.path != '/index' and request.path != '/' %}
     <nav class="bg-white shadow-md p-4 fixed top-0 left-0 right-0 z-10">
       <div class="container mx-auto flex justify-between items-center">
         <a
@@ -105,48 +106,68 @@
         </a>
 
         <div class="hidden md:flex items-center space-x-1">
-          <a href="{{ url_for('upload') }}"
-             class="nav-link flex items-center {% if request.path == '/upload' %}active{% endif %}">
+          <a
+            href="{{ url_for('upload') }}"
+            class="nav-link flex items-center {% if request.path == '/upload' %}active{% endif %}"
+          >
             <i data-lucide="edit" class="w-4 h-4 mr-1"></i>Upload
           </a>
-          <a href="{{ url_for('visualisation') }}"
-             class="nav-link flex items-center {% if request.path == '/visualisation' %}active{% endif %}">
+          <a
+            href="{{ url_for('visualisation') }}"
+            class="nav-link flex items-center {% if request.path == '/visualisation' %}active{% endif %}"
+          >
             <i data-lucide="bar-chart" class="w-4 h-4 mr-1"></i>Visualisation
           </a>
-          <a href="{{ url_for('sharing') }}"
-             class="nav-link flex items-center {% if request.path == '/sharing' %}active{% endif %}">
+          <a
+            href="{{ url_for('sharing') }}"
+            class="nav-link flex items-center {% if request.path == '/sharing' %}active{% endif %}"
+          >
             <i data-lucide="share-2" class="w-4 h-4 mr-1"></i>Sharing
           </a>
         </div>
 
         <div class="flex items-center">
-          <a href="{{ url_for('profile') }}"
-             class="nav-link flex items-center {% if request.path == '/profile' %}active{% endif %}">
+          <a
+            href="{{ url_for('profile') }}"
+            class="nav-link flex items-center {% if request.path == '/profile' %}active{% endif %}"
+          >
             <i data-lucide="user" class="w-4 h-4 mr-1"></i>Profile
           </a>
-          <a href="{{ url_for('logout') }}"
-             class="nav-link flex items-center ml-2 hover:bg-blue-200">
+          <a
+            href="{{ url_for('logout') }}"
+            class="nav-link flex items-center ml-2 hover:bg-blue-200"
+          >
             <i data-lucide="log-out" class="w-4 h-4 mr-1"></i>Logout
           </a>
         </div>
       </div>
     </nav>
+    {% endif %}
 
-    <!-- Main Content -->
-    <div class="container mx-auto mt-24 px-4">
-      {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-          {% for category, message in messages %}
-            <div class="p-4 mb-4 border-l-4 {{ 'bg-red-100 border-red-500 text-red-700' if category == 'error' else 'bg-green-100 border-green-500 text-green-700' }}">
-              <p>{{ message }}</p>
-            </div>
-          {% endfor %}
-        {% endif %}
-      {% endwith %}
-
-      {% block content %}{% endblock %}
+    <!-- Content Container with Flash Messages -->
+    <div
+      class="container mx-auto {% if request.path == '/index' or request.path == '/' %}mt-4{% else %}mt-24{% endif %} px-4"
+    >
+      <!-- Flash Messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %} {% if category ==
+      'error' %}
+      <div
+        class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4"
+        role="alert"
+      >
+        <p>{{ message }}</p>
+      </div>
+      {% else %}
+      <div
+        class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4"
+        role="alert"
+      >
+        <p>{{ message }}</p>
+      </div>
+      {% endif %} {% endfor %} {% endif %} {% endwith %} {% block content %}{%
+      endblock %}
     </div>
-
     <!-- Back to Top Button -->
     <button id="backToTopBtn" title="Go to top">
       <i data-lucide="arrow-up" class="w-full h-full"></i>
@@ -154,21 +175,43 @@
 
     <!-- Footer -->
     <footer class="bg-white border-t border-gray-300 mt-12">
-      <div class="container mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+      <div
+        class="container mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0"
+      >
         <div class="flex space-x-4">
-          <a href="#" class="text-gray-600 hover:text-cal-blue transition-colors" aria-label="Facebook">
+          <a
+            href="#"
+            class="text-gray-600 hover:text-cal-blue transition-colors"
+            aria-label="Facebook"
+          >
             <i data-lucide="facebook" class="w-5 h-5"></i>
           </a>
-          <a href="#" class="text-gray-600 hover:text-cal-blue transition-colors" aria-label="Instagram">
+          <a
+            href="#"
+            class="text-gray-600 hover:text-cal-blue transition-colors"
+            aria-label="Instagram"
+          >
             <i data-lucide="instagram" class="w-5 h-5"></i>
           </a>
-          <a href="#" class="text-gray-600 hover:text-cal-blue transition-colors" aria-label="Twitter">
+          <a
+            href="#"
+            class="text-gray-600 hover:text-cal-blue transition-colors"
+            aria-label="Twitter"
+          >
             <i data-lucide="twitter" class="w-5 h-5"></i>
           </a>
-          <a href="#" class="text-gray-600 hover:text-cal-blue transition-colors" aria-label="GitHub">
+          <a
+            href="#"
+            class="text-gray-600 hover:text-cal-blue transition-colors"
+            aria-label="GitHub"
+          >
             <i data-lucide="github" class="w-5 h-5"></i>
           </a>
-          <a href="#" class="text-gray-600 hover:text-cal-blue transition-colors" aria-label="YouTube">
+          <a
+            href="#"
+            class="text-gray-600 hover:text-cal-blue transition-colors"
+            aria-label="YouTube"
+          >
             <i data-lucide="youtube" class="w-5 h-5"></i>
           </a>
         </div>

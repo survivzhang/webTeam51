@@ -1,0 +1,989 @@
+// Sidebar navigation functionality
+document.querySelectorAll(".sidebar-nav-item").forEach((item) => {
+  item.addEventListener("click", function (e) {
+    e.preventDefault();
+
+    // Remove active class from all nav items
+    document.querySelectorAll(".sidebar-nav-item").forEach((navItem) => {
+      navItem.classList.remove("active", "bg-blue-50", "text-cal-blue");
+      navItem.classList.add("text-gray-700");
+    });
+
+    // Add active class to clicked item
+    this.classList.add("active", "bg-blue-50", "text-cal-blue");
+    this.classList.remove("text-gray-700");
+
+    // Hide all content sections
+    document.querySelectorAll(".content-section").forEach((section) => {
+      section.classList.add("hidden");
+      section.classList.remove("block");
+    });
+
+    // Show the target section
+    const targetId = this.getAttribute("href").substring(1);
+    document.getElementById(targetId).classList.remove("hidden");
+    document.getElementById(targetId).classList.add("block");
+  });
+});
+
+// Friend search functionality
+const searchInput = document.getElementById("friend-search");
+const searchResults = document.getElementById("search-results");
+let searchTimeout;
+let selectedUserId = null;
+
+searchInput.addEventListener("input", () => {
+  clearTimeout(searchTimeout);
+  const query = searchInput.value.trim();
+  selectedUserId = null;
+
+  if (query === "") {
+    searchResults.classList.add("hidden");
+    return;
+  }
+
+  console.log(`Searching for friends: keyword=${query}`);
+
+  searchTimeout = setTimeout(() => {
+    fetch(`/api/users/search?q=${encodeURIComponent(query)}`, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    })
+      .then((response) => {
+        console.log("Response status:", response.status);
+        console.log("Response headers:", [...response.headers.entries()]);
+
+        // Try to parse JSON response regardless of success or failure
+        return response
+          .json()
+          .then((data) => ({
+            status: response.status,
+            data: data,
+          }))
+          .catch((err) => {
+            // If JSON parsing fails, return error information
+            console.error("JSON parsing error:", err);
+            return {
+              status: response.status,
+              data: {
+                users: [],
+                error: "Server returned a non-JSON format response",
+              },
+            };
+          });
+      })
+      .then((result) => {
+        console.log("Response data:", result);
+        searchResults.innerHTML = "";
+
+        if (result.status >= 200 && result.status < 300) {
+          if (!result.data.users || result.data.users.length === 0) {
+            searchResults.innerHTML =
+              '<div class="p-3 text-gray-500 text-sm">No users found</div>';
+          } else {
+            result.data.users.forEach((user) => {
+              const userItem = document.createElement("div");
+              userItem.className = "p-3 hover:bg-gray-100 cursor-pointer";
+              userItem.textContent = user.username;
+              userItem.dataset.userId = user.id;
+
+              userItem.addEventListener("click", () => {
+                searchInput.value = user.username;
+                selectedUserId = user.id;
+                searchResults.classList.add("hidden");
+              });
+
+              searchResults.appendChild(userItem);
+            });
+          }
+        } else {
+          searchResults.innerHTML = `<div class="p-3 text-red-500 text-sm">${
+            result.data.error || "Search failed"
+          }</div>`;
+        }
+
+        searchResults.classList.remove("hidden");
+      })
+      .catch((error) => {
+        console.error("Network error while searching for users:", error);
+        searchResults.innerHTML =
+          '<div class="p-3 text-red-500 text-sm">Error occurred during search</div>';
+        searchResults.classList.remove("hidden");
+      });
+  }, 300);
+});
+
+// Send button for friend request
+document
+  .getElementById("send-friend-request-btn")
+  .addEventListener("click", function () {
+    if (selectedUserId) {
+      sendFriendRequest(selectedUserId);
+      searchInput.value = "";
+      selectedUserId = null;
+    } else {
+      alert("Please select a user from the search results");
+    }
+  });
+
+// Data friend search filter functionality
+const dataFriendSearch = document.getElementById("data-friend-search");
+const dataFriendItems = document.querySelectorAll(".data-friend-item");
+
+dataFriendSearch.addEventListener("input", () => {
+  const query = dataFriendSearch.value.trim().toLowerCase();
+
+  dataFriendItems.forEach((item) => {
+    const username = item.querySelector("span").textContent.toLowerCase();
+    if (username.includes(query) || query === "") {
+      item.style.display = "flex";
+    } else {
+      item.style.display = "none";
+    }
+  });
+});
+
+// Share friend search functionality
+const shareFriendSearch = document.getElementById("share-friend-search");
+let selectedShareUserId = null;
+
+shareFriendSearch.addEventListener("input", () => {
+  // Clear any previous selection
+  selectedShareUserId = null;
+  const selectedFriendDiv = document.getElementById("selected-friend");
+  selectedFriendDiv.classList.add("hidden");
+
+  // Disable sharing button
+  const saveButton = document.getElementById("save-sharing-settings");
+  saveButton.setAttribute("disabled", "");
+  saveButton.classList.add("opacity-50", "cursor-not-allowed");
+});
+
+// Select friend button
+document
+  .getElementById("select-friend-btn")
+  .addEventListener("click", function () {
+    const query = shareFriendSearch.value.trim();
+
+    if (query === "") {
+      alert("Please enter a search term");
+      return;
+    }
+
+    console.log(`Selecting sharing friend: keyword=${query}`);
+
+    fetch(`/api/users/search?q=${encodeURIComponent(query)}`, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    })
+      .then((response) => {
+        console.log("Response status:", response.status);
+        console.log("Response headers:", [...response.headers.entries()]);
+
+        // Try to parse JSON response regardless of success or failure
+        return response
+          .json()
+          .then((data) => ({
+            status: response.status,
+            data: data,
+          }))
+          .catch((err) => {
+            // If JSON parsing fails, return error information
+            console.error("JSON parsing error:", err);
+            return {
+              status: response.status,
+              data: {
+                users: [],
+                error: "Server returned a non-JSON format response",
+              },
+            };
+          });
+      })
+      .then((result) => {
+        console.log("Response data:", result);
+
+        if (result.status >= 200 && result.status < 300) {
+          if (result.data.users && result.data.users.length > 0) {
+            // Select the first matching user
+            const user = result.data.users[0];
+            selectedShareUserId = user.id;
+
+            // Show selected friend
+            const selectedFriendDiv =
+              document.getElementById("selected-friend");
+            selectedFriendDiv.querySelector("span").textContent = user.username;
+            selectedFriendDiv.classList.remove("hidden");
+
+            // Enable sharing button
+            const saveButton = document.getElementById("save-sharing-settings");
+            saveButton.removeAttribute("disabled");
+            saveButton.classList.remove("opacity-50", "cursor-not-allowed");
+          } else {
+            alert("No matching users found");
+          }
+        } else {
+          alert(
+            result.data.error ||
+              `Failed to search users (Code: ${result.status})`
+          );
+        }
+      })
+      .catch((error) => {
+        console.error("Network error while searching for users:", error);
+        alert(
+          "Network error occurred while searching for users, please try again later"
+        );
+      });
+  });
+
+// Remove selected friend
+document
+  .getElementById("remove-selected-friend")
+  .addEventListener("click", function () {
+    const selectedFriendDiv = document.getElementById("selected-friend");
+    selectedFriendDiv.classList.add("hidden");
+    shareFriendSearch.value = "";
+    selectedShareUserId = null;
+
+    // Disable sharing button
+    const saveButton = document.getElementById("save-sharing-settings");
+    saveButton.setAttribute("disabled", "");
+    saveButton.classList.add("opacity-50", "cursor-not-allowed");
+  });
+
+// Hide search results when clicking outside
+document.addEventListener("click", (e) => {
+  if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+    searchResults.classList.add("hidden");
+  }
+});
+
+// Send friend request function
+function sendFriendRequest(friendId) {
+  if (!friendId) {
+    alert("Please select a user first");
+    return;
+  }
+
+  // Ensure friendId is a number
+  friendId = parseInt(friendId, 10);
+  if (isNaN(friendId)) {
+    alert("Invalid user ID");
+    return;
+  }
+
+  console.log(
+    `Preparing to send friend request: ID=${friendId}, Type=${typeof friendId}`
+  );
+  const requestData = { friend_id: friendId };
+  console.log("Request data:", requestData);
+  const jsonData = JSON.stringify(requestData);
+  console.log("JSON string:", jsonData);
+
+  fetch("/api/friend/request", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: jsonData,
+  })
+    .then((response) => {
+      console.log("Response status:", response.status);
+      console.log("Response headers:", [...response.headers.entries()]);
+
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        return response.json().then((data) => ({
+          status: response.status,
+          data: data,
+        }));
+      } else {
+        console.error("Non-JSON response received");
+        return response.text().then((text) => {
+          console.error("Response text:", text);
+          throw new Error("Server returned non-JSON response");
+        });
+      }
+    })
+    .then((result) => {
+      if (result.status >= 200 && result.status < 300) {
+        console.log("Success response:", result.data);
+        alert(result.data.message || "Friend request sent");
+        window.location.reload();
+      } else {
+        console.error("Error response:", result.data);
+        alert(result.data.message || "Failed to send friend request");
+      }
+    })
+    .catch((error) => {
+      console.error("Request error:", error);
+      alert("Error occurred while sending friend request: " + error.message);
+    });
+}
+
+// Handle friend request responses
+document.querySelectorAll(".accept-request").forEach((button) => {
+  button.addEventListener("click", function () {
+    const requestElement = this.closest("[data-request-id]");
+    if (!requestElement) {
+      alert("Could not identify this request");
+      return;
+    }
+
+    const requestId = requestElement.dataset.requestId;
+    respondToRequest(requestId, "accept");
+  });
+});
+
+document.querySelectorAll(".decline-request").forEach((button) => {
+  button.addEventListener("click", function () {
+    const requestElement = this.closest("[data-request-id]");
+    if (!requestElement) {
+      alert("Could not identify this request");
+      return;
+    }
+
+    const requestId = requestElement.dataset.requestId;
+    respondToRequest(requestId, "decline");
+  });
+});
+
+function respondToRequest(requestId, action) {
+  if (!requestId || !action) {
+    alert("Missing necessary information for processing");
+    return;
+  }
+
+  // Ensure requestId is a number
+  requestId = parseInt(requestId, 10);
+  if (isNaN(requestId)) {
+    alert("Invalid request ID");
+    return;
+  }
+
+  console.log(
+    `Preparing to process friend request: ID=${requestId}, Type=${typeof requestId}, Action=${action}`
+  );
+  const requestData = { request_id: requestId, action: action };
+  console.log("Request data:", requestData);
+  const jsonData = JSON.stringify(requestData);
+  console.log("JSON string:", jsonData);
+
+  fetch("/api/friend/respond", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: jsonData,
+  })
+    .then((response) => {
+      console.log("Response status:", response.status);
+      console.log("Response headers:", [...response.headers.entries()]);
+
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        return response.json().then((data) => ({
+          status: response.status,
+          data: data,
+        }));
+      } else {
+        console.error("Non-JSON response received");
+        return response.text().then((text) => {
+          console.error("Response text:", text);
+          throw new Error("Server returned non-JSON response");
+        });
+      }
+    })
+    .then((result) => {
+      if (result.status >= 200 && result.status < 300) {
+        console.log("Success response:", result.data);
+        alert(result.data.message || "Friend request processed");
+
+        // Remove the responded request element
+        const requestElement = document.querySelector(
+          `[data-request-id="${requestId}"]`
+        );
+        if (requestElement) {
+          requestElement.remove();
+        }
+
+        // If no more requests, show "No pending requests" message
+        if (document.querySelectorAll("#friend-requests > div").length === 0) {
+          document.getElementById("friend-requests").innerHTML =
+            '<p class="text-gray-500 text-sm italic">No pending friend requests</p>';
+        }
+
+        // If the request was accepted, refresh the page to show the new friend
+        if (action === "accept") {
+          window.location.reload();
+        }
+      } else {
+        console.error("Error response:", result.data);
+        alert(result.data.message || "Failed to process friend request");
+      }
+    })
+    .catch((error) => {
+      console.error("Request error:", error);
+      alert("Error occurred while processing friend request: " + error.message);
+    });
+}
+
+// Friend selection and data visualization
+let currentChart = null;
+
+document.querySelectorAll(".friend-item, .data-friend-item").forEach((item) => {
+  item.addEventListener("click", function () {
+    const friendId = this.dataset.friendId;
+    loadFriendData(friendId);
+
+    // Highlight selected friend in all lists
+    document
+      .querySelectorAll(".friend-item, .data-friend-item")
+      .forEach((el) => {
+        el.classList.remove("bg-cal-blue-light", "text-white");
+        el.classList.add("bg-gray-50");
+      });
+
+    document
+      .querySelectorAll(
+        `.friend-item[data-friend-id="${friendId}"], .data-friend-item[data-friend-id="${friendId}"]`
+      )
+      .forEach((el) => {
+        el.classList.remove("bg-gray-50");
+        el.classList.add("bg-cal-blue-light", "text-white");
+      });
+
+    // If clicking from friend management, switch to friend data tab
+    if (this.classList.contains("friend-item")) {
+      document.querySelector('.sidebar-nav-item[href="#friend-data"]').click();
+    }
+  });
+});
+
+function loadFriendData(friendId) {
+  if (!friendId) {
+    document.getElementById("friend-data-container").innerHTML =
+      '<p class="text-red-500">Invalid friend selection</p>';
+    return;
+  }
+
+  // Ensure friendId is a number
+  friendId = parseInt(friendId, 10);
+  if (isNaN(friendId)) {
+    document.getElementById("friend-data-container").innerHTML =
+      '<p class="text-red-500">Invalid friend ID</p>';
+    return;
+  }
+
+  document.getElementById("friend-data-container").innerHTML =
+    '<div class="text-center"><i data-lucide="loader" class="animate-spin w-8 h-8 mx-auto text-cal-blue"></i><p class="mt-2 text-gray-600">Loading data...</p></div>';
+  lucide.createIcons();
+
+  console.log(
+    `Preparing to load friend data: ID=${friendId}, Type=${typeof friendId}`
+  );
+
+  fetch(`/api/friend/data/${friendId}`, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+    },
+  })
+    .then((response) => {
+      console.log("Response status:", response.status);
+      console.log("Response headers:", [...response.headers.entries()]);
+
+      // Try to parse JSON response regardless of success or failure
+      return response
+        .json()
+        .then((data) => ({
+          status: response.status,
+          data: data,
+        }))
+        .catch((err) => {
+          // If JSON parsing fails, return error information
+          console.error("JSON parsing error:", err);
+          return {
+            status: response.status,
+            data: { message: "Server returned a non-JSON format response" },
+          };
+        });
+    })
+    .then((result) => {
+      console.log("Response complete data:", result);
+
+      if (
+        result.status >= 200 &&
+        result.status < 300 &&
+        result.data.status === "success"
+      ) {
+        renderFriendData(result.data);
+      } else {
+        document.getElementById("friend-data-container").innerHTML = `
+                    <div class="text-center p-4">
+                        <i data-lucide="alert-circle" class="w-8 h-8 mx-auto text-red-500"></i>
+                        <p class="mt-2 text-red-500">${
+                          result.data.message ||
+                          `Failed to load data (Code: ${result.status})`
+                        }</p>
+                    </div>`;
+        lucide.createIcons();
+      }
+    })
+    .catch((error) => {
+      console.error("Network error loading friend data:", error);
+      document.getElementById("friend-data-container").innerHTML = `
+                <div class="text-center p-4">
+                    <i data-lucide="alert-circle" class="w-8 h-8 mx-auto text-red-500"></i>
+                    <p class="mt-2 text-red-500">Network error occurred while loading data</p>
+                    <p class="text-sm text-gray-500">${error.message || ""}</p>
+                </div>`;
+      lucide.createIcons();
+    });
+}
+
+function renderFriendData(data) {
+  document.getElementById("friend-data-container").innerHTML = "";
+  document
+    .getElementById("friend-data-container")
+    .classList.remove("flex", "items-center", "justify-center");
+
+  // Create header
+  const headerElement = document.createElement("div");
+  headerElement.className = "mb-4";
+  headerElement.innerHTML = `<h3 class="text-lg font-medium">${data.username}'s Shared Data</h3>`;
+  document.getElementById("friend-data-container").appendChild(headerElement);
+
+  // Group data by type
+  const meals = data.data.filter((item) => item.type === "meal");
+  const exercises = data.data.filter((item) => item.type === "exercise");
+  const metrics = data.data.filter((item) => item.type === "metrics");
+
+  // Create section for meals
+  const mealsSection = document.createElement("div");
+  mealsSection.className = "mb-6";
+  mealsSection.innerHTML = `
+            <h4 class="text-md font-medium mb-2 flex items-center">
+                <i data-lucide="utensils" class="w-4 h-4 mr-2 text-blue-600"></i>
+                Meals
+            </h4>
+        `;
+
+  if (meals.length > 0) {
+    const mealsTable = document.createElement("div");
+    mealsTable.className = "overflow-x-auto";
+    mealsTable.innerHTML = `
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Meal</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Calories</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200" id="meals-table-body">
+                    </tbody>
+                </table>
+            `;
+    mealsSection.appendChild(mealsTable);
+
+    const mealsTableBody = mealsTable.querySelector("#meals-table-body");
+    meals.forEach((meal) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${meal.date}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600">${meal.meal_type}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">${meal.calories} cal</td>
+                `;
+      mealsTableBody.appendChild(row);
+    });
+  } else {
+    mealsSection.innerHTML += `<p class="text-sm text-gray-500 italic">No meal data shared</p>`;
+  }
+
+  document.getElementById("friend-data-container").appendChild(mealsSection);
+
+  // Create section for exercises
+  const exercisesSection = document.createElement("div");
+  exercisesSection.className = "mb-6";
+  exercisesSection.innerHTML = `
+            <h4 class="text-md font-medium mb-2 flex items-center">
+                <i data-lucide="activity" class="w-4 h-4 mr-2 text-green-600"></i>
+                Exercises
+            </h4>
+        `;
+
+  if (exercises.length > 0) {
+    const exercisesTable = document.createElement("div");
+    exercisesTable.className = "overflow-x-auto";
+    exercisesTable.innerHTML = `
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Exercise</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Calories Burned</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200" id="exercises-table-body">
+                    </tbody>
+                </table>
+            `;
+    exercisesSection.appendChild(exercisesTable);
+
+    const exercisesTableBody = exercisesTable.querySelector(
+      "#exercises-table-body"
+    );
+    exercises.forEach((exercise) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${
+                      exercise.date
+                    }</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600">${
+                      exercise.exercise_type
+                    }</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${
+                      exercise.duration
+                    } min</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">${
+                      exercise.calories_burned || "-"
+                    } cal</td>
+                `;
+      exercisesTableBody.appendChild(row);
+    });
+  } else {
+    exercisesSection.innerHTML += `<p class="text-sm text-gray-500 italic">No exercise data shared</p>`;
+  }
+
+  document
+    .getElementById("friend-data-container")
+    .appendChild(exercisesSection);
+
+  // Create section for daily metrics
+  const metricsSection = document.createElement("div");
+  metricsSection.className = "mb-6";
+  metricsSection.innerHTML = `
+            <h4 class="text-md font-medium mb-2 flex items-center">
+                <i data-lucide="bar-chart-2" class="w-4 h-4 mr-2 text-purple-600"></i>
+                Daily Metrics
+            </h4>
+        `;
+
+  if (metrics.length > 0) {
+    const metricsTable = document.createElement("div");
+    metricsTable.className = "overflow-x-auto";
+    metricsTable.innerHTML = `
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Metric</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Value</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200" id="metrics-table-body">
+                    </tbody>
+                </table>
+            `;
+    metricsSection.appendChild(metricsTable);
+
+    const metricsTableBody = metricsTable.querySelector("#metrics-table-body");
+    metrics.forEach((metric) => {
+      const row = document.createElement("tr");
+
+      let metricType = "";
+      let valueDisplay = "";
+
+      if (metric.weight) {
+        metricType = '<span class="text-purple-600">Weight</span>';
+        valueDisplay = `${metric.weight} kg`;
+      } else if (metric.sleep_hours) {
+        metricType = '<span class="text-indigo-600">Sleep</span>';
+        valueDisplay = `${metric.sleep_hours} hours`;
+      } else if (metric.mood) {
+        metricType = '<span class="text-yellow-600">Mood</span>';
+        valueDisplay = metric.mood;
+      }
+
+      row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${metric.date}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">${metricType}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">${valueDisplay}</td>
+                `;
+      metricsTableBody.appendChild(row);
+    });
+  } else {
+    metricsSection.innerHTML += `<p class="text-sm text-gray-500 italic">No metrics data shared</p>`;
+  }
+
+  document.getElementById("friend-data-container").appendChild(metricsSection);
+
+  // Prepare chart data
+  const chartData = prepareChartData(data.data);
+  renderChart(chartData);
+
+  // Initialize Lucide icons in the added DOM elements
+  lucide.createIcons();
+}
+
+function prepareChartData(entries) {
+  // Group entries by date and type
+  const entriesByDate = {};
+  const types = new Set();
+
+  if (!entries || entries.length === 0) {
+    return {
+      labels: [],
+      datasets: [],
+    };
+  }
+
+  // Initialize date structure
+  entries.forEach((entry) => {
+    if (!entriesByDate[entry.date]) {
+      entriesByDate[entry.date] = {};
+    }
+
+    // Determine type for chart
+    let chartType;
+    if (entry.type === "meal") {
+      chartType = "meal";
+    } else if (entry.type === "exercise") {
+      chartType = "exercise";
+    } else if (entry.type === "metrics") {
+      if (entry.weight) chartType = "weight";
+      else if (entry.sleep_hours) chartType = "sleep";
+      else {
+        // Skip mood as it's not numeric
+        return; // Return inside forEach callback is ok
+      }
+    }
+
+    types.add(chartType);
+
+    // Add value to the date
+    entriesByDate[entry.date][chartType] =
+      (entriesByDate[entry.date][chartType] || 0) + entry.value;
+  });
+
+  // Sort dates
+  const sortedDates = Object.keys(entriesByDate).sort();
+
+  // Prepare datasets
+  const datasets = [];
+  const typeColors = {
+    meal: "#3b82f6", // blue
+    exercise: "#22c55e", // green
+    weight: "#8b5cf6", // purple
+    sleep: "#6366f1", // indigo
+  };
+
+  types.forEach((type) => {
+    datasets.push({
+      label: type.charAt(0).toUpperCase() + type.slice(1),
+      data: sortedDates.map((date) => entriesByDate[date][type] || 0),
+      backgroundColor: typeColors[type] || "#94a3b8",
+      borderColor: typeColors[type] || "#94a3b8",
+      borderWidth: 1,
+    });
+  });
+
+  return {
+    labels: sortedDates,
+    datasets: datasets,
+  };
+}
+
+function renderChart(chartData) {
+  const ctx = document.getElementById("chart-container");
+
+  // Destroy existing chart if it exists
+  if (currentChart) {
+    currentChart.destroy();
+  }
+
+  if (!chartData.labels || chartData.labels.length === 0) {
+    ctx.innerHTML =
+      '<p class="text-center text-gray-500 pt-4">No data available to display</p>';
+    return;
+  }
+
+  currentChart = new Chart(ctx, {
+    type: "bar",
+    data: chartData,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: "Value",
+          },
+        },
+        x: {
+          title: {
+            display: true,
+            text: "Date",
+          },
+        },
+      },
+    },
+  });
+}
+
+document
+  .getElementById("save-sharing-settings")
+  .addEventListener("click", function () {
+    if (!selectedShareUserId) {
+      alert("Please search and select a friend to share data with");
+      return;
+    }
+
+    // Ensure selectedShareUserId is a number
+    selectedShareUserId = parseInt(selectedShareUserId, 10);
+    if (isNaN(selectedShareUserId)) {
+      alert("Invalid friend ID");
+      return;
+    }
+
+    // Show loading state
+    const originalButtonText = this.textContent;
+    this.textContent = "Saving...";
+    this.disabled = true;
+
+    // Collect meal types
+    const mealTypes = Array.from(
+      document.querySelectorAll(".meal-type-checkbox:checked")
+    ).map((checkbox) => parseInt(checkbox.value));
+
+    // Collect daily metrics
+    const dailyMetrics = Array.from(
+      document.querySelectorAll(".metrics-checkbox:checked")
+    ).map((checkbox) => checkbox.value);
+
+    // Collect exercise types
+    const exerciseTypes = Array.from(
+      document.querySelectorAll(".exercise-type-checkbox:checked")
+    ).map((checkbox) => checkbox.value);
+
+    const conditions = {
+      meal_types: mealTypes,
+      daily_metrics: dailyMetrics,
+      exercise_types: exerciseTypes,
+    };
+
+    console.log(
+      `Preparing to save sharing settings: Recipient ID=${selectedShareUserId}, Type=${typeof selectedShareUserId}, Conditions=`,
+      conditions
+    );
+    const requestData = {
+      recipient_id: selectedShareUserId,
+      conditions: conditions,
+    };
+    console.log("Request data:", requestData);
+    const jsonData = JSON.stringify(requestData);
+    console.log("JSON string:", jsonData);
+
+    // Save sharing settings
+    fetch("/api/share/settings", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: jsonData,
+    })
+      .then((response) => {
+        console.log("Response status:", response.status);
+        console.log("Response headers:", [...response.headers.entries()]);
+
+        // Try to parse JSON response regardless of success or failure
+        return response
+          .json()
+          .then((data) => ({
+            status: response.status,
+            data: data,
+          }))
+          .catch((err) => {
+            // If JSON parsing fails, return error information
+            console.error("JSON parsing error:", err);
+            return {
+              status: response.status,
+              data: { message: "Server returned a non-JSON format response" },
+            };
+          });
+      })
+      .then((result) => {
+        console.log("Response complete data:", result);
+
+        if (
+          result.status >= 200 &&
+          result.status < 300 &&
+          result.data.status === "success"
+        ) {
+          alert(result.data.message || "Sharing settings saved successfully");
+        } else {
+          alert(
+            result.data.message ||
+              `Failed to save sharing settings (Code: ${result.status})`
+          );
+        }
+      })
+      .catch((error) => {
+        console.error("Error saving sharing settings:", error);
+        alert(
+          "Network error occurred while saving sharing settings, please try again later"
+        );
+      })
+      .finally(() => {
+        // Reset button state
+        this.textContent = originalButtonText;
+        this.disabled = false;
+      });
+  });
+
+// Initialize Lucide icons after DOM is fully loaded
+document.addEventListener("DOMContentLoaded", function () {
+  lucide.createIcons();
+
+  document
+    .getElementById("share-all-data")
+    .addEventListener("change", function () {
+      const isChecked = this.checked;
+      const selectors = [
+        ".meal-type-checkbox",
+        ".metrics-checkbox",
+        ".exercise-type-checkbox",
+      ];
+      selectors.forEach((selector) => {
+        document.querySelectorAll(selector).forEach((checkbox) => {
+          checkbox.checked = isChecked;
+        });
+      });
+    });
+
+  // 自动同步取消“全选”勾选状态
+  document
+    .querySelectorAll(
+      ".meal-type-checkbox, .metrics-checkbox, .exercise-type-checkbox"
+    )
+    .forEach((checkbox) => {
+      checkbox.addEventListener("change", function () {
+        const allCheckboxes = document.querySelectorAll(
+          ".meal-type-checkbox, .metrics-checkbox, .exercise-type-checkbox"
+        );
+        const allChecked = Array.from(allCheckboxes).every((cb) => cb.checked);
+        document.getElementById("share-all-data").checked = allChecked;
+      });
+    });
+});

@@ -1,34 +1,9 @@
-{# templates/profile.html #} {% extends 'base.html' %} {% block content %}
-<!-- Stats Section -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-  <div class="bg-white rounded-xl shadow p-6">
-    <div class="text-sm text-gray-500">BMR</div>
-    <div class="text-3xl font-extrabold text-gray-900 mt-1">2,000 kcal</div>
-    <div class="text-xs text-green-600 mt-2">+7.7% vs. last week</div>
-  </div>
-  <div class="bg-white rounded-xl shadow p-6">
-    <div class="text-sm text-gray-500">Net Daily Calories</div>
-    <div class="text-3xl font-extrabold text-gray-900 mt-1">1,500 kcal</div>
-    <div class="text-xs text-red-600 mt-2">-1.7% vs. yesterday</div>
-  </div>
-  <div class="bg-white rounded-xl shadow p-6">
-    <div class="text-sm text-gray-500">Target Progress</div>
-    <div class="flex items-center justify-between mt-1">
-      <span class="text-3xl font-extrabold text-gray-900">72%</span>
-    </div>
-    <div class="w-full bg-gray-200 rounded-full h-2 mt-4">
-      <div class="bg-cal-blue h-2 rounded-full" style="width: 72%"></div>
-    </div>
-  </div>
-</div>
-
-<!-- Profile Section -->
-<div class="bg-white rounded-xl shadow p-8">
-  <h2 class="text-2xl font-semibold text-gray-900 mb-2">Profile</h2>
+{# templates/complete_profile.html #} {% extends 'base.html' %} {% block content %}
+<div class="bg-white rounded-xl shadow p-8 max-w-2xl mx-auto mt-10">
+  <h2 class="text-2xl font-semibold text-gray-900 mb-2">Complete Your Profile</h2>
   <p class="text-sm text-gray-600 mb-6">
-    Manage your name, password, and account settings.
+    Please fill in your information to complete your registration.
   </p>
-
   <form class="space-y-6" method="POST" enctype="multipart/form-data">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="flex items-center space-x-6 mb-8">
@@ -46,7 +21,6 @@
         <p class="text-xs text-gray-500 mt-2">Choose a default profile photo</p>
       </div>
     </div>
-
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
         <label for="fullName" class="block text-gray-700 mb-1">Full Name</label>
@@ -71,7 +45,6 @@
         />
       </div>
     </div>
-
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
         <label for="height" class="block text-gray-700 mb-1">Height (cm)</label>
@@ -98,7 +71,6 @@
         />
       </div>
     </div>
-
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
         <label for="password" class="block text-gray-700 mb-1">Password</label>
@@ -116,12 +88,12 @@
           id="phone"
           name="phone"
           type="tel"
+          value="{{ current_user.phone if current_user.phone else '' }}"
           placeholder="+1 (xxx) xxx-xx-xx"
           class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-cal-blue"
         />
       </div>
     </div>
-
     <div class="flex flex-col md:flex-row md:space-x-6">
       <div class="flex-1">
         <span class="block text-gray-700 mb-2">Gender</span>
@@ -169,13 +141,12 @@
         >{{ current_user.bio if current_user.bio else '' }}</textarea>
       </div>
     </div>
-
     <div class="flex justify-end">
       <button
         type="submit"
         class="px-6 py-2 bg-cal-blue text-white font-medium rounded-lg hover:bg-cal-blue-dark focus:outline-none focus:ring-2 focus:ring-cal-blue"
       >
-        Save Changes
+        Save Profile
       </button>
     </div>
   </form>
@@ -192,7 +163,6 @@
     </div>
   </div>
 </div>
-
 {% endblock %}
 
 {% block scripts %}
@@ -245,4 +215,4 @@ function loadAvatars() {
     });
 }
 </script>
-{% endblock %}
+{% endblock %} 

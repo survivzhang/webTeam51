@@ -9,6 +9,9 @@ from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 import uuid, os
 from flask import current_app
+import json
+from flask import jsonify
+
 
 
 @app.route('/dashboard')
@@ -172,3 +175,18 @@ def complete_profile():
             flash(f'Error saving profile: {str(e)}', 'error')
     return render_template('complete_profile.html', title='Complete Profile', current_user=user)
 
+@app.route('/autocomplete')
+@login_required
+def autocomplete():
+    query = request.args.get("query", "").strip().lower()
+    json_path = os.path.join(current_app.root_path, 'static', 'data', 'food_basic_nutrition.json')
+    with open(json_path) as f:
+        food_data = json.load(f)
+
+    results = [
+        item["description"]
+        for item in food_data
+        if query in item["description"].lower()
+    ]
+
+    return jsonify(results[:10])  # 返回最多10条

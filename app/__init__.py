@@ -10,6 +10,7 @@ from flask_wtf.csrf import CSRFProtect
 from datetime import timedelta
 from functools import wraps
 from sqlalchemy import and_, or_
+from flask_mail import Mail
 
 
 # Create application instance - disable instance folder
@@ -24,6 +25,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize CSRF protection
 csrf = CSRFProtect(app)
+
+# Initialize Mail
+mail = Mail(app)
 
 # Configure sessions
 app.config['SESSION_TYPE'] = 'filesystem'
@@ -43,3 +47,6 @@ print(f"Database File Exists: {os.path.exists(db_path)}")
 from . import routes
 from . import route_nav
 from . import route_api
+
+# Import models here
+from .models import User

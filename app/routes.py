@@ -1,11 +1,12 @@
 from . import app, db
 from flask import render_template, request, url_for, redirect, flash, session, jsonify, current_app
 import sqlalchemy as sa
-from .models import User
-from datetime import datetime
+from .models import User, VerificationCode
+from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from .forms import LoginForm, RegistrationForm
 from .auth import login_required, valid_login, valid_register, valid_regist
+from .utils import generate_verification_code, send_verification_email
 import traceback
 import os
 import sqlite3
@@ -62,62 +63,79 @@ def login():
 def register():
     login_form = LoginForm()
     register_form = RegistrationForm()
-    from config import Config
-    db_path = Config.SQLALCHEMY_DATABASE_URI
-    print(f"Database path: {db_path}")
-    db_file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'app.db')
-    print(f"Database file exists: {os.path.exists(db_file_path)}")
+    
     if register_form.validate_on_submit():
         username = register_form.username.data
         email = register_form.email.data
         password = register_form.password.data
+        verification_code = register_form.verification_code.data
+        
+        # Verify that we have a verification code in session
+        if 'verification_code' not in session or session.get('verification_code') != verification_code:
+            flash('Invalid verification code', 'error')
+            return redirect(url_for('index'))
+        
+        # Verify that the code hasn't expired (30 minutes)
+        if 'code_created_at' in session:
+            code_time = datetime.fromisoformat(session['code_created_at'])
+            if (datetime.utcnow() - code_time).total_seconds() > 1800:  # 30 minutes
+                flash('Verification code has expired. Please request a new one', 'error')
+                return redirect(url_for('index'))
+        
         try:
             if not valid_regist(username, email):
                 flash('Username or email already exists', 'error')
                 return redirect(url_for('index'))
+            
             try:
+                # Create new user with verified status
                 new_user = User(
                     username=username,
                     email=email,
                     password_hash=generate_password_hash(password),
-                    created_at=datetime.utcnow()
+                    created_at=datetime.utcnow(),
+                    is_verified=True
                 )
-                print(f"Creating user: {username}, email: {email}")
                 db.session.add(new_user)
-                db.session.flush()
+                db.session.flush()  # Get the user ID without committing
+                
+                # Save verification code to database for history/audit
+                verification_record = VerificationCode(
+                    user_id=new_user.id,
+                    code=verification_code,
+                    created_at=datetime.fromisoformat(session['code_created_at']),
+                    expires_at=datetime.fromisoformat(session['code_created_at']) + timedelta(minutes=30),
+                    is_used=True  # Mark as used immediately
+                )
+                db.session.add(verification_record)
+                
+                # Commit all changes
                 db.session.commit()
-                saved_user = db.session.execute(
-                    sa.select(User).where(User.username == username)
-                ).scalar_one_or_none()
-                if saved_user:
-                    print(f"User created and verified, ID: {saved_user.id}")
-                    # Log in the user and redirect to complete-profile
-                    session['user_id'] = saved_user.id
-                    return redirect(url_for('complete_profile'))
-                else:
-                    print("Error: User not found in database after commit!")
-                    try:
-                        direct_insert_user(username, email, password)
-                    except Exception as sql_error:
-                        print(f"Direct SQL insertion also failed: {str(sql_error)}")
-                flash('Registration successful! You can now log in', 'success')
-                return redirect(url_for('index'))
+                print(f"User created and verified, ID: {new_user.id}")
+                print(f"Verification code {verification_code} saved to database")
+                
+                # Clear verification data from session
+                session.pop('temp_username', None)
+                session.pop('temp_email', None)
+                session.pop('verification_code', None)
+                session.pop('code_created_at', None)
+                
+                # Log in the user and redirect to complete-profile
+                session['user_id'] = new_user.id
+                return redirect(url_for('complete_profile'))
+                
             except Exception as orm_error:
                 db.session.rollback()
                 print(f"ORM error: {str(orm_error)}")
-                try:
-                    direct_insert_user(username, email, password)
-                    flash('Registration successful! You can now log in', 'success')
-                    return redirect(url_for('index'))
-                except Exception as sql_error:
-                    print(f"Direct SQL insertion also failed: {str(sql_error)}")
-                    raise orm_error
+                flash(f'Error during registration: {str(orm_error)}', 'error')
+                return redirect(url_for('index'))
         except Exception as e:
             db.session.rollback()
             error_details = traceback.format_exc()
             print(f"Registration error: {str(e)}\n{error_details}")
             flash(f'Error during registration process: {str(e)}', 'error')
             return redirect(url_for('index'))
+    
     for field, errors in register_form.errors.items():
         for error in errors:
             flash(f"{error}", 'error')
@@ -198,3 +216,58 @@ def upload_photo():
         print(traceback.format_exc())
     
     return redirect(url_for('profile'))
+
+@app.route('/send-verification', methods=['POST'])
+def send_verification():
+    """Send verification code to email during registration process"""
+    if request.method == 'POST':
+        email = request.form.get('email')
+        username = request.form.get('username')
+        
+        # Validate input
+        if not email or not username:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'error': 'Email and username are required'}), 400
+            flash('Email and username are required', 'error')
+            return redirect(url_for('index'))
+        
+        # Check if email or username already exists
+        if not valid_regist(username, email):
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'error': 'Username or email already exists'}), 400
+            flash('Username or email already exists', 'error')
+            return redirect(url_for('index'))
+        
+        # Store temporary user info in session
+        session['temp_username'] = username
+        session['temp_email'] = email
+        
+        # Generate verification code
+        verification_code = generate_verification_code()
+        session['verification_code'] = verification_code
+        session['code_created_at'] = datetime.utcnow().isoformat()
+        
+        # Create a mock user for the email template
+        mock_user = type('obj', (object,), {
+            'email': email,
+            'username': username
+        })
+        
+        try:
+            # Send verification email
+            success = send_verification_email(mock_user, verification_code)
+            if success:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return jsonify({'message': 'Verification code has been sent to your email'}), 200
+                flash('Verification code has been sent to your email', 'success')
+            else:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return jsonify({'error': 'Error sending verification email. Please try again.'}), 500
+                flash('Error sending verification email. Please try again.', 'error')
+        except Exception as e:
+            print(f"Error sending email: {str(e)}")
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'error': 'Error sending verification email. Please try again.'}), 500
+            flash('Error sending verification email. Please try again.', 'error')
+        
+        return redirect(url_for('index'))

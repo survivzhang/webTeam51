@@ -1,7 +1,7 @@
 from . import app, db, csrf
 from flask import request, jsonify, session, redirect, url_for, flash
 import sqlalchemy as sa
-from .models import User, Friendship, SharedCalories, CalorieEntry, DailyMetrics, CalorieBurn, ExerciseType, MealType
+from .models import User, Friendship, SharedCalories, CalorieEntry, DailyMetrics, CalorieBurn, ExerciseType, MealType, Food
 from sqlalchemy import and_, or_, desc
 from datetime import datetime, date
 import json
@@ -611,6 +611,7 @@ def save_meal():
     # 获取表单字段（前端提交的是 multipart/form-data）
     meal_type_id = request.form.get('meal_type_id', type=int)
     energy_kcal = request.form.get('energy_kcal', type=float) or request.form.get('calories', type=float)
+    calories = energy_kcal * 1000 if energy_kcal is not None else None
     carbohydrates = request.form.get('carbohydrates', type=float)
     proteins = request.form.get('proteins', type=float)
     fats = request.form.get('fats', type=float)
@@ -632,7 +633,7 @@ def save_meal():
             user_id=user_id,
             date=today,
             meal_type_id=meal_type_id,
-            energy_kcal=energy_kcal,
+            calories=calories,
             carbohydrates=carbohydrates,
             proteins=proteins,
             fats=fats,
@@ -646,7 +647,7 @@ def save_meal():
     except Exception as e:
         db.session.rollback()
         flash(f'Error saving meal: {str(e)}', 'error')
-
+    print("Saving meal for user_id:", user_id)
     return redirect(url_for('upload'))
 
 
@@ -711,3 +712,23 @@ def get_default_photos():
     files = [f for f in os.listdir(folder) if f.startswith('vibrent_') and f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))]
     urls = [url_for('static', filename=f'profile_photos/{f}') for f in files]
     return jsonify({'photos': urls})
+
+@app.route('/api/food_info')
+def get_food_info():
+    description = request.args.get('description')
+    if not description:
+        return jsonify({'success': False, 'error': 'No food description provided'})
+
+    food = Food.query.filter_by(description=description).first()
+    if not food:
+        return jsonify({'success': False, 'error': 'Food not found'})
+
+    return jsonify({
+        'success': True,
+        'energy_per_100g': food.energy_kcal,
+        'protein_per_100g': food.proteins,
+        'fat_per_100g': food.fats,
+        'carb_per_100g': food.carbohydrates,
+        'fiber_per_100g': food.fiber,
+        'sugar_per_100g': food.sugars,
+    })

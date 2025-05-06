@@ -64,7 +64,7 @@ class CalorieEntry(db.Model):
     user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     meal_type_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('meal_types.id'), nullable=False)
     date: so.Mapped[date] = so.mapped_column(Date, nullable=False)
-    energy_kcal: so.Mapped[float] = so.mapped_column(nullable=False)
+    calories: so.Mapped[float] = so.mapped_column(nullable=False)
     carbohydrates: so.Mapped[float] = so.mapped_column(nullable=False)
     proteins: so.Mapped[float] = so.mapped_column(nullable=False)
     fats: so.Mapped[float] = so.mapped_column(nullable=False)
@@ -79,13 +79,6 @@ class CalorieEntry(db.Model):
 
     def __repr__(self):
         return f'<CalorieEntry {self.id} for user {self.user_id}>'
-    @property
-    def calories(self):
-        return self.energy_kcal
-
-    @calories.setter
-    def calories(self, value):
-        self.energy_kcal = value
 
 class Friendship(db.Model):
     __tablename__ = 'friendships'
@@ -184,6 +177,20 @@ class CalorieBurn(db.Model):
     
     def __repr__(self):
         return f'<CalorieBurn {self.exercise_type.display_name} for user {self.user_id} on {self.date}>'
+
+
+class Food(db.Model):
+    __tablename__ = 'foods'
+
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    description: so.Mapped[str] = so.mapped_column(sa.String(255), unique=True, nullable=False)
+    energy_kcal: so.Mapped[float] = so.mapped_column(nullable=False)
+    proteins: so.Mapped[float] = so.mapped_column(nullable=False)
+    fats: so.Mapped[float] = so.mapped_column(nullable=False)
+    carbohydrates: so.Mapped[float] = so.mapped_column(nullable=False)
+    sugars: so.Mapped[float] = so.mapped_column(nullable=False)
+    fiber: so.Mapped[float] = so.mapped_column(nullable=False)
+
 
 # Create indexes (SQLAlchemy 2.0 style)
 sa.Index('idx_entries_user_date', CalorieEntry.user_id, CalorieEntry.date)

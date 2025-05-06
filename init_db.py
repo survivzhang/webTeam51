@@ -1,40 +1,33 @@
 from app import app, db
-from app.models import User, MealType, CalorieEntry, Friendship, SharedCalories, ExerciseType, CalorieBurn, DailyMetrics
+from app.models import User, MealType, CalorieEntry, Friendship, SharedCalories, ExerciseType, CalorieBurn, DailyMetrics, Food
 from werkzeug.security import generate_password_hash
 from datetime import datetime
 import sqlalchemy as sa
+import json
+import os
 
 def init_database():
-    """Initialize the database by creating all tables"""
     print("Initializing database...")
     
     with app.app_context():
-        # Create all tables
         try:
             db.create_all()
             print("All tables created successfully!")
             
-            # Create meal types
+            # ========== 添加 MealType ==========
             meal_types = [
                 MealType(name="breakfast", display_name="Breakfast"),
                 MealType(name="lunch", display_name="Lunch"),
                 MealType(name="dinner", display_name="Dinner"),
                 MealType(name="snacks", display_name="Snacks")
             ]
-            
-            # Add meal types if they don't exist
             for meal_type in meal_types:
-                existing = db.session.execute(
-                    sa.select(MealType).where(MealType.name == meal_type.name)
-                ).scalar_one_or_none()
-                
-                if not existing:
+                if not db.session.execute(sa.select(MealType).where(MealType.name == meal_type.name)).scalar_one_or_none():
                     db.session.add(meal_type)
-            
             db.session.commit()
             print("Added default meal types")
-            
-            # Create exercise types
+
+            # ========== 添加 ExerciseType ==========
             exercise_types = [
                 ExerciseType(name="running", display_name="Running"),
                 ExerciseType(name="swimming", display_name="Swimming"),
@@ -45,43 +38,53 @@ def init_database():
                 ExerciseType(name="hiit", display_name="HIIT"),
                 ExerciseType(name="pilates", display_name="Pilates")
             ]
-            
-            # Add exercise types if they don't exist
-            for exercise_type in exercise_types:
-                existing = db.session.execute(
-                    sa.select(ExerciseType).where(ExerciseType.name == exercise_type.name)
-                ).scalar_one_or_none()
-                
-                if not existing:
-                    db.session.add(exercise_type)
-            
+            for ex_type in exercise_types:
+                if not db.session.execute(sa.select(ExerciseType).where(ExerciseType.name == ex_type.name)).scalar_one_or_none():
+                    db.session.add(ex_type)
             db.session.commit()
             print("Added default exercise types")
-            
-            # Check database status
-            user_count = db.session.query(User).count()
-            meal_type_count = db.session.query(MealType).count()
-            exercise_type_count = db.session.query(ExerciseType).count()
-            entry_count = db.session.query(CalorieEntry).count()
-            burn_count = db.session.query(CalorieBurn).count()
-            friendship_count = db.session.query(Friendship).count()
-            shared_count = db.session.query(SharedCalories).count()
-            metrics_count = db.session.query(DailyMetrics).count()
-            
-            print(f"Current database status:")
-            print(f"- Users: {user_count}")
-            print(f"- Meal Types: {meal_type_count}")
-            print(f"- Exercise Types: {exercise_type_count}")
-            print(f"- Calorie Entries: {entry_count}")
-            print(f"- Calorie Burns: {burn_count}")
-            print(f"- Daily Metrics: {metrics_count}")
-            print(f"- Friendships: {friendship_count}")
-            print(f"- Shared Calories Settings: {shared_count}")
-            
+
+            # ========== 导入 Food 数据 ==========
+            food_path = os.path.join(app.root_path, 'static', 'data', 'food_basic_nutrition.json')
+            if os.path.exists(food_path):
+                with open(food_path, 'r') as f:
+                    food_data = json.load(f)
+
+                count = 0
+                for item in food_data:
+                    if not db.session.execute(sa.select(Food).where(Food.description == item['description'])).scalar_one_or_none():
+                        food = Food(
+                            description=item['description'],
+                            energy_kcal=item.get('energy_kcal', 0),
+                            proteins=item.get('proteins', 0),
+                            fats=item.get('fats', 0),
+                            carbohydrates=item.get('carbohydrates', 0),
+                            sugars=item.get('sugars', 0),
+                            fiber=item.get('fiber', 0)
+                        )
+                        db.session.add(food)
+                        count += 1
+                db.session.commit()
+                print(f"✅ Imported {count} foods from JSON")
+            else:
+                print("⚠️ Food JSON file not found")
+
+            # ========== 打印数据汇总 ==========
+            print("Current database status:")
+            print(f"- Users: {db.session.query(User).count()}")
+            print(f"- Meal Types: {db.session.query(MealType).count()}")
+            print(f"- Exercise Types: {db.session.query(ExerciseType).count()}")
+            print(f"- Calorie Entries: {db.session.query(CalorieEntry).count()}")
+            print(f"- Calorie Burns: {db.session.query(CalorieBurn).count()}")
+            print(f"- Daily Metrics: {db.session.query(DailyMetrics).count()}")
+            print(f"- Friendships: {db.session.query(Friendship).count()}")
+            print(f"- Shared Calories Settings: {db.session.query(SharedCalories).count()}")
+            print(f"- Foods: {db.session.query(Food).count()}")
+
         except Exception as e:
             db.session.rollback()
-            print(f"Error creating tables: {str(e)}")
+            print(f"❌ Error: {e}")
             raise
 
 if __name__ == "__main__":
-    init_database() 
+    init_database()

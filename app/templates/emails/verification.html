@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CalTrack - Email Verification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo {
+            color: #63b3ed;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .verification-code {
+            background-color: #f5f5f5;
+            padding: 10px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 5px;
+            margin: 20px 0;
+            color: #4299e1;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">CalTrack</div>
+        </div>
+        
+        <p>Hello {{ username }},</p>
+        
+        <p>Welcome to CalTrack! We're excited to have you join our community of health enthusiasts.</p>
+        
+        <p>To complete your registration, please use the verification code below:</p>
+        
+        <div class="verification-code">{{ code }}</div>
+        
+        <p>This code will expire in 30 minutes. Please enter it on the registration page to verify your email address.</p>
+        
+        <p>If you didn't create an account on CalTrack, you can safely ignore this email.</p>
+        
+        <p>Best regards,<br>
+        The CalTrack Team</p>
+        
+        <div class="footer">
+            <p>This is an automated message, please do not reply to this email.</p>
+            <p>&copy; 2025 CalTrack. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html> 

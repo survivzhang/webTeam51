@@ -1,5 +1,5 @@
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy import Date
 import sqlalchemy as sa
 import sqlalchemy.orm as so
@@ -12,33 +12,36 @@ from sqlalchemy.ext.declarative import declarative_base
 class User(db.Model):
     __tablename__ = 'users'
     
-    id: so.Mapped[int] = so.mapped_column(primary_key=True)
-    username: so.Mapped[str] = so.mapped_column(sa.String(80), unique=True, nullable=False)
-    password_hash: so.Mapped[Optional[str]] = so.mapped_column(sa.String(120), nullable=False)
-    email: so.Mapped[str] = so.mapped_column(sa.String(120), unique=True, nullable=False)
-    created_at: so.Mapped[datetime] = so.mapped_column(default=datetime.utcnow)
-    photo: so.Mapped[Optional[str]] = so.mapped_column(sa.String(255), nullable=True)  # Store filename of profile photo
-    gender: so.Mapped[Optional[str]] = so.mapped_column(sa.String(20), nullable=True)
-    bio: so.Mapped[Optional[str]] = so.mapped_column(sa.Text, nullable=True)
-    phone: so.Mapped[Optional[str]] = so.mapped_column(sa.String(30), nullable=True)
-    height: so.Mapped[Optional[float]] = so.mapped_column(sa.Float, nullable=True)
-    weight: so.Mapped[Optional[float]] = so.mapped_column(sa.Float, nullable=True)
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password_hash = db.Column(db.String(120), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    photo = db.Column(db.String(255), nullable=True)  # Store filename of profile photo
+    gender = db.Column(db.String(20), nullable=True)
+    bio = db.Column(db.Text, nullable=True)
+    phone = db.Column(db.String(30), nullable=True)
+    height = db.Column(db.Float, nullable=True)
+    weight = db.Column(db.Float, nullable=True)
+    is_verified = db.Column(db.Boolean, default=False, nullable=False)
     
     # Relationships
-    calorie_entries: so.Mapped[List['CalorieEntry']] = so.relationship(
-        back_populates='user', cascade='all, delete-orphan')
-    friendships_initiated: so.Mapped[List['Friendship']] = so.relationship(
-        foreign_keys='Friendship.user_id', back_populates='user')
-    friendships_received: so.Mapped[List['Friendship']] = so.relationship(
-        foreign_keys='Friendship.friend_id', back_populates='friend')
-    shared_calories_sent: so.Mapped[List['SharedCalories']] = so.relationship(
-        foreign_keys='SharedCalories.sharer_id', back_populates='sharer')
-    shared_calories_received: so.Mapped[List['SharedCalories']] = so.relationship(
-        foreign_keys='SharedCalories.recipient_id', back_populates='recipient')
-    daily_metrics: so.Mapped[List['DailyMetrics']] = so.relationship(
-        back_populates='user', cascade='all, delete-orphan')
-    calorie_burns: so.Mapped[List['CalorieBurn']] = so.relationship(
-        back_populates='user', cascade='all, delete-orphan')
+    calorie_entries = db.relationship(
+        'CalorieEntry', back_populates='user', cascade='all, delete-orphan')
+    friendships_initiated = db.relationship(
+        'Friendship', foreign_keys='Friendship.user_id', back_populates='user')
+    friendships_received = db.relationship(
+        'Friendship', foreign_keys='Friendship.friend_id', back_populates='friend')
+    shared_calories_sent = db.relationship(
+        'SharedCalories', foreign_keys='SharedCalories.sharer_id', back_populates='sharer')
+    shared_calories_received = db.relationship(
+        'SharedCalories', foreign_keys='SharedCalories.recipient_id', back_populates='recipient')
+    daily_metrics = db.relationship(
+        'DailyMetrics', back_populates='user', cascade='all, delete-orphan')
+    calorie_burns = db.relationship(
+        'CalorieBurn', back_populates='user', cascade='all, delete-orphan')
+    verification_codes = db.relationship(
+        'VerificationCode', back_populates='user', cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<User {self.username}>'
@@ -172,11 +175,31 @@ class CalorieBurn(db.Model):
     def __repr__(self):
         return f'<CalorieBurn {self.exercise_type.display_name} for user {self.user_id} on {self.date}>'
 
+class VerificationCode(db.Model):
+    __tablename__ = 'verification_codes'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    code = db.Column(db.String(6), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    expires_at = db.Column(db.DateTime, default=lambda: datetime.utcnow() + timedelta(minutes=30), nullable=False)
+    is_used = db.Column(db.Boolean, default=False, nullable=False)
+    
+    # Relationship
+    user = db.relationship('User', back_populates='verification_codes')
+    
+    def __repr__(self):
+        return f'<VerificationCode for user {self.user_id}>'
+    
+    def is_valid(self):
+        return not self.is_used and datetime.utcnow() < self.expires_at
+
 # Create indexes (SQLAlchemy 2.0 style)
 sa.Index('idx_entries_user_date', CalorieEntry.user_id, CalorieEntry.date)
 sa.Index('idx_shared_conditions', SharedCalories.recipient_id, SharedCalories.created_at)
 sa.Index('idx_friendships_status', Friendship.user_id, Friendship.status)
 sa.Index('idx_daily_metrics_user_date', DailyMetrics.user_id, DailyMetrics.date)
 sa.Index('idx_calorie_burns_user_date', CalorieBurn.user_id, CalorieBurn.date)
+sa.Index('idx_verification_codes', VerificationCode.user_id, VerificationCode.code)
 
    

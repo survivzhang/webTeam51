@@ -56,10 +56,10 @@ def init_database():
                         food = Food(
                             description=item['description'],
                             energy_kcal=item.get('energy_kcal', 0),
-                            proteins=item.get('proteins', 0),
-                            fats=item.get('fats', 0),
-                            carbohydrates=item.get('carbohydrates', 0),
-                            sugars=item.get('sugars', 0),
+                            proteins=item.get('protein', 0),
+                            fats=item.get('fat', 0),
+                            carbohydrates=item.get('carbohydrate', 0),
+                            sugars=item.get('sugar', 0),
                             fiber=item.get('fiber', 0)
                         )
                         db.session.add(food)

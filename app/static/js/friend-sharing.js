@@ -245,7 +245,7 @@ document
     const query = shareFriendSearch.value.trim();
 
     if (query === "") {
-      alert("Please enter a search term");
+      showNotification('warning', 'Missing Information', 'Please enter a search term');
       return;
     }
 
@@ -300,20 +300,15 @@ document
             saveButton.removeAttribute("disabled");
             saveButton.classList.remove("opacity-50", "cursor-not-allowed");
           } else {
-            alert("No matching users found");
+            showNotification('info', 'No Results', 'No matching users found');
           }
         } else {
-          alert(
-            result.data.error ||
-              `Failed to search users (Code: ${result.status})`
-          );
+          showNotification('error', 'Search Failed', result.data.error || `Failed to search users (Code: ${result.status})`);
         }
       })
       .catch((error) => {
         console.error("Network error while searching for users:", error);
-        alert(
-          "Network error occurred while searching for users, please try again later"
-        );
+        showNotification('error', 'Network Error', 'Network error occurred while searching for users, please try again later');
       });
   });
 
@@ -567,26 +562,23 @@ document.querySelectorAll(".friend-item, .data-friend-item").forEach((item) => {
 
 function loadFriendData(friendId) {
   if (!friendId) {
-    document.getElementById("friend-data-container").innerHTML =
-      '<p class="text-red-500">Invalid friend selection</p>';
+    console.error("No friend ID provided for data loading");
+    document.getElementById("friend-data-container").innerHTML = `
+            <div class="text-center p-4">
+                <i data-lucide="alert-circle" class="w-8 h-8 mx-auto text-red-500"></i>
+                <p class="mt-2 text-red-500">Invalid friend selection</p>
+            </div>`;
+    lucide.createIcons();
     return;
   }
 
-  // Ensure friendId is a number
-  friendId = parseInt(friendId, 10);
-  if (isNaN(friendId)) {
-    document.getElementById("friend-data-container").innerHTML =
-      '<p class="text-red-500">Invalid friend ID</p>';
-    return;
-  }
-
-  document.getElementById("friend-data-container").innerHTML =
-    '<div class="text-center"><i data-lucide="loader" class="animate-spin w-8 h-8 mx-auto text-cal-blue"></i><p class="mt-2 text-gray-600">Loading data...</p></div>';
-  lucide.createIcons();
-
-  console.log(
-    `Preparing to load friend data: ID=${friendId}, Type=${typeof friendId}`
-  );
+  document.getElementById("friend-data-container").innerHTML = `
+        <div class="flex items-center justify-center h-full">
+            <div class="text-center">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-cal-blue"></div>
+                <p class="mt-2 text-sm text-gray-600">Loading friend data...</p>
+            </div>
+        </div>`;
 
   fetch(`/api/friend/data/${friendId}`, {
     method: "GET",
@@ -595,10 +587,6 @@ function loadFriendData(friendId) {
     },
   })
     .then((response) => {
-      console.log("Response status:", response.status);
-      console.log("Response headers:", [...response.headers.entries()]);
-
-      // Try to parse JSON response regardless of success or failure
       return response
         .json()
         .then((data) => ({
@@ -606,11 +594,13 @@ function loadFriendData(friendId) {
           data: data,
         }))
         .catch((err) => {
-          // If JSON parsing fails, return error information
           console.error("JSON parsing error:", err);
           return {
             status: response.status,
-            data: { message: "Server returned a non-JSON format response" },
+            data: {
+              status: "error",
+              message: "Server returned invalid data format",
+            },
           };
         });
     })
@@ -622,6 +612,12 @@ function loadFriendData(friendId) {
         result.status < 300 &&
         result.data.status === "success"
       ) {
+        // Store data in localStorage
+        try {
+          localStorage.setItem(`friendData_${friendId}`, JSON.stringify(result.data));
+        } catch (e) {
+          console.error("Error saving to localStorage:", e);
+        }
         renderFriendData(result.data);
       } else {
         document.getElementById("friend-data-container").innerHTML = `
@@ -662,7 +658,6 @@ function renderFriendData(data) {
   // Group data by type
   const meals = data.data.filter((item) => item.type === "meal");
   const exercises = data.data.filter((item) => item.type === "exercise");
-  const metrics = data.data.filter((item) => item.type === "metrics");
 
   // Create section for meals
   const mealsSection = document.createElement("div");
@@ -702,6 +697,20 @@ function renderFriendData(data) {
                 `;
       mealsTableBody.appendChild(row);
     });
+    
+    // Add Calorie Intake Distribution pie chart
+    const mealChartContainer = document.createElement("div");
+    mealChartContainer.className = "mt-6 border p-4 rounded-md";
+    mealChartContainer.innerHTML = `
+        <h5 class="text-lg font-medium mb-4 text-center">Calorie Intake Distribution</h5>
+        <div id="meal-pie-chart" style="height: 400px; width: 100%; position: relative;"></div>
+    `;
+    mealsSection.appendChild(mealChartContainer);
+    
+    // Render meal pie chart after DOM is updated
+    setTimeout(() => {
+      renderMealPieChart(meals);
+    }, 100);
   } else {
     mealsSection.innerHTML += `<p class="text-sm text-gray-500 italic">No meal data shared</p>`;
   }
@@ -737,95 +746,38 @@ function renderFriendData(data) {
             `;
     exercisesSection.appendChild(exercisesTable);
 
-    const exercisesTableBody = exercisesTable.querySelector(
-      "#exercises-table-body"
-    );
+    const exercisesTableBody = exercisesTable.querySelector("#exercises-table-body");
     exercises.forEach((exercise) => {
       const row = document.createElement("tr");
       row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${
-                      exercise.date
-                    }</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600">${
-                      exercise.exercise_type
-                    }</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${
-                      exercise.duration
-                    } min</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">${
-                      exercise.calories_burned || "-"
-                    } cal</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${exercise.date}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600">${exercise.exercise_type}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${exercise.duration} min</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">${exercise.calories_burned || "-"} cal</td>
                 `;
       exercisesTableBody.appendChild(row);
     });
+    
+    // Add Calorie Burn Distribution pie chart
+    const exerciseChartContainer = document.createElement("div");
+    exerciseChartContainer.className = "mt-6 border p-4 rounded-md";
+    exerciseChartContainer.innerHTML = `
+        <h5 class="text-lg font-medium mb-4 text-center">Calorie Burn Distribution</h5>
+        <div id="exercise-pie-chart" style="height: 400px; width: 100%; position: relative;"></div>
+    `;
+    exercisesSection.appendChild(exerciseChartContainer);
+    
+    // Render exercise pie chart after DOM is updated
+    setTimeout(() => {
+      renderExercisePieChart(exercises);
+    }, 100);
   } else {
     exercisesSection.innerHTML += `<p class="text-sm text-gray-500 italic">No exercise data shared</p>`;
   }
 
-  document
-    .getElementById("friend-data-container")
-    .appendChild(exercisesSection);
+  document.getElementById("friend-data-container").appendChild(exercisesSection);
 
-  // Create section for daily metrics
-  const metricsSection = document.createElement("div");
-  metricsSection.className = "mb-6";
-  metricsSection.innerHTML = `
-            <h4 class="text-md font-medium mb-2 flex items-center">
-                <i data-lucide="bar-chart-2" class="w-4 h-4 mr-2 text-purple-600"></i>
-                Daily Metrics
-            </h4>
-        `;
-
-  if (metrics.length > 0) {
-    const metricsTable = document.createElement("div");
-    metricsTable.className = "overflow-x-auto";
-    metricsTable.innerHTML = `
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Metric</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Value</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200" id="metrics-table-body">
-                    </tbody>
-                </table>
-            `;
-    metricsSection.appendChild(metricsTable);
-
-    const metricsTableBody = metricsTable.querySelector("#metrics-table-body");
-    metrics.forEach((metric) => {
-      const row = document.createElement("tr");
-
-      let metricType = "";
-      let valueDisplay = "";
-
-      if (metric.weight) {
-        metricType = '<span class="text-purple-600">Weight</span>';
-        valueDisplay = `${metric.weight} kg`;
-      } else if (metric.sleep_hours) {
-        metricType = '<span class="text-indigo-600">Sleep</span>';
-        valueDisplay = `${metric.sleep_hours} hours`;
-      } else if (metric.mood) {
-        metricType = '<span class="text-yellow-600">Mood</span>';
-        valueDisplay = metric.mood;
-      }
-
-      row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${metric.date}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">${metricType}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">${valueDisplay}</td>
-                `;
-      metricsTableBody.appendChild(row);
-    });
-  } else {
-    metricsSection.innerHTML += `<p class="text-sm text-gray-500 italic">No metrics data shared</p>`;
-  }
-
-  document.getElementById("friend-data-container").appendChild(metricsSection);
-
-  // Prepare chart data
+  // Prepare chart data for the main chart (line chart)
   const chartData = prepareChartData(data.data);
   renderChart(chartData);
 
@@ -944,14 +896,14 @@ document
   .getElementById("save-sharing-settings")
   .addEventListener("click", function () {
     if (!selectedShareUserId) {
-      alert("Please search and select a friend to share data with");
+      showNotification('warning', 'Friend Selection Required', 'Please search and select a friend to share data with');
       return;
     }
 
     // Ensure selectedShareUserId is a number
     selectedShareUserId = parseInt(selectedShareUserId, 10);
     if (isNaN(selectedShareUserId)) {
-      alert("Invalid friend ID");
+      showNotification('error', 'Invalid Selection', 'Invalid friend ID');
       return;
     }
 
@@ -1030,19 +982,14 @@ document
           result.status < 300 &&
           result.data.status === "success"
         ) {
-          alert(result.data.message || "Sharing settings saved successfully");
+          showNotification('success', 'Settings Saved', result.data.message || "Sharing settings saved successfully");
         } else {
-          alert(
-            result.data.message ||
-              `Failed to save sharing settings (Code: ${result.status})`
-          );
+          showNotification('error', 'Save Failed', result.data.message || `Failed to save sharing settings (Code: ${result.status})`);
         }
       })
       .catch((error) => {
         console.error("Error saving sharing settings:", error);
-        alert(
-          "Network error occurred while saving sharing settings, please try again later"
-        );
+        showNotification('error', 'Network Error', 'Error occurred while saving sharing settings, please try again later');
       })
       .finally(() => {
         // Reset button state
@@ -1071,7 +1018,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
 
-  // Automatically deselect the ‘Select All’ checkbox
+  // Automatically deselect the 'Select All' checkbox
   document
     .querySelectorAll(
       ".meal-type-checkbox, .metrics-checkbox, .exercise-type-checkbox"
@@ -1086,3 +1033,233 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
 });
+
+// Render meal pie chart function
+function renderMealPieChart(meals) {
+  if (!meals || meals.length === 0) return;
+  
+  console.log("Rendering meal pie chart with data:", meals);
+  
+  // Check if the pie chart container exists
+  const container = document.getElementById('meal-pie-chart');
+  if (!container) {
+    console.error("Meal pie chart container not found!");
+    return;
+  }
+  
+  // Make sure the container is empty
+  container.innerHTML = '';
+  
+  // Create Canvas element
+  const canvas = document.createElement('canvas');
+  canvas.id = 'meal-pie-canvas';
+  canvas.style.width = '100%';
+  canvas.style.height = '100%';
+  container.appendChild(canvas);
+  
+  // Group meals by type and sum calories
+  const mealsByType = {};
+  let totalCalories = 0;
+  
+  meals.forEach(meal => {
+    // Make sure calories is a number
+    const calories = parseInt(meal.calories) || 0;
+    
+    if (!mealsByType[meal.meal_type]) {
+      mealsByType[meal.meal_type] = 0;
+    }
+    
+    mealsByType[meal.meal_type] += calories;
+    totalCalories += calories;
+  });
+  
+  console.log("Meal calories by type:", mealsByType);
+  console.log("Total calories intake:", totalCalories);
+  
+  if (totalCalories === 0) {
+    container.innerHTML = '<p class="text-center text-gray-500">No calorie data available</p>';
+    return;
+  }
+  
+  const labels = Object.keys(mealsByType);
+  const data = Object.values(mealsByType);
+  
+  // calculate percentages for labels
+  const percentages = data.map(value => ((value / totalCalories) * 100).toFixed(1));
+  const labelsWithPercentages = labels.map((label, i) => 
+    `${label} (${percentages[i]}%)`
+  );
+  
+  // Color map for meal types
+  const colorMap = {
+    'Breakfast': '#FF9EB2', // Light pink
+    'Lunch': '#74C0FF',     // Light blue
+    'Dinner': '#FFE390',    // Light yellow
+    'Snacks': '#8FE1D4'     // Light teal
+  };
+  
+  const colors = labels.map(label => colorMap[label] || getRandomColor());
+  
+  try {
+    new Chart(canvas, {
+      type: 'pie',
+      data: {
+        labels: labelsWithPercentages,
+        datasets: [{
+          data: data,
+          backgroundColor: colors,
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: {
+            display: true,
+            text: 'Calorie Intake Distribution',
+            align: 'center',
+            font: {
+              size: 16,
+              weight: 'bold'
+            }
+          },
+          legend: {
+            position: 'right'
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const value = context.raw;
+                const percentage = ((value / totalCalories) * 100).toFixed(1);
+                return `${context.label.split(' (')[0]}: ${value} cal (${percentage}%)`;
+              }
+            }
+          }
+        }
+      }
+    });
+    console.log("Meal pie chart rendered successfully");
+  } catch (e) {
+    console.error("Failed to render meal pie chart:", e);
+    container.innerHTML = '<p class="text-center text-red-500">Failed to create chart</p>';
+  }
+}
+
+// Render exercise pie chart function
+function renderExercisePieChart(exercises) {
+  if (!exercises || exercises.length === 0) return;
+  
+  console.log("Rendering exercise pie chart with data:", exercises);
+  
+  // Check if the pie chart container exists
+  const container = document.getElementById('exercise-pie-chart');
+  if (!container) {
+    console.error("Exercise pie chart container not found!");
+    return;
+  }
+  
+  // Make sure the container is empty
+  container.innerHTML = '';
+  
+  // Create Canvas element
+  const canvas = document.createElement('canvas');
+  canvas.id = 'exercise-pie-canvas';
+  canvas.style.width = '100%';
+  canvas.style.height = '100%';
+  container.appendChild(canvas);
+  
+  // Group exercises by type and sum calories burned
+  const exercisesByType = {};
+  let totalCalories = 0;
+  
+  exercises.forEach(exercise => {
+    // Make sure calories_burned is a number
+    const caloriesBurned = parseInt(exercise.calories_burned) || 0;
+    
+    if (!exercisesByType[exercise.exercise_type]) {
+      exercisesByType[exercise.exercise_type] = 0;
+    }
+    
+    exercisesByType[exercise.exercise_type] += caloriesBurned;
+    totalCalories += caloriesBurned;
+  });
+  
+  console.log("Exercise calories by type:", exercisesByType);
+  console.log("Total calories burned:", totalCalories);
+  
+  if (totalCalories === 0) {
+    container.innerHTML = '<p class="text-center text-gray-500">No calorie data available</p>';
+    return;
+  }
+  
+  const labels = Object.keys(exercisesByType);
+  const data = Object.values(exercisesByType);
+  
+  // calculate percentages for labels
+  const percentages = data.map(value => ((value / totalCalories) * 100).toFixed(1));
+  const labelsWithPercentages = labels.map((label, i) => 
+    `${label} (${percentages[i]}%)`
+  );
+  
+  // Color map for exercise types
+  const colorMap = {
+    'Running': '#FF9EB2',     // Light pink
+    'Cycling': '#74C0FF',     // Light blue
+    'Swimming': '#FFE390',    // Light yellow 
+    'Yoga': '#8FE1D4',        // Light teal
+    'Weight Training': '#D8B7FB', // Light purple
+    'HIIT': '#A78BFA'         // Purple
+  };
+  
+  const colors = labels.map(label => colorMap[label] || getRandomColor());
+  
+  try {
+    new Chart(canvas, {
+      type: 'pie',
+      data: {
+        labels: labelsWithPercentages,
+        datasets: [{
+          data: data,
+          backgroundColor: colors,
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: {
+            display: false
+          },
+          legend: {
+            position: 'right'
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const value = context.raw;
+                const percentage = ((value / totalCalories) * 100).toFixed(1);
+                return `${context.label.split(' (')[0]}: ${value} cal (${percentage}%)`;
+              }
+            }
+          }
+        }
+      }
+    });
+    console.log("Exercise pie chart rendered successfully");
+  } catch (e) {
+    console.error("Failed to render exercise pie chart:", e);
+    container.innerHTML = '<p class="text-center text-red-500">Failed to create chart</p>';
+  }
+}
+
+// Helper function to generate random colors
+function getRandomColor() {
+  const letters = '789ABCDEF';
+  let color = '#';
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * letters.length)];
+  }
+  return color;
+}

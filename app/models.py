@@ -7,6 +7,7 @@ from . import db
 from werkzeug.security import generate_password_hash, check_password_hash
 import json
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Float
 
 
 class User(db.Model):
@@ -67,15 +68,16 @@ class CalorieEntry(db.Model):
     user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     meal_type_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('meal_types.id'), nullable=False)
     date: so.Mapped[date] = so.mapped_column(Date, nullable=False)
-    calories: so.Mapped[float] = so.mapped_column(nullable=False)
-    carbohydrates: so.Mapped[float] = so.mapped_column(nullable=False)
-    proteins: so.Mapped[float] = so.mapped_column(nullable=False)
-    fats: so.Mapped[float] = so.mapped_column(nullable=False)
-    sugars: so.Mapped[float] = so.mapped_column(nullable=False)
-    fiber: so.Mapped[float] = so.mapped_column(nullable=False)
+
+    calories: so.Mapped[float] = so.mapped_column(Float, nullable=False)
+    carbohydrates: so.Mapped[float] = so.mapped_column(Float, nullable=False)
+    proteins: so.Mapped[float] = so.mapped_column(Float, nullable=False)
+    fats: so.Mapped[float] = so.mapped_column(Float, nullable=False)
+    sugars: so.Mapped[float] = so.mapped_column(Float, nullable=False)
+    fiber: so.Mapped[float] = so.mapped_column(Float, nullable=False)
 
     created_at: so.Mapped[datetime] = so.mapped_column(default=datetime.utcnow)
-    
+
     # Relationships
     user: so.Mapped['User'] = so.relationship(back_populates='calorie_entries')
     meal_type: so.Mapped['MealType'] = so.relationship(back_populates='calorie_entries')

@@ -1,244 +1,344 @@
-function bindAutocomplete(entry) {
-  const foodInput = entry.querySelector('input[name="food_name"]');
-  const gramsInput = entry.querySelector('input[name="grams_intake[]"]');
+// --- EXERCISE CALORIE ESTIMATION LOGIC ---
+const exerciseTypeSelect = document.getElementById("exercise-type");
+const durationInput = document.getElementById("duration");
+const caloriesBurnedInput = document.getElementById("calories-burned");
+const calorieEstimation = document.getElementById("calorie-estimation");
+const estimatedCalories = document.getElementById("estimated-calories");
 
-  const caloriesInput = entry.querySelector(
-    'input[name="calculated_calories[]"]'
-  );
-  const proteinInput = entry.querySelector(
-    'input[name="calculated_protein[]"]'
-  );
-  const fatInput = entry.querySelector('input[name="calculated_fat[]"]');
-  const carbInput = entry.querySelector('input[name="calculated_carb[]"]');
-  const fiberInput = entry.querySelector('input[name="calculated_fiber[]"]');
-  const sugarInput = entry.querySelector('input[name="calculated_sugar[]"]');
+const metValues = {
+  1: 10, // running
+  2: 7, // swimming
+  3: 8, // cycling
+  4: 5, // weightlifting
+  5: 3, // yoga
+  6: 3.5, // walking
+  7: 8, // hiit
+  8: 3, // pilates
+};
 
-  const newFoodInput = foodInput.cloneNode(true);
-  foodInput.parentNode.replaceChild(newFoodInput, foodInput);
-
-  const newGramsInput = gramsInput.cloneNode(true);
-  gramsInput.parentNode.replaceChild(newGramsInput, gramsInput);
-
-  newFoodInput.addEventListener("input", () =>
-    updateNutrition(newFoodInput, newGramsInput, {
-      caloriesInput,
-      proteinInput,
-      fatInput,
-      carbInput,
-      fiberInput,
-      sugarInput,
-    })
-  );
-
-  newGramsInput.addEventListener("input", () =>
-    newFoodInput.dispatchEvent(new Event("input"))
-  );
-
-  fetch("/api/food_suggestions")
-    .then((res) => res.json())
-    .then((data) => {
-      if (data.success) {
-        const datalist = document.getElementById("food_suggestions");
-        datalist.innerHTML = "";
-        data.suggestions.forEach((food) => {
-          const option = document.createElement("option");
-          option.value = food;
-          datalist.appendChild(option);
-        });
-      }
-    });
-}
-
-async function updateNutrition(foodInput, gramsInput, inputs) {
-  const food = foodInput.value;
-  const grams = parseFloat(gramsInput.value) || 0;
-  if (!food || grams <= 0) {
-    Object.values(inputs).forEach((input) => (input.value = "0"));
-    updateTotalNutrition();
-    return;
-  }
-
-  try {
-    const res = await fetch(
-      `/api/food_info?description=${encodeURIComponent(food)}`
-    );
-    const info = await res.json();
-    if (!info.success) return;
-
-    const multiplier = grams / 100;
-    const values = {
-      calories: parseFloat(info.energy_per_100g || 0) * multiplier,
-      protein: parseFloat(info.protein_per_100g || 0) * multiplier,
-      fat: parseFloat(info.fat_per_100g || 0) * multiplier,
-      carb: parseFloat(info.carb_per_100g || 0) * multiplier,
-      fiber: parseFloat(info.fiber_per_100g || 0) * multiplier,
-      sugar: parseFloat(info.sugar_per_100g || 0) * multiplier,
-    };
-
-    inputs.caloriesInput.value = values.calories.toFixed(1);
-    inputs.proteinInput.value = values.protein.toFixed(1);
-    inputs.fatInput.value = values.fat.toFixed(1);
-    inputs.carbInput.value = values.carb.toFixed(1);
-    inputs.fiberInput.value = values.fiber.toFixed(1);
-    inputs.sugarInput.value = values.sugar.toFixed(1);
-
-    updateTotalNutrition();
-  } catch (err) {
-    console.error("Fetch error:", err);
+function updateCalorieEstimation() {
+  const type = exerciseTypeSelect.value;
+  const duration = parseFloat(durationInput.value);
+  if (type && duration && !caloriesBurnedInput.value) {
+    const met = metValues[type] || 5;
+    const weightKg = 70;
+    const hours = duration / 60;
+    const estimated = Math.round(met * weightKg * hours);
+    estimatedCalories.textContent = estimated;
+    calorieEstimation.classList.remove("hidden");
+  } else {
+    calorieEstimation.classList.add("hidden");
   }
 }
 
-function updateTotalNutrition() {
-  const entries = document.querySelectorAll(".food-entry");
-  const totals = {
-    calories: 0,
-    protein: 0,
-    fat: 0,
-    carb: 0,
-    fiber: 0,
-    sugar: 0,
-  };
+exerciseTypeSelect?.addEventListener("change", updateCalorieEstimation);
+durationInput?.addEventListener("input", updateCalorieEstimation);
+caloriesBurnedInput?.addEventListener("input", () => {
+  if (caloriesBurnedInput.value) {
+    calorieEstimation.classList.add("hidden");
+  } else {
+    updateCalorieEstimation();
+  }
+});
 
-  entries.forEach((entry) => {
-    totals.calories += parseFloat(
-      entry.querySelector('input[name="calculated_calories[]"]').value || 0
-    );
-    totals.protein += parseFloat(
-      entry.querySelector('input[name="calculated_protein[]"]').value || 0
-    );
-    totals.fat += parseFloat(
-      entry.querySelector('input[name="calculated_fat[]"]').value || 0
-    );
-    totals.carb += parseFloat(
-      entry.querySelector('input[name="calculated_carb[]"]').value || 0
-    );
-    totals.fiber += parseFloat(
-      entry.querySelector('input[name="calculated_fiber[]"]').value || 0
-    );
-    totals.sugar += parseFloat(
-      entry.querySelector('input[name="calculated_sugar[]"]').value || 0
-    );
+// --- ON SUBMIT, SAVE ESTIMATED CALORIES IF INPUT IS EMPTY ---
+document
+  .getElementById("exercise-form")
+  ?.addEventListener("submit", function (e) {
+    const type = exerciseTypeSelect.value;
+    const duration = durationInput.value;
+
+    if (!type || !duration) {
+      e.preventDefault();
+      alert("Please select an exercise type and enter duration.");
+      return;
+    }
+
+    if (!caloriesBurnedInput.value && estimatedCalories.textContent) {
+      caloriesBurnedInput.value = estimatedCalories.textContent;
+    }
   });
 
-  document.getElementById("total-calories").textContent =
-    totals.calories.toFixed(1);
-  document.getElementById("total-protein").textContent =
-    totals.protein.toFixed(1);
-  document.getElementById("total-fat").textContent = totals.fat.toFixed(1);
-  document.getElementById("total-carbs").textContent = totals.carb.toFixed(1);
-  document.getElementById("total-fiber").textContent = totals.fiber.toFixed(1);
-  document.getElementById("total-sugar").textContent = totals.sugar.toFixed(1);
+// --- RECENT ACTIVITIES FETCH LOGIC ---
+async function fetchRecentEntries() {
+  try {
+    const res = await fetch("/api/get_all_data");
+    const data = await res.json();
+    const container = document.getElementById("recent-entries");
+    container.innerHTML = "";
 
-  document.getElementById("total_calories").value = totals.calories.toFixed(1);
-  document.getElementById("total_protein").value = totals.protein.toFixed(1);
-  document.getElementById("total_fat").value = totals.fat.toFixed(1);
-  document.getElementById("total_carb").value = totals.carb.toFixed(1);
-  document.getElementById("total_fiber").value = totals.fiber.toFixed(1);
-  document.getElementById("total_sugar").value = totals.sugar.toFixed(1);
+    if (data.status === "success" && data.data.length > 0) {
+      data.data.forEach((entry) => {
+        const div = document.createElement("div");
+        div.className = "border rounded-lg p-4";
 
-  return totals;
+        if (entry.type === "meal") {
+          div.innerHTML = `
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600">${entry.date}</span>
+              <div class="flex gap-4">
+                <span class="text-blue-600">${entry.meal_type}</span>
+                <span class="text-green-600">${entry.calories} cal</span>
+              </div>
+            </div>
+          `;
+        } else {
+          div.innerHTML = `
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600">${entry.date}</span>
+              <div class="flex gap-4">
+                <span class="text-blue-600">${entry.exercise_type}</span>
+                <span class="text-green-600">${entry.duration} min</span>
+                ${
+                  entry.calories_burned
+                    ? `<span class="text-red-600">${entry.calories_burned} cal</span>`
+                    : ""
+                }
+              </div>
+            </div>
+          `;
+        }
+
+        container.appendChild(div);
+      });
+    } else {
+      container.innerHTML = `<p class="text-center text-gray-500">No entries found</p>`;
+    }
+  } catch (err) {
+    console.error("Error loading recent entries:", err);
+    document.getElementById(
+      "recent-entries"
+    ).innerHTML = `<p class="text-center text-red-500">Error loading entries. Please try again.</p>`;
+  }
 }
 
+fetchRecentEntries();
+
+// --- MEAL FORM LOGIC ---
+const mealForm = document.getElementById("meal-form");
+
+// Function to fetch food information
+async function fetchFoodInfo(description) {
+  try {
+    const response = await fetch(
+      `/api/food_info?description=${encodeURIComponent(description)}`
+    );
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching food info:", error);
+    return { success: false, error: "Failed to fetch food information" };
+  }
+}
+
+// Function to calculate nutrition based on gram amount
+function calculateNutrition(foodData, grams) {
+  if (!foodData || !foodData.success) return null;
+
+  const multiplier = grams / 100; // Nutrition data is per 100g
+  return {
+    calories: Math.round(foodData.energy_per_100g * multiplier * 10) / 10,
+    proteins: Math.round(foodData.protein_per_100g * multiplier * 10) / 10,
+    fats: Math.round(foodData.fat_per_100g * multiplier * 10) / 10,
+    carbohydrates: Math.round(foodData.carb_per_100g * multiplier * 10) / 10,
+    fiber: Math.round(foodData.fiber_per_100g * multiplier * 10) / 10,
+    sugars: Math.round(foodData.sugar_per_100g * multiplier * 10) / 10,
+  };
+}
+
+// Function to update total nutrition
+function updateTotalNutrition() {
+  const foodEntries = document.querySelectorAll(".food-entry");
+  let totalCalories = 0;
+  let totalProteins = 0;
+  let totalFats = 0;
+  let totalCarbohydrates = 0;
+  let totalFiber = 0;
+  let totalSugars = 0;
+
+  foodEntries.forEach((entry) => {
+    const caloriesEl = entry.querySelector(
+      'input[name="calculated_calories[]"]'
+    );
+    const proteinsEl = entry.querySelector(
+      'input[name="calculated_proteins[]"]'
+    );
+    const fatsEl = entry.querySelector('input[name="calculated_fats[]"]');
+    const carbsEl = entry.querySelector(
+      'input[name="calculated_carbohydrates[]"]'
+    );
+    const fiberEl = entry.querySelector('input[name="calculated_fiber[]"]');
+    const sugarsEl = entry.querySelector('input[name="calculated_sugars[]"]');
+
+    totalCalories += parseFloat(caloriesEl.value) || 0;
+    totalProteins += parseFloat(proteinsEl.value) || 0;
+    totalFats += parseFloat(fatsEl.value) || 0;
+    totalCarbohydrates += parseFloat(carbsEl.value) || 0;
+    totalFiber += parseFloat(fiberEl.value) || 0;
+    totalSugars += parseFloat(sugarsEl.value) || 0;
+  });
+
+  // Update totals display
+  document.getElementById("total-calories").textContent =
+    totalCalories.toFixed(1);
+  document.getElementById("total-proteins").textContent =
+    totalProteins.toFixed(1);
+  document.getElementById("total-fats").textContent = totalFats.toFixed(1);
+  document.getElementById("total-carbohydrates").textContent =
+    totalCarbohydrates.toFixed(1);
+  document.getElementById("total-fiber").textContent = totalFiber.toFixed(1);
+  document.getElementById("total-sugars").textContent = totalSugars.toFixed(1);
+
+  // Update hidden form fields
+  document.getElementById("total_calories").value = totalCalories;
+  document.getElementById("total_proteins").value = totalProteins;
+  document.getElementById("total_fats").value = totalFats;
+  document.getElementById("total_carbohydrates").value = totalCarbohydrates;
+  document.getElementById("total_fiber").value = totalFiber;
+  document.getElementById("total_sugars").value = totalSugars;
+}
+
+// Function to add a new food entry
 function addFoodEntry() {
   const container = document.getElementById("food-entries");
-  const entry = container.querySelector(".food-entry");
-  const newEntry = entry.cloneNode(true);
-  newEntry.querySelectorAll("input").forEach((input) => (input.value = ""));
+  const newEntry = container.querySelector(".food-entry").cloneNode(true);
+
+  // Clear values
+  const inputs = newEntry.querySelectorAll("input");
+  inputs.forEach((input) => {
+    input.value = "";
+    if (input.name === "grams_intake[]") {
+      input.addEventListener("input", handleGramsChange);
+    }
+    if (input.id === "food_name") {
+      input.addEventListener("change", handleFoodChange);
+    }
+  });
+
   container.appendChild(newEntry);
-  bindAutocomplete(newEntry);
+}
+
+// Function to handle food selection change
+async function handleFoodChange(event) {
+  const foodName = event.target.value;
+  const entryDiv = event.target.closest(".food-entry");
+  const gramsInput = entryDiv.querySelector('input[name="grams_intake[]"]');
+
+  if (foodName && gramsInput.value) {
+    const foodData = await fetchFoodInfo(foodName);
+    updateEntryNutrition(entryDiv, foodData, parseFloat(gramsInput.value));
+  }
+}
+
+// Function to handle grams change
+async function handleGramsChange(event) {
+  const grams = parseFloat(event.target.value);
+  const entryDiv = event.target.closest(".food-entry");
+  const foodNameInput = entryDiv.querySelector("#food_name");
+
+  if (foodNameInput.value && grams) {
+    const foodData = await fetchFoodInfo(foodNameInput.value);
+    updateEntryNutrition(entryDiv, foodData, grams);
+  }
+}
+
+// Function to update a single entry's nutrition values
+function updateEntryNutrition(entryDiv, foodData, grams) {
+  if (!foodData || !foodData.success) return;
+
+  const nutrition = calculateNutrition(foodData, grams);
+  if (!nutrition) return;
+
+  // Update hidden fields
+  entryDiv.querySelector('input[name="calculated_calories[]"]').value =
+    nutrition.calories;
+  entryDiv.querySelector('input[name="calculated_proteins[]"]').value =
+    nutrition.proteins;
+  entryDiv.querySelector('input[name="calculated_fats[]"]').value =
+    nutrition.fats;
+  entryDiv.querySelector('input[name="calculated_carbohydrates[]"]').value =
+    nutrition.carbohydrates;
+  entryDiv.querySelector('input[name="calculated_fiber[]"]').value =
+    nutrition.fiber;
+  entryDiv.querySelector('input[name="calculated_sugars[]"]').value =
+    nutrition.sugars;
+
+  // Update total nutrition
   updateTotalNutrition();
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-  const exerciseForm = document.getElementById("exercise-form");
-  const exerciseTypeSelect = document.getElementById("exercise-type");
-  const durationInput = document.getElementById("duration");
-  const caloriesBurnedInput = document.getElementById("calories-burned");
-  const calorieEstimation = document.getElementById("calorie-estimation");
-  const estimatedCalories = document.getElementById("estimated-calories");
-
-  // MET values mapping (activity_type_id: MET)
-  const metValues = {
-    1: 10, // Running
-    2: 7, // Swimming
-    3: 8, // Cycling
-    4: 5, // Weightlifting
-    5: 3, // Yoga
-    6: 3.5, // Walking
-    7: 8, // HIIT
-    8: 3, // Pilates
-  };
-
-  function updateCalorieEstimation() {
-    const exerciseType = parseInt(exerciseTypeSelect.value);
-    const duration = parseFloat(durationInput.value);
-
-    if (exerciseType && duration && !caloriesBurnedInput.value) {
-      const weightKg = 70; // default user weight
-      const met = metValues[exerciseType] || 5;
-      const durationHours = duration / 60;
-      const calories = Math.round(met * weightKg * durationHours);
-
-      caloriesBurnedInput.value = calories;
-      estimatedCalories.textContent = calories;
-      calorieEstimation.classList.remove("hidden");
-    } else {
-      calorieEstimation.classList.add("hidden");
-    }
-  }
-
-  if (exerciseTypeSelect && durationInput) {
-    exerciseTypeSelect.addEventListener("change", updateCalorieEstimation);
-    durationInput.addEventListener("input", updateCalorieEstimation);
-  }
-
-  if (caloriesBurnedInput) {
-    caloriesBurnedInput.addEventListener("input", () => {
-      if (caloriesBurnedInput.value) {
-        calorieEstimation.classList.add("hidden");
-      } else {
-        updateCalorieEstimation();
-      }
-    });
-  }
-
-  if (exerciseForm) {
-    exerciseForm.addEventListener("submit", function (e) {
-      const exerciseType = exerciseTypeSelect.value;
-      const duration = durationInput.value;
-
-      if (!exerciseType || !duration) {
-        e.preventDefault();
-        showValidationError("Please select exercise type and enter duration.");
-      }
-    });
-  }
-
-  function showValidationError(message) {
-    const toast = document.createElement("div");
-    toast.classList.add(
-      "fixed",
-      "bottom-4",
-      "right-4",
-      "bg-red-500",
-      "text-white",
-      "py-2",
-      "px-4",
-      "rounded-lg",
-      "shadow-lg",
-      "z-50",
-      "transform",
-      "transition-transform",
-      "duration-300"
-    );
-    toast.style.transform = "translateY(100px)";
-    toast.textContent = message;
-
-    document.body.appendChild(toast);
-    setTimeout(() => (toast.style.transform = "translateY(0)"), 10);
-    setTimeout(() => {
-      toast.style.transform = "translateY(100px)";
-      setTimeout(() => document.body.removeChild(toast), 300);
-    }, 3000);
-  }
+// Add initial event listeners
+document.querySelectorAll('input[name="grams_intake[]"]').forEach((input) => {
+  input.addEventListener("input", handleGramsChange);
 });
+
+document.querySelectorAll("#food_name").forEach((input) => {
+  input.addEventListener("change", handleFoodChange);
+});
+
+// Fetch food suggestions for datalist
+async function fetchFoodSuggestions() {
+  try {
+    const response = await fetch("/api/food_suggestions");
+    const data = await response.json();
+
+    if (data.success) {
+      const datalist = document.getElementById("food_suggestions");
+      data.suggestions.forEach((suggestion) => {
+        const option = document.createElement("option");
+        option.value = suggestion;
+        datalist.appendChild(option);
+      });
+    }
+  } catch (error) {
+    console.error("Error fetching food suggestions:", error);
+  }
+}
+
+fetchFoodSuggestions();
+
+if (mealForm) {
+  mealForm.addEventListener("submit", function (e) {
+    e.preventDefault(); // Prevent default form submission
+
+    const mealType = document.getElementById("meal-type")?.value;
+    const calories = document.getElementById("total_calories")?.value;
+    const proteins = document.getElementById("total_proteins")?.value;
+    const fats = document.getElementById("total_fats")?.value;
+    const carbohydrates = document.getElementById("total_carbohydrates")?.value;
+    const fiber = document.getElementById("total_fiber")?.value;
+    const sugars = document.getElementById("total_sugars")?.value;
+
+    if (!mealType || !calories) {
+      alert("Please select a meal type and enter calories.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("meal_type_id", mealType);
+    formData.append("total_calories", calories);
+    formData.append("total_proteins", proteins || 0);
+    formData.append("total_fats", fats || 0);
+    formData.append("total_carbohydrates", carbohydrates || 0);
+    formData.append("total_fiber", fiber || 0);
+    formData.append("total_sugars", sugars || 0);
+
+    fetch(mealForm.action, {
+      method: "POST",
+      body: formData,
+      credentials: "same-origin",
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === "success") {
+          window.location.reload();
+        } else {
+          alert(data.message || "Error saving meal.");
+        }
+      })
+      .catch((err) => {
+        console.error("Error submitting meal:", err);
+        alert("Error submitting meal.");
+      });
+  });
+}

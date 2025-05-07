@@ -145,13 +145,17 @@
                 />
               </div>
 
-              <!-- Hidden nutrition inputs (use "calories" instead of "energy") -->
+              <!-- Hidden nutrition inputs with corrected field names -->
               <input type="hidden" name="calculated_calories[]" value="0" />
-              <input type="hidden" name="calculated_protein[]" value="0" />
-              <input type="hidden" name="calculated_fat[]" value="0" />
-              <input type="hidden" name="calculated_carb[]" value="0" />
+              <input type="hidden" name="calculated_proteins[]" value="0" />
+              <input type="hidden" name="calculated_fats[]" value="0" />
+              <input
+                type="hidden"
+                name="calculated_carbohydrates[]"
+                value="0"
+              />
               <input type="hidden" name="calculated_fiber[]" value="0" />
-              <input type="hidden" name="calculated_sugar[]" value="0" />
+              <input type="hidden" name="calculated_sugars[]" value="0" />
             </div>
           </div>
 
@@ -169,19 +173,21 @@
                 <h3 class="text-xl font-semibold text-green-600">
                   Total Protein
                 </h3>
-                <p class="text-4xl font-bold mt-2" id="total-protein">0.0</p>
+                <p class="text-4xl font-bold mt-2" id="total-proteins">0.0</p>
                 <p class="text-gray-600">g</p>
               </div>
               <div class="text-center">
                 <h3 class="text-xl font-semibold text-orange-500">
                   Total Carbs
                 </h3>
-                <p class="text-4xl font-bold mt-2" id="total-carbs">0.0</p>
+                <p class="text-4xl font-bold mt-2" id="total-carbohydrates">
+                  0.0
+                </p>
                 <p class="text-gray-600">g</p>
               </div>
               <div class="text-center">
                 <h3 class="text-xl font-semibold text-red-500">Total Fat</h3>
-                <p class="text-4xl font-bold mt-2" id="total-fat">0.0</p>
+                <p class="text-4xl font-bold mt-2" id="total-fats">0.0</p>
                 <p class="text-gray-600">g</p>
               </div>
               <div class="text-center">
@@ -193,7 +199,7 @@
               </div>
               <div class="text-center">
                 <h3 class="text-xl font-semibold text-pink-500">Total Sugar</h3>
-                <p class="text-4xl font-bold mt-2" id="total-sugar">0.0</p>
+                <p class="text-4xl font-bold mt-2" id="total-sugars">0.0</p>
                 <p class="text-gray-600">g</p>
               </div>
             </div>
@@ -220,14 +226,24 @@
           />
           <input
             type="hidden"
-            id="total_protein"
-            name="total_protein"
+            id="total_proteins"
+            name="total_proteins"
             value="0"
           />
-          <input type="hidden" id="total_fat" name="total_fat" value="0" />
-          <input type="hidden" id="total_carb" name="total_carb" value="0" />
+          <input type="hidden" id="total_fats" name="total_fats" value="0" />
+          <input
+            type="hidden"
+            id="total_carbohydrates"
+            name="total_carbohydrates"
+            value="0"
+          />
           <input type="hidden" id="total_fiber" name="total_fiber" value="0" />
-          <input type="hidden" id="total_sugar" name="total_sugar" value="0" />
+          <input
+            type="hidden"
+            id="total_sugars"
+            name="total_sugars"
+            value="0"
+          />
 
           <!-- Submit Button -->
           <button

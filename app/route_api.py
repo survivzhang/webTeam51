@@ -616,11 +616,11 @@ def save_meal():
         meal_type_id = request.form.get('meal_type_id', type=int)
         
         # Get total nutrition values
-        calories = request.form.get('total_energy', type=float)
-        proteins = request.form.get('total_protein', type=float)
-        fats = request.form.get('total_fat', type=float)
-        carbohydrates = request.form.get('total_carb', type=float)
-        sugars = request.form.get('total_sugar', type=float)
+        calories = request.form.get('total_calories', type=float)
+        proteins = request.form.get('total_proteins', type=float)
+        fats = request.form.get('total_fats', type=float)
+        carbohydrates = request.form.get('total_carbohydrates', type=float)
+        sugars = request.form.get('total_sugars', type=float)
         fiber = request.form.get('total_fiber', type=float)
 
         print("Total nutrition values:", {

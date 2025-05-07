@@ -2,6 +2,7 @@ function bindAutocomplete(entry) {
   const foodInput = entry.querySelector('input[name="food_name"]');
   const gramsInput = entry.querySelector('input[name="grams_intake[]"]');
 
+  // Get all the hidden nutrition inputs
   const energyInput = entry.querySelector('input[name="calculated_energy[]"]');
   const proteinInput = entry.querySelector(
     'input[name="calculated_protein[]"]'
@@ -18,87 +19,136 @@ function bindAutocomplete(entry) {
   const newGramsInput = gramsInput.cloneNode(true);
   gramsInput.parentNode.replaceChild(newGramsInput, gramsInput);
 
-  // Add new event listeners
+  // Add event listeners to the new inputs
   newFoodInput.addEventListener("input", async () => {
-    const query = newFoodInput.value;
-    if (query.length < 2) return;
-
-    const res = await fetch(`/autocomplete?query=${encodeURIComponent(query)}`);
-    const suggestions = await res.json();
-
-    let datalist = newFoodInput.nextElementSibling;
-    if (!datalist || datalist.tagName !== "DATALIST") {
-      datalist = document.createElement("datalist");
-      datalist.id = `suggestions-${Math.random().toString(36).substring(2, 8)}`;
-      newFoodInput.setAttribute("list", datalist.id);
-      newFoodInput.parentNode.appendChild(datalist);
-    }
-
-    datalist.innerHTML = "";
-    suggestions.forEach((food) => {
-      const option = document.createElement("option");
-      option.value = food;
-      datalist.appendChild(option);
-    });
-  });
-
-  newGramsInput.addEventListener("input", async () => {
     const food = newFoodInput.value;
-    const grams = parseFloat(newGramsInput.value);
-    if (!food || isNaN(grams)) return;
+    const grams = parseFloat(newGramsInput.value) || 0;
+    console.log(`Calculating nutrition for ${food} (${grams}g)`);
+
+    if (!food || grams <= 0) {
+      console.log("Invalid food or grams value");
+      // Reset all nutrition values to 0
+      if (energyInput) energyInput.value = "0";
+      if (proteinInput) proteinInput.value = "0";
+      if (fatInput) fatInput.value = "0";
+      if (carbInput) carbInput.value = "0";
+      if (fiberInput) fiberInput.value = "0";
+      if (sugarInput) sugarInput.value = "0";
+      updateTotalNutrition();
+      return;
+    }
 
     try {
       const res = await fetch(
         `/api/food_info?description=${encodeURIComponent(food)}`
       );
       const info = await res.json();
+      console.log("Food info:", info);
 
-      if (info && info.success) {
-        // 简单线性比例计算（假设info中单位为每100g）
-        energyInput.value = ((info.energy_per_100g || 0) * grams) / 100;
-        proteinInput.value = ((info.protein_per_100g || 0) * grams) / 100;
-        fatInput.value = ((info.fat_per_100g || 0) * grams) / 100;
-        carbInput.value = ((info.carb_per_100g || 0) * grams) / 100;
-        fiberInput.value = ((info.fiber_per_100g || 0) * grams) / 100;
-        sugarInput.value = ((info.sugar_per_100g || 0) * grams) / 100;
+      if (info.success) {
+        // Values are per 100g in the database
+        const multiplier = grams / 100; // Convert per 100g to actual grams
+
+        const calculatedValues = {
+          energy: parseFloat(info.energy_per_100g || 0) * multiplier,
+          protein: parseFloat(info.protein_per_100g || 0) * multiplier,
+          fat: parseFloat(info.fat_per_100g || 0) * multiplier,
+          carb: parseFloat(info.carb_per_100g || 0) * multiplier,
+          fiber: parseFloat(info.fiber_per_100g || 0) * multiplier,
+          sugar: parseFloat(info.sugar_per_100g || 0) * multiplier,
+        };
+
+        console.log(
+          `Calculated nutrition for ${grams}g of ${food}:`,
+          calculatedValues
+        );
+
+        // Update hidden inputs with calculated values
+        if (energyInput) energyInput.value = calculatedValues.energy.toFixed(1);
+        if (proteinInput)
+          proteinInput.value = calculatedValues.protein.toFixed(1);
+        if (fatInput) fatInput.value = calculatedValues.fat.toFixed(1);
+        if (carbInput) carbInput.value = calculatedValues.carb.toFixed(1);
+        if (fiberInput) fiberInput.value = calculatedValues.fiber.toFixed(1);
+        if (sugarInput) sugarInput.value = calculatedValues.sugar.toFixed(1);
 
         updateTotalNutrition();
-        // 🔥 总和更新
+      } else {
+        console.error("Error in food info response:", info.error);
       }
     } catch (error) {
-      console.error("Failed to fetch nutrition info:", error);
+      console.error("Error fetching food info:", error);
     }
   });
+
+  newGramsInput.addEventListener("input", () => {
+    // Trigger food input event to recalculate nutrition
+    newFoodInput.dispatchEvent(new Event("input"));
+  });
+
+  // Add food suggestions
+  fetch("/api/food_suggestions")
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.success) {
+        const datalist = document.getElementById("food_suggestions");
+        datalist.innerHTML = ""; // Clear existing options
+        data.suggestions.forEach((food) => {
+          const option = document.createElement("option");
+          option.value = food;
+          datalist.appendChild(option);
+        });
+      }
+    })
+    .catch((error) => console.error("Error fetching food suggestions:", error));
 }
 
 function updateTotalNutrition() {
   const entries = document.querySelectorAll(".food-entry");
-
-  let totalEnergy = 0;
-  let totalProtein = 0;
-  let totalFat = 0;
-  let totalCarb = 0;
-  let totalFiber = 0;
-  let totalSugar = 0;
+  let totals = {
+    calories: 0,
+    protein: 0,
+    fat: 0,
+    carb: 0,
+    fiber: 0,
+    sugar: 0,
+  };
 
   entries.forEach((entry) => {
-    const getVal = (name) =>
-      parseFloat(entry.querySelector(`input[name="${name}[]"]`)?.value) || 0;
-
-    totalEnergy += getVal("calculated_energy");
-    totalProtein += getVal("calculated_protein");
-    totalFat += getVal("calculated_fat");
-    totalCarb += getVal("calculated_carb");
-    totalFiber += getVal("calculated_fiber");
-    totalSugar += getVal("calculated_sugar");
+    // Parse values as float and handle null/undefined
+    totals.calories += parseFloat(
+      entry.querySelector('input[name="calculated_energy[]"]')?.value || 0
+    );
+    totals.protein += parseFloat(
+      entry.querySelector('input[name="calculated_protein[]"]')?.value || 0
+    );
+    totals.fat += parseFloat(
+      entry.querySelector('input[name="calculated_fat[]"]')?.value || 0
+    );
+    totals.carb += parseFloat(
+      entry.querySelector('input[name="calculated_carb[]"]')?.value || 0
+    );
+    totals.fiber += parseFloat(
+      entry.querySelector('input[name="calculated_fiber[]"]')?.value || 0
+    );
+    totals.sugar += parseFloat(
+      entry.querySelector('input[name="calculated_sugar[]"]')?.value || 0
+    );
   });
 
-  document.getElementById("total_energy").value = totalEnergy.toFixed(1);
-  document.getElementById("total_protein").value = totalProtein.toFixed(1);
-  document.getElementById("total_fat").value = totalFat.toFixed(1);
-  document.getElementById("total_carb").value = totalCarb.toFixed(1);
-  document.getElementById("total_fiber").value = totalFiber.toFixed(1);
-  document.getElementById("total_sugar").value = totalSugar.toFixed(1);
+  // Update total nutrition display
+  document.getElementById("total-calories").textContent =
+    totals.calories.toFixed(1);
+  document.getElementById("total-protein").textContent =
+    totals.protein.toFixed(1);
+  document.getElementById("total-fat").textContent = totals.fat.toFixed(1);
+  document.getElementById("total-carbs").textContent = totals.carb.toFixed(1);
+  document.getElementById("total-fiber").textContent = totals.fiber.toFixed(1);
+  document.getElementById("total-sugar").textContent = totals.sugar.toFixed(1);
+
+  console.log("Updated total nutrition values:", totals);
+
+  return totals;
 }
 
 // document.addEventListener("input", async function (e) {
@@ -231,15 +281,63 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  mealForm.addEventListener("submit", function (e) {
-    const mealType = document.getElementById("meal-type").value;
-    const energy = document.getElementById("total_energy").value;
+  // Get the meal form
+  const mealForm = document.getElementById("meal-form");
 
-    if (!mealType || !energy || parseFloat(energy) <= 0) {
-      e.preventDefault();
-      showValidationError("Please select a meal type and enter energy");
-    }
-  });
+  if (mealForm) {
+    mealForm.addEventListener("submit", function (e) {
+      e.preventDefault(); // Prevent default form submission
+
+      // Calculate latest totals
+      const totals = updateTotalNutrition();
+      console.log("Final totals before submission:", totals);
+
+      // Get meal type
+      const mealTypeId = document.getElementById("meal-type").value;
+
+      // Validate meal type
+      if (!mealTypeId) {
+        showValidationError("Please select a meal type");
+        return;
+      }
+
+      // Create FormData object
+      const formData = new FormData();
+      formData.append("meal_type_id", mealTypeId);
+      formData.append("calories", totals.calories.toString());
+      formData.append("proteins", totals.protein.toString());
+      formData.append("fats", totals.fat.toString());
+      formData.append("carbohydrates", totals.carb.toString());
+      formData.append("fiber", totals.fiber.toString());
+      formData.append("sugars", totals.sugar.toString());
+
+      // Log the form data for debugging
+      console.log("Submitting nutrition data to server:");
+      for (let pair of formData.entries()) {
+        console.log(pair[0] + ": " + pair[1]);
+      }
+
+      // Submit the form using fetch
+      fetch(mealForm.action, {
+        method: "POST",
+        body: formData,
+        credentials: "same-origin",
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("Server response:", data);
+          if (data.status === "success") {
+            window.location.reload();
+          } else {
+            showValidationError(data.message);
+          }
+        })
+        .catch((error) => {
+          console.error("Error submitting form:", error);
+          showValidationError("Error saving meal data");
+        });
+    });
+  }
 
   function showValidationError(message) {
     // Create and show a toast notification
@@ -381,3 +479,20 @@ document.addEventListener("DOMContentLoaded", function () {
   // Fetch data on page load
   fetchRecentEntries();
 });
+
+// Add Food Button functionality
+function addFoodEntry() {
+  const container = document.getElementById("food-entries");
+  const entry = container.querySelector(".food-entry");
+  if (!entry) return;
+
+  const newEntry = entry.cloneNode(true);
+  // Clear all input values
+  newEntry.querySelectorAll("input").forEach((input) => (input.value = ""));
+
+  container.appendChild(newEntry);
+  bindAutocomplete(newEntry);
+
+  // Update totals
+  updateTotalNutrition();
+}

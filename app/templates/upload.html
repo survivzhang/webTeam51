@@ -144,32 +144,107 @@
                   min="0"
                 />
               </div>
-              <!-- Add hidden fields for calculated nutrition -->
-              <input type="hidden" name="calculated_energy[]" />
-              <input type="hidden" name="calculated_protein[]" />
-              <input type="hidden" name="calculated_fat[]" />
-              <input type="hidden" name="calculated_carb[]" />
-              <input type="hidden" name="calculated_fiber[]" />
-              <input type="hidden" name="calculated_sugar[]" />
+
+              <!-- Hidden nutrition inputs with corrected field names -->
+              <input type="hidden" name="calculated_calories[]" value="0" />
+              <input type="hidden" name="calculated_proteins[]" value="0" />
+              <input type="hidden" name="calculated_fats[]" value="0" />
+              <input
+                type="hidden"
+                name="calculated_carbohydrates[]"
+                value="0"
+              />
+              <input type="hidden" name="calculated_fiber[]" value="0" />
+              <input type="hidden" name="calculated_sugars[]" value="0" />
             </div>
           </div>
 
-          <!-- Add Another Food Button -->
-          <div class="mb-4 text-right">
-            <button
-              type="button"
-              id="add-food"
-              class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md transition-all"
-            >
-              + Add Another Food
-            </button>
+          <!-- Total Nutrition Section -->
+          <div class="mt-8 p-6 bg-white rounded-lg shadow-md">
+            <h2 class="text-2xl font-bold mb-6">Total Nutrition</h2>
+            <div class="grid grid-cols-3 gap-8">
+              <div class="text-center">
+                <h3 class="text-xl font-semibold text-blue-500">
+                  Total Calories
+                </h3>
+                <p class="text-4xl font-bold mt-2" id="total-calories">0.0</p>
+              </div>
+              <div class="text-center">
+                <h3 class="text-xl font-semibold text-green-600">
+                  Total Protein
+                </h3>
+                <p class="text-4xl font-bold mt-2" id="total-proteins">0.0</p>
+                <p class="text-gray-600">g</p>
+              </div>
+              <div class="text-center">
+                <h3 class="text-xl font-semibold text-orange-500">
+                  Total Carbs
+                </h3>
+                <p class="text-4xl font-bold mt-2" id="total-carbohydrates">
+                  0.0
+                </p>
+                <p class="text-gray-600">g</p>
+              </div>
+              <div class="text-center">
+                <h3 class="text-xl font-semibold text-red-500">Total Fat</h3>
+                <p class="text-4xl font-bold mt-2" id="total-fats">0.0</p>
+                <p class="text-gray-600">g</p>
+              </div>
+              <div class="text-center">
+                <h3 class="text-xl font-semibold text-purple-500">
+                  Total Fiber
+                </h3>
+                <p class="text-4xl font-bold mt-2" id="total-fiber">0.0</p>
+                <p class="text-gray-600">g</p>
+              </div>
+              <div class="text-center">
+                <h3 class="text-xl font-semibold text-pink-500">Total Sugar</h3>
+                <p class="text-4xl font-bold mt-2" id="total-sugars">0.0</p>
+                <p class="text-gray-600">g</p>
+              </div>
+            </div>
           </div>
+
+          <!-- Food suggestions datalist -->
+          <datalist id="food_suggestions"></datalist>
+
+          <!-- Add Food Button -->
+          <button
+            type="button"
+            onclick="addFoodEntry()"
+            class="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
+          >
+            + Add Another Food
+          </button>
+
+          <!-- Submit hidden totals -->
           <input
             type="hidden"
-            id="total_energy"
-            name="total_energy"
+            id="total_calories"
+            name="total_calories"
             value="0"
           />
+          <input
+            type="hidden"
+            id="total_proteins"
+            name="total_proteins"
+            value="0"
+          />
+          <input type="hidden" id="total_fats" name="total_fats" value="0" />
+          <input
+            type="hidden"
+            id="total_carbohydrates"
+            name="total_carbohydrates"
+            value="0"
+          />
+          <input type="hidden" id="total_fiber" name="total_fiber" value="0" />
+          <input
+            type="hidden"
+            id="total_sugars"
+            name="total_sugars"
+            value="0"
+          />
+
           <!-- Submit Button -->
           <button
             type="submit"

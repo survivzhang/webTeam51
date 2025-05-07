@@ -608,47 +608,79 @@ def save_meal():
     user_id = session.get('user_id')
     today = date.today()
     
-    # 获取表单字段（前端提交的是 multipart/form-data）
-    meal_type_id = request.form.get('meal_type_id', type=int)
-    energy_kcal = request.form.get('energy_kcal', type=float) or request.form.get('calories', type=float)
-    calories = energy_kcal * 1000 if energy_kcal is not None else None
-    carbohydrates = request.form.get('carbohydrates', type=float)
-    proteins = request.form.get('proteins', type=float)
-    fats = request.form.get('fats', type=float)
-    sugars = request.form.get('sugars', type=float)
-    fiber = request.form.get('fiber', type=float)
-
-    # 校验字段
-    if not meal_type_id or energy_kcal is None:
-        flash('Please select a meal type and enter energy', 'error')
-        return redirect(url_for('upload'))
-
     try:
+        # Log all form data
+        print("Received form data:", request.form.to_dict())
+        print("Raw POST data:", request.form.to_dict())
+        # Get form data
+        meal_type_id = request.form.get('meal_type_id', type=int)
+        
+        # Get total nutrition values
+        calories = request.form.get('total_calories', type=float)
+        proteins = request.form.get('total_proteins', type=float)
+        fats = request.form.get('total_fats', type=float)
+        carbohydrates = request.form.get('total_carbohydrates', type=float)
+        sugars = request.form.get('total_sugars', type=float)
+        fiber = request.form.get('total_fiber', type=float)
+
+        print("Total nutrition values:", {
+            'calories': calories,
+            'proteins': proteins,
+            'fats': fats,
+            'carbohydrates': carbohydrates,
+            'sugars': sugars,
+            'fiber': fiber
+        })
+
+        # Validate required fields
+        if not meal_type_id:
+            print("Error: Missing meal type")
+            return json_response({
+                'status': 'error',
+                'message': 'Please select a meal type'
+            }, 400)
+
+        # Verify meal type exists
         meal_type = db.session.get(MealType, meal_type_id)
         if not meal_type:
-            flash('Invalid meal type', 'error')
-            return redirect(url_for('upload'))
+            print(f"Error: Invalid meal type ID: {meal_type_id}")
+            return json_response({
+                'status': 'error',
+                'message': 'Invalid meal type'
+            }, 400)
         
+        # Create new calorie entry with total values
         new_entry = CalorieEntry(
             user_id=user_id,
             date=today,
             meal_type_id=meal_type_id,
-            calories=calories,
-            carbohydrates=carbohydrates,
-            proteins=proteins,
-            fats=fats,
-            sugars=sugars,
-            fiber=fiber
+            calories=calories or 0,
+            proteins=proteins or 0,
+            fats=fats or 0,
+            carbohydrates=carbohydrates or 0,
+            sugars=sugars or 0,
+            fiber=fiber or 0
         )
 
         db.session.add(new_entry)
         db.session.commit()
-        flash('Meal added successfully!', 'success')
+        
+        print(f"Successfully saved meal entry with total nutrition. ID: {new_entry.id}")
+        
+        return json_response({
+            'status': 'success',
+            'message': 'Meal added successfully!'
+        })
+        
     except Exception as e:
         db.session.rollback()
-        flash(f'Error saving meal: {str(e)}', 'error')
-    print("Saving meal for user_id:", user_id)
-    return redirect(url_for('upload'))
+        print(f"Error saving meal: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return json_response({
+            'status': 'error',
+            'message': f'Error saving meal: {str(e)}'
+        }, 500)
 
 
 @csrf.exempt
@@ -723,6 +755,7 @@ def get_food_info():
     if not food:
         return jsonify({'success': False, 'error': 'Food not found'})
 
+    # Return values in a consistent format for the frontend
     return jsonify({
         'success': True,
         'energy_per_100g': food.energy_kcal,
@@ -732,3 +765,20 @@ def get_food_info():
         'fiber_per_100g': food.fiber,
         'sugar_per_100g': food.sugars,
     })
+
+@app.route('/api/food_suggestions')
+def get_food_suggestions():
+    try:
+        # Get all food descriptions from the database
+        foods = Food.query.with_entities(Food.description).all()
+        suggestions = [food[0] for food in foods]
+        return jsonify({
+            'success': True,
+            'suggestions': suggestions
+        })
+    except Exception as e:
+        print(f"Error getting food suggestions: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Error retrieving food suggestions'
+        })

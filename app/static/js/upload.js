@@ -220,7 +220,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const met = metValues[exerciseType] || 5;
       const durationHours = duration / 60;
       const calories = Math.round(met * weightKg * durationHours);
-
+      caloriesBurnedInput.value = calories;
       estimatedCalories.textContent = calories;
       calorieEstimation.classList.remove("hidden");
     } else {

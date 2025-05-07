@@ -11,19 +11,27 @@ function bindAutocomplete(entry) {
   const fiberInput = entry.querySelector('input[name="calculated_fiber[]"]');
   const sugarInput = entry.querySelector('input[name="calculated_sugar[]"]');
 
-  foodInput.addEventListener("input", async () => {
-    const query = foodInput.value;
+  // Remove any existing event listeners
+  const newFoodInput = foodInput.cloneNode(true);
+  foodInput.parentNode.replaceChild(newFoodInput, foodInput);
+
+  const newGramsInput = gramsInput.cloneNode(true);
+  gramsInput.parentNode.replaceChild(newGramsInput, gramsInput);
+
+  // Add new event listeners
+  newFoodInput.addEventListener("input", async () => {
+    const query = newFoodInput.value;
     if (query.length < 2) return;
 
     const res = await fetch(`/autocomplete?query=${encodeURIComponent(query)}`);
     const suggestions = await res.json();
 
-    let datalist = foodInput.nextElementSibling;
+    let datalist = newFoodInput.nextElementSibling;
     if (!datalist || datalist.tagName !== "DATALIST") {
       datalist = document.createElement("datalist");
       datalist.id = `suggestions-${Math.random().toString(36).substring(2, 8)}`;
-      foodInput.setAttribute("list", datalist.id);
-      foodInput.parentNode.appendChild(datalist);
+      newFoodInput.setAttribute("list", datalist.id);
+      newFoodInput.parentNode.appendChild(datalist);
     }
 
     datalist.innerHTML = "";
@@ -34,9 +42,9 @@ function bindAutocomplete(entry) {
     });
   });
 
-  gramsInput.addEventListener("input", async () => {
-    const food = foodInput.value;
-    const grams = parseFloat(gramsInput.value);
+  newGramsInput.addEventListener("input", async () => {
+    const food = newFoodInput.value;
+    const grams = parseFloat(newGramsInput.value);
     if (!food || isNaN(grams)) return;
 
     try {
@@ -188,23 +196,10 @@ document.addEventListener("DOMContentLoaded", function () {
   // Add another food entry in meal form
   const addButton = document.getElementById("add-food");
   const container = document.getElementById("food-entries");
+
+  // Bind autocomplete to the first entry
   const firstEntry = container.querySelector(".food-entry");
   if (firstEntry) bindAutocomplete(firstEntry);
-
-  // ✅ 第四步函数定义：放在DOMContentLoaded函数的结尾前
-  function updateTotalCalories() {
-    const entries = document.querySelectorAll(".food-entry");
-    let totalCalories = 0;
-
-    entries.forEach((entry) => {
-      const energyInput = entry.querySelector(
-        'input[name="calculated_energy[]"]'
-      );
-      const val = parseFloat(energyInput.value);
-      if (!isNaN(val)) totalCalories += val;
-    });
-    console.log("Total calories:", totalCalories);
-  }
 
   if (addButton && container) {
     addButton.addEventListener("click", function () {
@@ -212,10 +207,15 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!entry) return;
 
       const newEntry = entry.cloneNode(true);
+      // Clear all input values
       newEntry.querySelectorAll("input").forEach((input) => (input.value = ""));
 
+      // Remove any existing datalists
+      const oldDatalist = newEntry.querySelector("datalist");
+      if (oldDatalist) oldDatalist.remove();
+
       container.appendChild(newEntry);
-      bindAutocomplete(newEntry); // 🔥 新增：为新行绑定 autocomplete 和营养计算
+      bindAutocomplete(newEntry);
     });
   }
 

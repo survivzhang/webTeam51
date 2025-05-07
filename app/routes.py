@@ -83,45 +83,55 @@ def register():
                 return redirect(url_for('index'))
         
         try:
-            if not valid_regist(username, email):
-                flash('Username or email already exists', 'error')
+            # Get the temporary user ID from session
+            temp_user_id = session.get('temp_user_id')
+            
+            if not temp_user_id:
+                flash('No verification code has been requested. Please request a code first.', 'error')
+                return redirect(url_for('index'))
+            
+            # Find the temporary user
+            temp_user = User.query.get(temp_user_id)
+            
+            if not temp_user:
+                flash('Registration session expired. Please start again.', 'error')
                 return redirect(url_for('index'))
             
             try:
-                # Create new user with verified status
-                new_user = User(
-                    username=username,
-                    email=email,
-                    password_hash=generate_password_hash(password),
-                    created_at=datetime.utcnow(),
-                    is_verified=True
-                )
-                db.session.add(new_user)
-                db.session.flush()  # Get the user ID without committing
-                
-                # Save verification code to database for history/audit
-                verification_record = VerificationCode(
-                    user_id=new_user.id,
+                # Find the verification code record
+                verification_record = VerificationCode.query.filter_by(
+                    user_id=temp_user_id,
                     code=verification_code,
-                    created_at=datetime.fromisoformat(session['code_created_at']),
-                    expires_at=datetime.fromisoformat(session['code_created_at']) + timedelta(minutes=30),
-                    is_used=True  # Mark as used immediately
-                )
-                db.session.add(verification_record)
+                    is_used=False
+                ).first()
                 
-                # Commit all changes
+                if not verification_record:
+                    flash('Invalid verification code. Please try again.', 'error')
+                    return redirect(url_for('index'))
+                
+                # Update the temporary user to be a permanent user
+                temp_user.password_hash = generate_password_hash(password)
+                temp_user.is_verified = True
+                
+                # Mark the verification code as used
+                verification_record.is_used = True
+                
+                # Commit the changes
                 db.session.commit()
-                print(f"User created and verified, ID: {new_user.id}")
-                print(f"Verification code {verification_code} saved to database")
+                
+                print(f"User verified, ID: {temp_user.id}")
+                print(f"Verification code {verification_code} marked as used")
                 
                 # Clear verification data from session
                 session.pop('temp_username', None)
                 session.pop('temp_email', None)
                 session.pop('verification_code', None)
                 session.pop('code_created_at', None)
+                session.pop('temp_user_id', None)
                 
                 # Log in the user and redirect to complete-profile
-                session['user_id'] = new_user.id
+                session['user_id'] = temp_user.id
+                flash('Registration successful! Please complete your profile.', 'success')
                 return redirect(url_for('complete_profile'))
                 
             except Exception as orm_error:
@@ -254,6 +264,32 @@ def send_verification():
         })
         
         try:
+            # Create temporary user record to associate with verification code
+            temp_user = User(
+                username=username,
+                email=email,
+                password_hash=generate_password_hash('temporary'),  # Temporary placeholder
+                created_at=datetime.utcnow(),
+                is_verified=False
+            )
+            db.session.add(temp_user)
+            db.session.flush()  # Get ID without committing
+            
+            # Create verification code record in database
+            verification_record = VerificationCode(
+                user_id=temp_user.id,
+                code=verification_code,
+                created_at=datetime.fromisoformat(session['code_created_at']),
+                expires_at=datetime.fromisoformat(session['code_created_at']) + timedelta(minutes=30),
+                is_used=False  # Mark as unused initially
+            )
+            db.session.add(verification_record)
+            db.session.commit()
+            print(f"Verification code {verification_code} saved to database for temp user {temp_user.id}")
+            
+            # Store temp user ID in session
+            session['temp_user_id'] = temp_user.id
+            
             # Send verification email
             success = send_verification_email(mock_user, verification_code)
             if success:
@@ -261,11 +297,13 @@ def send_verification():
                     return jsonify({'message': 'Verification code has been sent to your email'}), 200
                 flash('Verification code has been sent to your email', 'success')
             else:
+                db.session.rollback()  # Roll back if email fails
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                     return jsonify({'error': 'Error sending verification email. Please try again.'}), 500
                 flash('Error sending verification email. Please try again.', 'error')
         except Exception as e:
-            print(f"Error sending email: {str(e)}")
+            db.session.rollback()
+            print(f"Error sending email or creating verification record: {str(e)}")
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return jsonify({'error': 'Error sending verification email. Please try again.'}), 500
             flash('Error sending verification email. Please try again.', 'error')

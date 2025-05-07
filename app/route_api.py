@@ -414,7 +414,7 @@ def update_share_settings():
             db.session.add(new_settings)
         
         db.session.commit()
-        return json_response({'status': 'success', 'message': 'Sharing settings saved'})
+        return json_response({'status': 'success', 'message': 'Your content is now visible to others.'})
     except Exception as e:
         db.session.rollback()
         import traceback

@@ -41,10 +41,13 @@ def valid_register(username):
 
 # Registration verification (username and email validation)
 def valid_regist(username, email):
-    """Verify if both username and email are already registered"""
+    """Verify if both username and email are already registered by verified users"""
     user = db.session.execute(
         sa.select(User).where(
-            or_(User.username == username, User.email == email)
+            and_(
+                or_(User.username == username, User.email == email),
+                User.is_verified == True  # Only check verified users
+            )
         )
     ).scalar_one_or_none()
     

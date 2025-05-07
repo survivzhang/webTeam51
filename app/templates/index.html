@@ -83,42 +83,96 @@
         id="register-form"
         class="hidden bg-white rounded-lg shadow-md overflow-hidden p-8 transition-all duration-500"
       >
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">
           Register
         </h1>
+        
+        <!-- Registration Form with Verification Code -->
         <form
+          id="complete-registration-form"
           method="post"
           action="{{ url_for('register') }}"
-          class="space-y-6"
+          class="space-y-5"
         >
           {{ register_form.csrf_token }}
 
           <div class="relative">
+            <div
+              class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+            >
+              <i data-lucide="user" class="h-5 w-5 text-gray-500"></i>
+            </div>
             {{ register_form.username(class="w-full pl-10 pr-4 py-3 border
             border-gray-300 text-gray-700 rounded-lg", placeholder="Username")
             }}
           </div>
 
           <div class="relative">
+            <div
+              class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+            >
+              <i data-lucide="mail" class="h-5 w-5 text-gray-500"></i>
+            </div>
             {{ register_form.email(class="w-full pl-10 pr-4 py-3 border
             border-gray-300 text-gray-700 rounded-lg", placeholder="Email") }}
           </div>
 
           <div class="relative">
+            <div
+              class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+            >
+              <i data-lucide="lock" class="h-5 w-5 text-gray-500"></i>
+            </div>
             {{ register_form.password(class="w-full pl-10 pr-10 py-3 border
             border-gray-300 text-gray-700 rounded-lg", placeholder="Password",
-            id=register_form.password.id) }}
+            id="reg-password") }}
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+              <button type="button" id="toggle-reg-password" class="text-gray-500">
+                <i data-lucide="eye" class="h-5 w-5"></i>
+              </button>
+            </div>
           </div>
 
           <div class="relative">
-            {{ register_form.confirm_password(class="w-full pl-10 pr-4 py-3
+            <div
+              class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+            >
+              <i data-lucide="lock" class="h-5 w-5 text-gray-500"></i>
+            </div>
+            {{ register_form.confirm_password(class="w-full pl-10 pr-10 py-3
             border border-gray-300 text-gray-700 rounded-lg",
-            placeholder="Confirm Password") }}
+            placeholder="Confirm Password", id="reg-confirm-password") }}
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+              <button type="button" id="toggle-reg-confirm-password" class="text-gray-500">
+                <i data-lucide="eye" class="h-5 w-5"></i>
+              </button>
+            </div>
           </div>
+          
+          <div class="flex items-center space-x-2">
+            <div class="relative flex-1">
+              <div
+                class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+              >
+                <i data-lucide="check-circle" class="h-5 w-5 text-gray-500"></i>
+              </div>
+              {{ register_form.verification_code(class="w-full pl-10 pr-4 py-3
+              border border-gray-300 text-gray-700 rounded-lg",
+              placeholder="Verification Code") }}
+            </div>
+            <button
+              type="button"
+              id="send-verification-btn"
+              class="py-3 px-4 bg-blue-300 hover:bg-blue-400 text-blue-800 font-medium rounded-lg whitespace-nowrap"
+            >
+              Get Code
+            </button>
+          </div>
+          <p class="text-xs text-gray-500 mt-1">We'll send a 6-digit code to your email</p>
 
           <button
             type="submit"
-            class="w-full py-3 bg-blue-500 text-white font-semibold rounded-lg"
+            class="w-full py-3 bg-blue-500 text-white font-semibold rounded-lg mt-2"
           >
             Create Account
           </button>
@@ -214,6 +268,88 @@
         passwordInput.type === "password" ? "eye" : "eye-off"
       );
       lucide.createIcons();
+    });
+    
+  // Registration password toggles  
+  document
+    .getElementById("toggle-reg-password")
+    ?.addEventListener("click", function () {
+      const passwordInput = document.getElementById("reg-password");
+      const icon = this.querySelector("i");
+      passwordInput.type =
+        passwordInput.type === "password" ? "text" : "password";
+      icon.setAttribute(
+        "data-lucide",
+        passwordInput.type === "password" ? "eye" : "eye-off"
+      );
+      lucide.createIcons();
+    });
+    
+  document
+    .getElementById("toggle-reg-confirm-password")
+    ?.addEventListener("click", function () {
+      const passwordInput = document.getElementById("reg-confirm-password");
+      const icon = this.querySelector("i");
+      passwordInput.type =
+        passwordInput.type === "password" ? "text" : "password";
+      icon.setAttribute(
+        "data-lucide",
+        passwordInput.type === "password" ? "eye" : "eye-off"
+      );
+      lucide.createIcons();
+    });
+    
+  // Send verification code via AJAX
+  document
+    .getElementById("send-verification-btn")
+    ?.addEventListener("click", function() {
+      const emailInput = document.querySelector('#complete-registration-form input[name="email"]');
+      const usernameInput = document.querySelector('#complete-registration-form input[name="username"]');
+      
+      if (!emailInput.value || !usernameInput.value) {
+        alert("Please enter both username and email address");
+        return;
+      }
+      
+      // Show loading state
+      const originalText = this.textContent;
+      this.textContent = "Sending...";
+      this.classList.add("opacity-75");
+      this.disabled = true;
+      
+      // Create form data
+      const formData = new FormData();
+      formData.append("email", emailInput.value);
+      formData.append("username", usernameInput.value);
+      formData.append("csrf_token", document.querySelector('#complete-registration-form input[name="csrf_token"]').value);
+      
+      // Send request
+      fetch("{{ url_for('send_verification') }}", {
+        method: "POST",
+        body: formData
+      })
+      .then(response => {
+        // Reset button
+        this.textContent = originalText;
+        this.classList.remove("opacity-75");
+        this.disabled = false;
+        
+        if (response.ok) {
+          // Success - show message
+          alert("Verification code sent to your email address");
+        } else {
+          // Error - show error message
+          alert("Error sending verification code. Please try again.");
+        }
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        // Reset button
+        this.textContent = originalText;
+        this.classList.remove("opacity-75");
+        this.disabled = false;
+        alert("Error sending verification code. Please try again.");
+      });
     });
 
   document.addEventListener("DOMContentLoaded", function () {

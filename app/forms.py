@@ -45,6 +45,10 @@ class RegistrationForm(FlaskForm):
         DataRequired(message="Please confirm your password"),
         EqualTo('password', message="Passwords must match")
     ])
+    verification_code = StringField('Verification Code', validators=[
+        DataRequired(message="Verification code is required"),
+        Length(min=6, max=6, message="Verification code must be 6 characters")
+    ])
     submit = SubmitField('Register')
     
     # Removing validation to simplify debugging

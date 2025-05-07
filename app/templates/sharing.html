@@ -2,7 +2,7 @@
 <div class="flex flex-col md:flex-row relative">
   <!-- Absolute Sidebar Navigation -->
   <div
-    class="md:w-64 bg-white shadow-md p-4 md:fixed md:h-screen md:top-24 z-10"
+    class="md:w-64 bg-white shadow-md p-4 md:sticky md:top-24 z-10 md:h-[calc(100vh-24px)]"
   >
     <h2
       class="text-lg font-semibold text-gray-800 mb-6 border-b pb-2 text-center"
@@ -35,7 +35,7 @@
   </div>
 
   <!-- Main Content Area with left margin for sidebar -->
-  <div class="flex-1 md:ml-64 p-4">
+  <div class="flex-1 md:ml-6 p-4">
     <!-- Friend Management Section -->
     <div id="friend-management" class="content-section block">
       <h1 class="text-2xl font-bold text-gray-800 mb-6">Friend Management</h1>
@@ -133,7 +133,7 @@
       <div class="bg-white rounded-lg shadow-md p-6 mb-6">
         <div class="flex flex-col md:flex-row gap-6">
           <!-- Left Sidebar with Friends List -->
-          <div class="md:w-1/4">
+          <div class="md:w-1/5 md:sticky md:top-0">
             <h2
               class="text-xl font-semibold text-gray-800 mb-4 flex items-center"
             >
@@ -178,7 +178,7 @@
           </div>
 
           <!-- Right Content with Visualization -->
-          <div class="md:w-3/4">
+          <div class="md:w-4/5 overflow-y-auto max-h-[80vh]">
             <h2
               class="text-xl font-semibold text-gray-800 mb-4 flex items-center"
             >
@@ -188,14 +188,14 @@
 
             <div
               id="friend-data-container"
-              class="min-h-[200px] flex items-center justify-center"
+              class="min-h-[200px]"
             >
               <p class="text-gray-500 italic">
                 Select a friend from the list to view their shared data
               </p>
             </div>
 
-            <div id="chart-container" class="mt-4" style="height: 300px"></div>
+            <div id="chart-container" class="mt-4" style="height: 300px; width: 100%;"></div>
           </div>
         </div>
       </div>
@@ -323,48 +323,6 @@
             </div>
           </div>
 
-          <!-- Daily Metrics to Share -->
-          <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-2"
-              >Daily Metrics to Share</label
-            >
-            <div class="grid grid-cols-2 gap-3 p-4 bg-gray-50 rounded-md">
-              <div class="flex items-center">
-                <input
-                  type="checkbox"
-                  id="share-weight"
-                  value="weight"
-                  class="metrics-checkbox h-4 w-4 text-cal-blue focus:ring-cal-blue"
-                />
-                <label for="share-weight" class="ml-2 text-sm text-gray-700"
-                  >Weight (kg)</label
-                >
-              </div>
-              <div class="flex items-center">
-                <input
-                  type="checkbox"
-                  id="share-sleep"
-                  value="sleep"
-                  class="metrics-checkbox h-4 w-4 text-cal-blue focus:ring-cal-blue"
-                />
-                <label for="share-sleep" class="ml-2 text-sm text-gray-700"
-                  >Sleep Hours</label
-                >
-              </div>
-              <div class="flex items-center">
-                <input
-                  type="checkbox"
-                  id="share-mood"
-                  value="mood"
-                  class="metrics-checkbox h-4 w-4 text-cal-blue focus:ring-cal-blue"
-                />
-                <label for="share-mood" class="ml-2 text-sm text-gray-700"
-                  >Mood</label
-                >
-              </div>
-            </div>
-          </div>
-
           <!-- Exercise Types to Share -->
           <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 mb-2"
@@ -379,7 +337,7 @@
                   class="exercise-type-checkbox h-4 w-4 text-cal-blue focus:ring-cal-blue"
                 />
                 <label for="exercise-running" class="ml-2 text-sm text-gray-700"
-                  >Running 🏃</label
+                  >Running</label
                 >
               </div>
               <div class="flex items-center">
@@ -390,7 +348,7 @@
                   class="exercise-type-checkbox h-4 w-4 text-cal-blue focus:ring-cal-blue"
                 />
                 <label for="exercise-walking" class="ml-2 text-sm text-gray-700"
-                  >Walking 🚶</label
+                  >Walking</label
                 >
               </div>
               <div class="flex items-center">
@@ -401,7 +359,7 @@
                   class="exercise-type-checkbox h-4 w-4 text-cal-blue focus:ring-cal-blue"
                 />
                 <label for="exercise-cycling" class="ml-2 text-sm text-gray-700"
-                  >Cycling 🚴</label
+                  >Cycling</label
                 >
               </div>
               <div class="flex items-center">
@@ -414,7 +372,7 @@
                 <label
                   for="exercise-swimming"
                   class="ml-2 text-sm text-gray-700"
-                  >Swimming 🏊</label
+                  >Swimming</label
                 >
               </div>
               <div class="flex items-center">
@@ -425,7 +383,7 @@
                   class="exercise-type-checkbox h-4 w-4 text-cal-blue focus:ring-cal-blue"
                 />
                 <label for="exercise-yoga" class="ml-2 text-sm text-gray-700"
-                  >Yoga 🧘</label
+                  >Yoga</label
                 >
               </div>
               <div class="flex items-center">
@@ -436,7 +394,7 @@
                   class="exercise-type-checkbox h-4 w-4 text-cal-blue focus:ring-cal-blue"
                 />
                 <label for="exercise-weightlifting" class="ml-2 text-sm text-gray-700"
-                  >Weightlifting 🏋️</label
+                  >Weightlifting</label
                 >
               </div>
               <div class="flex items-center">
@@ -447,7 +405,7 @@
                   class="exercise-type-checkbox h-4 w-4 text-cal-blue focus:ring-cal-blue"
                 />
                 <label for="exercise-hiit" class="ml-2 text-sm text-gray-700"
-                  >HIIT 🔥</label
+                  >HIIT</label
                 >
               </div>
               <div class="flex items-center">
@@ -458,7 +416,7 @@
                   class="exercise-type-checkbox h-4 w-4 text-cal-blue focus:ring-cal-blue"
                 />
                 <label for="exercise-pilates" class="ml-2 text-sm text-gray-700"
-                  >Pilates 🤸</label
+                  >Pilates</label
                 >
               </div>
             </div>
@@ -479,6 +437,38 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Debug function to check if Chart.js is loaded
+  window.addEventListener('DOMContentLoaded', function() {
+    console.log('DOMContentLoaded event fired');
+    console.log('Chart.js loaded:', typeof Chart !== 'undefined');
+    
+    // Create a test chart to verify Chart.js is working
+    setTimeout(function() {
+      try {
+        const testCanvas = document.createElement('canvas');
+        testCanvas.id = 'test-chart';
+        testCanvas.style.display = 'none';
+        document.body.appendChild(testCanvas);
+        
+        new Chart(testCanvas, {
+          type: 'pie',
+          data: {
+            labels: ['Test'],
+            datasets: [{
+              data: [1],
+              backgroundColor: ['#ff0000']
+            }]
+          }
+        });
+        console.log('Test chart created successfully');
+      } catch(e) {
+        console.error('Failed to create test chart:', e);
+      }
+    }, 1000);
+  });
+</script>
 <script src="{{ url_for('static', filename='js/friend-sharing.js') }}"></script>
 
 {% endblock %}

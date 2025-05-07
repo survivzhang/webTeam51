@@ -982,7 +982,7 @@ document
           result.status < 300 &&
           result.data.status === "success"
         ) {
-          showNotification('success', 'Settings Saved', result.data.message || "Sharing settings saved successfully");
+          showNotification('success', 'Sharing Successfully', result.data.message || "Sharing saved successfully");
         } else {
           showNotification('error', 'Save Failed', result.data.message || `Failed to save sharing settings (Code: ${result.status})`);
         }

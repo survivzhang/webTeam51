@@ -420,7 +420,7 @@ def update_share_settings():
         import traceback
         print(f"Error in update_share_settings: {str(e)}")
         print(traceback.format_exc())
-        return json_response({'status': 'error', 'message': f'Error saving settings: {str(e)}'}, 500)
+        return json_response({'status': 'error', 'message': f'Error sharing settings: {str(e)}'}, 500)
 
 
 @csrf.exempt

@@ -145,8 +145,8 @@
                 />
               </div>
 
-              <!-- Hidden nutrition inputs -->
-              <input type="hidden" name="calculated_energy[]" value="0" />
+              <!-- Hidden nutrition inputs (use "calories" instead of "energy") -->
+              <input type="hidden" name="calculated_calories[]" value="0" />
               <input type="hidden" name="calculated_protein[]" value="0" />
               <input type="hidden" name="calculated_fat[]" value="0" />
               <input type="hidden" name="calculated_carb[]" value="0" />
@@ -210,12 +210,25 @@
           >
             + Add Another Food
           </button>
+
+          <!-- Submit hidden totals -->
           <input
             type="hidden"
-            id="total_energy"
-            name="total_energy"
+            id="total_calories"
+            name="total_calories"
             value="0"
           />
+          <input
+            type="hidden"
+            id="total_protein"
+            name="total_protein"
+            value="0"
+          />
+          <input type="hidden" id="total_fat" name="total_fat" value="0" />
+          <input type="hidden" id="total_carb" name="total_carb" value="0" />
+          <input type="hidden" id="total_fiber" name="total_fiber" value="0" />
+          <input type="hidden" id="total_sugar" name="total_sugar" value="0" />
+
           <!-- Submit Button -->
           <button
             type="submit"

@@ -651,7 +651,7 @@ function renderFriendData(data) {
 
   // Create header
   const headerElement = document.createElement("div");
-  headerElement.className = "mb-4";
+  headerElement.className = "mb-4 sticky top-0 bg-white z-10 py-2";
   headerElement.innerHTML = `<h3 class="text-lg font-medium">${data.username}'s Shared Data</h3>`;
   document.getElementById("friend-data-container").appendChild(headerElement);
 
@@ -702,7 +702,6 @@ function renderFriendData(data) {
     const mealChartContainer = document.createElement("div");
     mealChartContainer.className = "mt-6 border p-4 rounded-md";
     mealChartContainer.innerHTML = `
-        <h5 class="text-lg font-medium mb-4 text-center">Calorie Intake Distribution</h5>
         <div id="meal-pie-chart" style="height: 400px; width: 100%; position: relative;"></div>
     `;
     mealsSection.appendChild(mealChartContainer);

@@ -67,7 +67,22 @@ def upload():
 @app.route('/visualisation')
 @login_required
 def visualisation():
-    return render_template('visualisation.html', title='Visualisation')
+    try:
+        # Get current user from session
+        current_user_id = session.get('user_id')
+        user = User.query.get(current_user_id)
+        
+        # We don't need to pass data directly since JavaScript will fetch it via API
+        # But we pass the user object for personalization
+        return render_template('visualisation.html', 
+                              title='Health Data Insights', 
+                              current_user=user)
+    except Exception as e:
+        print(f"Error in visualization route: {str(e)}")
+        flash(f"An error occurred: {str(e)}", "error")
+        return render_template('visualisation.html', 
+                              title='Health Data Insights',
+                              error=str(e))
 
 
 @app.route('/sharing')

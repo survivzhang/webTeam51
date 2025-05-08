@@ -782,3 +782,70 @@ def get_food_suggestions():
             'success': False,
             'error': 'Error retrieving food suggestions'
         })
+
+@csrf.exempt
+@app.route('/api/nutrition_summary', methods=['GET'])
+@login_required
+def get_nutrition_summary():
+    user_id = session.get('user_id')
+    
+    try:
+        # Get all calorie entries for the user
+        entries = db.session.execute(
+            sa.select(CalorieEntry)
+            .where(CalorieEntry.user_id == user_id)
+        ).scalars().all()
+        
+        if not entries:
+            return json_response({
+                'status': 'success',
+                'data': {
+                    'carbohydrates': 0,
+                    'proteins': 0,
+                    'fats': 0,
+                    'sugars': 0,
+                    'fiber': 0
+                }
+            })
+        
+        # Calculate total nutrition values
+        total_entries = len(entries)
+        total_carbs = sum(entry.carbohydrates for entry in entries)
+        total_proteins = sum(entry.proteins for entry in entries)
+        total_fats = sum(entry.fats for entry in entries)
+        total_sugars = sum(entry.sugars for entry in entries) 
+        total_fiber = sum(entry.fiber for entry in entries)
+        
+        # Calculate percentages for pie chart
+        total_nutrition = total_carbs + total_proteins + total_fats + total_sugars + total_fiber
+        
+        if total_nutrition == 0:
+            # Avoid division by zero
+            return json_response({
+                'status': 'success',
+                'data': {
+                    'carbohydrates': 0,
+                    'proteins': 0,
+                    'fats': 0,
+                    'sugars': 0,
+                    'fiber': 0
+                }
+            })
+        
+        # Return absolute values, percentages will be calculated in frontend
+        return json_response({
+            'status': 'success',
+            'data': {
+                'carbohydrates': total_carbs,
+                'proteins': total_proteins,
+                'fats': total_fats,
+                'sugars': total_sugars,
+                'fiber': total_fiber
+            }
+        })
+        
+    except Exception as e:
+        import traceback
+        print(f"Error in get_nutrition_summary: {str(e)}")
+        print(traceback.format_exc())
+        return json_response({'status': 'error', 'message': f'Error retrieving nutrition data: {str(e)}'}, 500)

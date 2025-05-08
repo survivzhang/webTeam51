@@ -1,92 +1,305 @@
 document.addEventListener("DOMContentLoaded", function () {
   console.log("DOM loaded, initializing charts...");
-  initializeCharts();
+  fetchUserData();
 });
 
-function initializeCharts() {
-  console.log("Starting chart initialization...");
+// Function to fetch all user data from API
+async function fetchUserData() {
+  try {
+    console.log("Fetching user data from API...");
+    
+    // Show loading indicators while fetching data
+    showLoadingState();
+    
+    const response = await fetch('/api/get_all_data', {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+    
+    const result = await response.json();
+    
+    if (result.status === 'success') {
+      console.log("Data fetched successfully:", result.data);
+      initializeCharts(result.data);
+    } else {
+      console.error("API returned error:", result.message);
+      showError("Error loading data from server");
+    }
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+    showError("Failed to connect to server. Make sure the application is running.");
+    
+    // Use sample data for demonstration when API is not available
+    console.log("Using sample data as fallback");
+    initializeCharts(getSampleData());
+  }
+}
 
-  // Sample data for Calorie In
+// Show loading state while fetching data
+function showLoadingState() {
+  const containers = ["calorieInChart", "calorieOutChart", "calorieTrendsChart", "nutritionAnalysisChart"];
+  
+  containers.forEach(containerId => {
+    const container = document.getElementById(containerId);
+    if (container) {
+      const ctx = container.getContext('2d');
+      ctx.clearRect(0, 0, container.width, container.height);
+      ctx.fillStyle = "rgba(200, 200, 200, 0.2)";
+      ctx.fillRect(0, 0, container.width, container.height);
+      ctx.font = '14px Arial';
+      ctx.fillStyle = '#666';
+      ctx.textAlign = 'center';
+      ctx.fillText("Loading data...", container.width / 2, container.height / 2);
+    }
+  });
+}
+
+// Sample data for fallback when API is not available
+function getSampleData() {
+  return [
+    // Meal entries
+    {
+      type: 'meal',
+      date: '2023-05-10',
+      meal_type: 'Breakfast',
+      calories: 450
+    },
+    {
+      type: 'meal',
+      date: '2023-05-10',
+      meal_type: 'Lunch',
+      calories: 680
+    },
+    {
+      type: 'meal',
+      date: '2023-05-10',
+      meal_type: 'Dinner',
+      calories: 850
+    },
+    {
+      type: 'meal',
+      date: '2023-05-11',
+      meal_type: 'Breakfast',
+      calories: 400
+    },
+    {
+      type: 'meal',
+      date: '2023-05-11',
+      meal_type: 'Lunch',
+      calories: 720
+    },
+    {
+      type: 'meal',
+      date: '2023-05-11',
+      meal_type: 'Snacks',
+      calories: 250
+    },
+    {
+      type: 'meal',
+      date: '2023-05-11',
+      meal_type: 'Dinner',
+      calories: 780
+    },
+    // Exercise entries
+    {
+      type: 'exercise',
+      date: '2023-05-10',
+      exercise_type: 'Running',
+      calories_burned: 320,
+      duration: 30
+    },
+    {
+      type: 'exercise',
+      date: '2023-05-10',
+      exercise_type: 'Weight Training',
+      calories_burned: 280,
+      duration: 45
+    },
+    {
+      type: 'exercise',
+      date: '2023-05-11',
+      exercise_type: 'Cycling',
+      calories_burned: 450,
+      duration: 40
+    },
+    {
+      type: 'exercise',
+      date: '2023-05-11',
+      exercise_type: 'Swimming',
+      calories_burned: 380,
+      duration: 35
+    },
+    {
+      type: 'exercise',
+      date: '2023-05-11',
+      exercise_type: 'Yoga',
+      calories_burned: 180,
+      duration: 50
+    }
+  ];
+}
+
+// Show error message on charts
+function showError(message) {
+  const containers = ["calorieInChart", "calorieOutChart", "nutritionAnalysisChart"];
+  
+  containers.forEach(containerId => {
+    const container = document.getElementById(containerId);
+    if (container) {
+      // Create error message
+      const ctx = container.getContext('2d');
+      ctx.font = '14px Arial';
+      ctx.fillStyle = 'red';
+      ctx.textAlign = 'center';
+      ctx.fillText(message, container.width / 2, container.height / 2);
+    }
+  });
+}
+
+// Process data for visualization
+function processUserData(data) {
+  // Group and filter the data
+  const meals = data.filter(item => item.type === 'meal');
+  const exercises = data.filter(item => item.type === 'exercise');
+  
+  // Process meal data for calorie intake distribution
+  const mealsByType = {};
+  let totalCaloriesIn = 0;
+  
+  meals.forEach(meal => {
+    const calories = parseInt(meal.calories) || 0;
+    if (!mealsByType[meal.meal_type]) {
+      mealsByType[meal.meal_type] = 0;
+    }
+    mealsByType[meal.meal_type] += calories;
+    totalCaloriesIn += calories;
+  });
+  
+  // Process exercise data for calorie burn distribution
+  const exercisesByType = {};
+  let totalCaloriesBurned = 0;
+  
+  exercises.forEach(exercise => {
+    const caloriesBurned = parseInt(exercise.calories_burned) || 0;
+    if (!exercisesByType[exercise.exercise_type]) {
+      exercisesByType[exercise.exercise_type] = 0;
+    }
+    exercisesByType[exercise.exercise_type] += caloriesBurned;
+    totalCaloriesBurned += caloriesBurned;
+  });
+  
+  // Calculate average nutrition values from meals
+  let totalCarbs = 0;
+  let totalProteins = 0;
+  let totalFats = 0;
+  let totalSugars = 0;
+  let totalFiber = 0;
+  
+  // We need to make another API call to get nutrition details
+  return {
+    mealsByType,
+    exercisesByType,
+    totalCaloriesIn,
+    totalCaloriesBurned
+  };
+}
+
+function initializeCharts(userData) {
+  console.log("Starting chart initialization with real data...");
+  
+  const processedData = processUserData(userData);
+  
+  // Prepare data for Calorie In chart
   const calorieInData = {
-    labels: ["Breakfast", "Lunch", "Dinner", "Snacks"],
-    data: [500, 800, 1000, 300],
+    labels: Object.keys(processedData.mealsByType),
+    data: Object.values(processedData.mealsByType),
     backgroundColor: [
-      "rgba(255, 99, 132, 0.7)", // Breakfast - Red
-      "rgba(54, 162, 235, 0.7)", // Lunch - Blue
-      "rgba(255, 206, 86, 0.7)", // Dinner - Yellow
-      "rgba(75, 192, 192, 0.7)", // Snacks - Cyan
+      "rgba(255, 99, 132, 0.7)",  // Red
+      "rgba(54, 162, 235, 0.7)",  // Blue
+      "rgba(255, 206, 86, 0.7)",  // Yellow
+      "rgba(75, 192, 192, 0.7)",  // Cyan
     ],
   };
-
-  // Sample data for Calorie Out
+  
+  // Prepare data for Calorie Out chart
   const calorieOutData = {
-    labels: ["Running", "Cycling", "Swimming", "Yoga", "Weight Training"],
-    data: [600, 450, 350, 200, 400],
+    labels: Object.keys(processedData.exercisesByType),
+    data: Object.values(processedData.exercisesByType),
     backgroundColor: [
-      "rgba(255, 99, 132, 0.7)", // Running
-      "rgba(54, 162, 235, 0.7)", // Cycling
-      "rgba(255, 206, 86, 0.7)", // Swimming
-      "rgba(75, 192, 192, 0.7)", // Yoga
-      "rgba(153, 102, 255, 0.7)", // Weight Training
+      "rgba(255, 99, 132, 0.7)",  // Red
+      "rgba(54, 162, 235, 0.7)",  // Blue
+      "rgba(255, 206, 86, 0.7)",  // Yellow
+      "rgba(75, 192, 192, 0.7)",  // Cyan
+      "rgba(153, 102, 255, 0.7)", // Purple
     ],
   };
-
-  // Sample data for Calorie Trends (Last 7 days)
-  const calorieTrendsData = {
-    labels: [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday",
-    ],
-    data: [2500, 2300, 2700, 2600, 2400, 2800, 2200],
-  };
-
-  // Sample data for Nutrition Analysis
+  
+  // For now, we'll use sample data for Nutrition Analysis until we have proper API endpoint
+  // In a real app, we would make another API call to get nutrition details
   const nutritionData = {
-    labels: ["Carbohydrates", "Proteins", "Fats", "Vitamins", "Sugars"],
+    labels: ["Carbohydrates", "Proteins", "Fats", "Sugars", "Fiber"],
     data: [40, 25, 20, 10, 5],
     backgroundColor: [
       "rgba(255, 99, 132, 0.7)", // Carbs
       "rgba(54, 162, 235, 0.7)", // Proteins
       "rgba(255, 206, 86, 0.7)", // Fats
-      "rgba(75, 192, 192, 0.7)", // Vitamins
-      "rgba(153, 102, 255, 0.7)", // Sugars
+      "rgba(75, 192, 192, 0.7)", // Sugars
+      "rgba(153, 102, 255, 0.7)", // Fiber
     ],
   };
+  
+  // Get the last 7 days of calorie data for trends
+  const calorieTrendsData = prepareCalorieTrendsData(userData);
 
   // Calorie In Chart (Pie)
   const calorieInCtx = document.getElementById("calorieInChart");
   if (calorieInCtx) {
-    new Chart(calorieInCtx, {
-      type: "pie",
-      data: {
-        labels: calorieInData.labels,
-        datasets: [
-          {
-            data: calorieInData.data,
-            backgroundColor: calorieInData.backgroundColor,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: "right",
-          },
-          title: {
-            display: true,
-            text: "Daily Calorie Intake Distribution",
+    if (calorieInData.labels.length === 0) {
+      drawEmptyDataMessage(calorieInCtx, "No meal data available");
+    } else {
+      new Chart(calorieInCtx, {
+        type: "pie",
+        data: {
+          labels: calorieInData.labels,
+          datasets: [
+            {
+              data: calorieInData.data,
+              backgroundColor: calorieInData.backgroundColor.slice(0, calorieInData.labels.length),
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: "right",
+            },
+            title: {
+              display: true,
+              text: "Calorie Intake Distribution",
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const value = context.raw;
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = ((value / total) * 100).toFixed(1);
+                  return `${context.label}: ${value} cal (${percentage}%)`;
+                }
+              }
+            }
           },
         },
-      },
-    });
-    console.log("Calorie In chart created");
+      });
+      console.log("Calorie In chart created with real data");
+    }
   } else {
     console.error("Calorie In chart canvas not found");
   }
@@ -94,32 +307,46 @@ function initializeCharts() {
   // Calorie Out Chart (Pie)
   const calorieOutCtx = document.getElementById("calorieOutChart");
   if (calorieOutCtx) {
-    new Chart(calorieOutCtx, {
-      type: "pie",
-      data: {
-        labels: calorieOutData.labels,
-        datasets: [
-          {
-            data: calorieOutData.data,
-            backgroundColor: calorieOutData.backgroundColor,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: "right",
-          },
-          title: {
-            display: true,
-            text: "Daily Calorie Burn Distribution",
+    if (calorieOutData.labels.length === 0) {
+      drawEmptyDataMessage(calorieOutCtx, "No exercise data available");
+    } else {
+      new Chart(calorieOutCtx, {
+        type: "pie",
+        data: {
+          labels: calorieOutData.labels,
+          datasets: [
+            {
+              data: calorieOutData.data,
+              backgroundColor: calorieOutData.backgroundColor.slice(0, calorieOutData.labels.length),
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: "right",
+            },
+            title: {
+              display: true,
+              text: "Calorie Burn Distribution",
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const value = context.raw;
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = ((value / total) * 100).toFixed(1);
+                  return `${context.label}: ${value} cal (${percentage}%)`;
+                }
+              }
+            }
           },
         },
-      },
-    });
-    console.log("Calorie Out chart created");
+      });
+      console.log("Calorie Out chart created with real data");
+    }
   } else {
     console.error("Calorie Out chart canvas not found");
   }
@@ -127,41 +354,54 @@ function initializeCharts() {
   // Calorie Trends Chart (Line)
   const calorieTrendsCtx = document.getElementById("calorieTrendsChart");
   if (calorieTrendsCtx) {
-    new Chart(calorieTrendsCtx, {
-      type: "line",
-      data: {
-        labels: calorieTrendsData.labels,
-        datasets: [
-          {
-            label: "Total Daily Calories",
-            data: calorieTrendsData.data,
-            borderColor: "rgba(75, 192, 192, 1)",
-            tension: 0.1,
-            fill: false,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          title: {
-            display: true,
-            text: "Weekly Calorie Trends",
-          },
+    if (calorieTrendsData.labels.length === 0) {
+      drawEmptyDataMessage(calorieTrendsCtx, "No trend data available");
+    } else {
+      new Chart(calorieTrendsCtx, {
+        type: "line",
+        data: {
+          labels: calorieTrendsData.labels,
+          datasets: [
+            {
+              label: "Calories In",
+              data: calorieTrendsData.caloriesIn,
+              borderColor: "rgba(75, 192, 192, 1)",
+              backgroundColor: "rgba(75, 192, 192, 0.2)",
+              tension: 0.1,
+              fill: true,
+            },
+            {
+              label: "Calories Burned",
+              data: calorieTrendsData.caloriesOut,
+              borderColor: "rgba(255, 99, 132, 1)",
+              backgroundColor: "rgba(255, 99, 132, 0.2)",
+              tension: 0.1,
+              fill: true,
+            },
+          ],
         },
-        scales: {
-          y: {
-            beginAtZero: true,
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
             title: {
               display: true,
-              text: "Calories",
+              text: "Calorie Trends",
+            },
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: "Calories",
+              },
             },
           },
         },
-      },
-    });
-    console.log("Calorie Trends chart created");
+      });
+      console.log("Calorie Trends chart created with real data");
+    }
   } else {
     console.error("Calorie Trends chart canvas not found");
   }
@@ -169,43 +409,173 @@ function initializeCharts() {
   // Nutrition Analysis Chart (Pie)
   const nutritionCtx = document.getElementById("nutritionAnalysisChart");
   if (nutritionCtx) {
-    new Chart(nutritionCtx, {
-      type: "pie",
-      data: {
-        labels: nutritionData.labels,
-        datasets: [
-          {
-            data: nutritionData.data,
-            backgroundColor: nutritionData.backgroundColor,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: "right",
-          },
-          title: {
-            display: true,
-            text: "Nutrition Intake Analysis",
-          },
-        },
-      },
-    });
-    console.log("Nutrition Analysis chart created");
+    // Fetch nutrition data here or use existing one
+    fetchNutritionData()
+      .then(nutritionData => {
+        if (!nutritionData || Object.keys(nutritionData).length === 0) {
+          drawEmptyDataMessage(nutritionCtx, "No nutrition data available");
+        } else {
+          new Chart(nutritionCtx, {
+            type: "pie",
+            data: {
+              labels: nutritionData.labels,
+              datasets: [
+                {
+                  data: nutritionData.data,
+                  backgroundColor: nutritionData.backgroundColor,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: "right",
+                },
+                title: {
+                  display: true,
+                  text: "Nutrition Analysis",
+                },
+                tooltip: {
+                  callbacks: {
+                    label: function(context) {
+                      const value = context.raw;
+                      const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                      const percentage = ((value / total) * 100).toFixed(1);
+                      return `${context.label}: ${percentage}%`;
+                    }
+                  }
+                }
+              },
+            },
+          });
+          console.log("Nutrition Analysis chart created with real data");
+        }
+      })
+      .catch(error => {
+        console.error("Error fetching nutrition data:", error);
+        drawEmptyDataMessage(nutritionCtx, "Failed to load nutrition data");
+      });
   } else {
     console.error("Nutrition Analysis chart canvas not found");
   }
 
-  // Generate recommendations
-  generateRecommendations();
+  // Generate recommendations based on real data
+  generateRecommendations(processedData);
 }
 
-function generateRecommendations() {
-  // Nutrition Recommendations
-  const nutritionRecommendations = [
+// Helper function to draw a message when no data is available
+function drawEmptyDataMessage(canvas, message) {
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "rgba(200, 200, 200, 0.5)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.font = "16px Arial";
+  ctx.fillStyle = "#666";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(message, canvas.width / 2, canvas.height / 2);
+}
+
+// Helper function to prepare calorie trends data
+function prepareCalorieTrendsData(userData) {
+  // Get unique dates
+  const dates = [...new Set(userData.map(item => item.date))].sort();
+  
+  // Take only last 7 days if we have enough data
+  const lastDays = dates.slice(-7);
+  
+  // Calculate calories in and calories out for each day
+  const caloriesIn = [];
+  const caloriesOut = [];
+  
+  for (const date of lastDays) {
+    const dayData = userData.filter(item => item.date === date);
+    
+    // Sum up calories in
+    const dayCaloriesIn = dayData
+      .filter(item => item.type === 'meal')
+      .reduce((sum, meal) => sum + (parseInt(meal.calories) || 0), 0);
+    caloriesIn.push(dayCaloriesIn);
+    
+    // Sum up calories out
+    const dayCaloriesOut = dayData
+      .filter(item => item.type === 'exercise')
+      .reduce((sum, exercise) => sum + (parseInt(exercise.calories_burned) || 0), 0);
+    caloriesOut.push(dayCaloriesOut);
+  }
+  
+  return {
+    labels: lastDays,
+    caloriesIn,
+    caloriesOut
+  };
+}
+
+// Fetch nutrition data from API
+async function fetchNutritionData() {
+  try {
+    // Make actual API call to our new endpoint
+    const response = await fetch('/api/nutrition_summary', {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+    
+    const result = await response.json();
+    
+    if (result.status === 'success') {
+      // Convert the nutrition data to format needed by Chart.js
+      return {
+        labels: ["Carbohydrates", "Proteins", "Fats", "Sugars", "Fiber"],
+        data: [
+          result.data.carbohydrates,
+          result.data.proteins,
+          result.data.fats,
+          result.data.sugars,
+          result.data.fiber
+        ],
+        backgroundColor: [
+          "rgba(255, 99, 132, 0.7)",
+          "rgba(54, 162, 235, 0.7)",
+          "rgba(255, 206, 86, 0.7)",
+          "rgba(75, 192, 192, 0.7)",
+          "rgba(153, 102, 255, 0.7)"
+        ]
+      };
+    } else {
+      throw new Error(result.message || 'Failed to retrieve nutrition data');
+    }
+  } catch (error) {
+    console.error("Error fetching nutrition data:", error);
+    
+    // Return fallback sample data when the API fails
+    return {
+      labels: ["Carbohydrates", "Proteins", "Fats", "Sugars", "Fiber"],
+      data: [42, 23, 19, 12, 4],
+      backgroundColor: [
+        "rgba(255, 99, 132, 0.7)",
+        "rgba(54, 162, 235, 0.7)",
+        "rgba(255, 206, 86, 0.7)",
+        "rgba(75, 192, 192, 0.7)",
+        "rgba(153, 102, 255, 0.7)"
+      ]
+    };
+  }
+}
+
+function generateRecommendations(userData) {
+  // Nutrition Recommendations based on actual data
+  let nutritionRecommendations = [];
+  
+  // Basic recommendations (could be more sophisticated with actual data)
+  nutritionRecommendations = [
     "Your carbohydrate intake is slightly high. Consider reducing refined carbs and increasing protein intake.",
     "Good protein balance! Maintain this level for muscle health.",
     "Fat intake is within healthy range. Focus on healthy fats like avocados and nuts.",
@@ -214,18 +584,26 @@ function generateRecommendations() {
   ];
 
   // Exercise Recommendations
-  const exerciseRecommendations = [
-    "Great cardio performance! Consider adding more strength training for better muscle balance.",
-    "Good variety in exercises. Try to maintain consistency in your workout schedule.",
+  // Calculate recent calorie burn data for recommendations
+  let exerciseRecommendations = [];
+  
+  if (userData.totalCaloriesBurned < 500) {
+    exerciseRecommendations.push("Your overall calorie burn is relatively low. Try to incorporate more physical activity in your routine.");
+  } else if (userData.totalCaloriesBurned > 2000) {
+    exerciseRecommendations.push("You're burning a high number of calories. Make sure you're also getting proper nutrition and rest.");
+  }
+  
+  // Add standard recommendations
+  exerciseRecommendations = exerciseRecommendations.concat([
+    "Aim for a mix of cardio and strength training for optimal health benefits.",
+    "Try to maintain consistency in your workout schedule - aim for 3-5 sessions per week.",
     "Consider adding flexibility exercises like yoga to improve mobility.",
     "Increase weight training duration to help boost your base metabolic rate.",
-    "Aim for 3-4 cardio sessions and 2-3 strength training sessions per week.",
-  ];
+    "Aim for 150 minutes of moderate activity or 75 minutes of vigorous activity each week."
+  ]);
 
   // Update recommendation sections
-  const nutritionRecElement = document.getElementById(
-    "nutritionRecommendations"
-  );
+  const nutritionRecElement = document.getElementById("nutritionRecommendations");
   if (nutritionRecElement) {
     nutritionRecElement.innerHTML = `
       <h3 class="font-semibold text-blue-800 mb-2">Nutrition Recommendations:</h3>

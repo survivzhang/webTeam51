@@ -11,7 +11,7 @@ import uuid, os
 from flask import current_app
 import json
 from flask import jsonify
-
+from datetime import timedelta
 
 
 @app.route('/dashboard')
@@ -25,7 +25,9 @@ def home():
     user_id = session.get('user_id')
     user = User.query.get(user_id)
     days_since = (datetime.utcnow() - user.created_at).days
-    return render_template('home.html', title='Home', user=user, days_since=days_since)
+    date_labels = [(datetime.utcnow() - timedelta(days=i)).strftime('%b %d') for i in range(6, -1, -1)]
+
+    return render_template('home.html', title='Home', user=user, days_since=days_since, date_labels=date_labels)
 
 
 @app.route('/upload')

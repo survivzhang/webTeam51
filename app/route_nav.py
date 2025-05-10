@@ -224,7 +224,7 @@ def complete_profile():
         try:
             db.session.commit()
             flash('Profile completed successfully!', 'success')
-            return redirect(url_for('upload'))
+            return redirect(url_for('home'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error saving profile: {str(e)}', 'error')
@@ -244,4 +244,5 @@ def autocomplete():
         if query in item["description"].lower()
     ]
 
-    return jsonify(results[:10])  # 返回最多10条
+    return jsonify(results[:10])  # Return only 10 results
+

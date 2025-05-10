@@ -22,7 +22,10 @@ def dashboard():
 @app.route('/home')
 @login_required
 def home():
-    return render_template('home.html', title='Home')
+    user_id = session.get('user_id')
+    user = User.query.get(user_id)
+    days_since = (datetime.utcnow() - user.created_at).days
+    return render_template('home.html', title='Home', user=user, days_since=days_since)
 
 
 @app.route('/upload')

@@ -309,3 +309,6 @@ def send_verification():
             flash('Error sending verification email. Please try again.', 'error')
         
         return redirect(url_for('index'))
+    
+
+

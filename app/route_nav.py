@@ -1,7 +1,7 @@
 from . import app, db, csrf
 from flask import render_template, flash, session, redirect, url_for, request
 import sqlalchemy as sa
-from .models import User, Friendship, DailyMetrics, CalorieBurn, ExerciseType, MealType
+from .models import User, Friendship, DailyMetrics, CalorieBurn, ExerciseType, MealType, CalorieEntry
 from sqlalchemy import and_, or_, desc
 from .auth import login_required
 from datetime import datetime, date
@@ -24,10 +24,45 @@ def dashboard():
 def home():
     user_id = session.get('user_id')
     user = User.query.get(user_id)
-    days_since = (datetime.utcnow() - user.created_at).days
-    date_labels = [(datetime.utcnow() - timedelta(days=i)).strftime('%b %d') for i in range(6, -1, -1)]
 
-    return render_template('home.html', title='Home', user=user, days_since=days_since, date_labels=date_labels)
+    now = datetime.utcnow()
+    start_date = now.date() - timedelta(days=6)
+
+    # 初始化每天的数据为 0
+    labels = []
+    calories_in = []
+    calories_out = []
+
+    for i in range(7):
+        day = start_date + timedelta(days=i)
+        labels.append(day.strftime('%b %d'))
+
+        # IN
+        in_total = db.session.query(sa.func.sum(CalorieEntry.calories)).filter(
+            CalorieEntry.user_id == user_id,
+            CalorieEntry.date == day
+        ).scalar() or 0
+
+        # OUT
+        out_total = db.session.query(sa.func.sum(CalorieBurn.calories_burned)).filter(
+            CalorieBurn.user_id == user_id,
+            CalorieBurn.date == day
+        ).scalar() or 0
+
+        calories_in.append(round(in_total))
+        calories_out.append(round(out_total))
+
+    days_since = (now.date() - user.created_at.date()).days
+
+    return render_template(
+        'home.html',
+        title='Home',
+        user=user,
+        days_since=days_since,
+        data_labels=labels,
+        calories_in=calories_in,
+        calories_out=calories_out
+    )
 
 
 @app.route('/upload')

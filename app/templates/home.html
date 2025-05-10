@@ -4,7 +4,7 @@
     Welcome to CalTrack!
   </h1>
   <p class="text-center text-gray-600 mb-8">
-    You have been with us for {{days_since}} days
+    This is your day {{days_since + 1}} in CalTrack
   </p>
 
   <div class="bg-white p-6 rounded-lg shadow-md mb-8">
@@ -26,23 +26,19 @@
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const DATA_COUNT = 7;
-    const labels = {{ date_labels | tojson }};
+    const labels = {{ data_labels | tojson }};
     const data = {
       labels: labels,
       datasets: [
         {
           label: "Calories In",
-          data: Array.from({ length: DATA_COUNT }, () =>
-            Math.floor(Math.random() * 100)
-          ),
+          data: {{ calories_in | tojson }},
           borderColor: "#63b3ed",
           backgroundColor: "rgba(99, 179, 237, 0.5)",
         },
         {
           label: "Calories Out",
-          data: Array.from({ length: DATA_COUNT }, () =>
-            Math.floor(Math.random() * 100)
-          ),
+          data: {{ calories_out | tojson }},
           borderColor: "#72ee3f",
           backgroundColor: "rgba(153, 244, 115, 0.5)",
         },

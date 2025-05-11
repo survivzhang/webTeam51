@@ -30,9 +30,3 @@ def visualisation():
 def sharing():
     return render_template('sharing.html', title='Sharing')
 
-
-@app.route('/welcomePage')
-def welcomePage():
-    return render_template('welcome_page.html')
-if __name__ == '__main__':
-    app.run(debug=True) 

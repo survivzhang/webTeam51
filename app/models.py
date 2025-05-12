@@ -69,7 +69,7 @@ class CalorieEntry(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     meal_type_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('meal_types.id'), nullable=False)
-    date: so.Mapped[date] = so.mapped_column(Date, nullable=False)
+    date: so.Mapped[datetime.date] = so.mapped_column(Date, nullable=False)
 
     calories: so.Mapped[float] = so.mapped_column(Float, nullable=False)
     carbohydrates: so.Mapped[float] = so.mapped_column(Float, nullable=False)

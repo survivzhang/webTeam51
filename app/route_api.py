@@ -1,13 +1,14 @@
 from . import app, db, csrf
 from flask import request, jsonify, session, redirect, url_for, flash
 import sqlalchemy as sa
-from .models import User, Friendship, SharedCalories, CalorieEntry, DailyMetrics, CalorieBurn, ExerciseType, MealType, Food
+from .models import User, Friendship, SharedCalories, CalorieEntry, DailyMetrics, CalorieBurn, ExerciseType, MealType, Food, Recommendation
 from sqlalchemy import and_, or_, desc
 from datetime import datetime, date
 import json
 from .auth import login_required
 from .app_utils import json_response
 import os
+import openai
 
 # Exempt API routes from CSRF
 @csrf.exempt
@@ -849,3 +850,58 @@ def get_nutrition_summary():
         print(f"Error in get_nutrition_summary: {str(e)}")
         print(traceback.format_exc())
         return json_response({'status': 'error', 'message': f'Error retrieving nutrition data: {str(e)}'}, 500)
+
+@app.route('/api/generate_recommendations', methods=['POST'])
+@login_required
+@csrf.exempt
+def generate_recommendations():
+    user_id = session.get('user_id')
+    data = request.json
+    nutrition_data = data.get('nutrition_data')
+    exercise_data = data.get('exercise_data')
+
+    # Compose prompt for ChatGPT
+    prompt = f"User nutrition data: {nutrition_data}\nUser exercise data: {exercise_data}\nGive personalized nutrition and exercise recommendations separately. Respond in JSON with 'nutrition' and 'exercise' fields."
+
+    # Call OpenAI API
+    openai.api_key = ""
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=300
+    )
+    ai_text = response['choices'][0]['message']['content']
+    try:
+        ai_json = json.loads(ai_text)
+        nutrition_rec = ai_json.get('nutrition', '')
+        exercise_rec = ai_json.get('exercise', '')
+    except Exception:
+        # fallback: treat as plain text
+        nutrition_rec = ai_text
+        exercise_rec = ''
+
+    # Store in DB
+    rec = Recommendation(user_id=user_id, nutrition_recommendation=nutrition_rec, exercise_recommendation=exercise_rec)
+    db.session.add(rec)
+    db.session.commit()
+
+    return json_response({
+        'status': 'success',
+        'nutrition_recommendation': nutrition_rec,
+        'exercise_recommendation': exercise_rec
+    })
+
+@app.route('/api/recommendation/latest', methods=['GET'])
+@login_required
+def get_latest_recommendation():
+    user_id = session.get('user_id')
+    rec = Recommendation.query.filter_by(user_id=user_id).order_by(Recommendation.created_at.desc()).first()
+    if rec:
+        return json_response({
+            'status': 'success',
+            'nutrition_recommendation': rec.nutrition_recommendation,
+            'exercise_recommendation': rec.exercise_recommendation,
+            'created_at': rec.created_at.isoformat()
+        })
+    else:
+        return json_response({'status': 'no_recommendation'})

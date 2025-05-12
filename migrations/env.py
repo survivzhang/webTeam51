@@ -1,5 +1,6 @@
 import logging
 from logging.config import fileConfig
+import os
 
 from flask import current_app
 
@@ -14,6 +15,10 @@ config = context.config
 fileConfig(config.config_file_name)
 logger = logging.getLogger('alembic.env')
 
+# Explicitly set the database URL
+basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+database_url = 'sqlite:///' + os.path.join(basedir, 'app.db')
+config.set_main_option('sqlalchemy.url', database_url)
 
 def get_engine():
     try:
@@ -36,7 +41,7 @@ def get_engine_url():
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-config.set_main_option('sqlalchemy.url', get_engine_url())
+# Use the explicit URL we defined above
 target_db = current_app.extensions['migrate'].db
 
 # other values from the config, defined by the needs of env.py,
@@ -94,7 +99,9 @@ def run_migrations_online():
     if conf_args.get("process_revision_directives") is None:
         conf_args["process_revision_directives"] = process_revision_directives
 
-    connectable = get_engine()
+    # Use the explicitly set URL
+    from sqlalchemy import create_engine
+    connectable = create_engine(database_url)
 
     with connectable.connect() as connection:
         context.configure(

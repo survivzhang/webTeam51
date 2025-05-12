@@ -864,7 +864,9 @@ def generate_recommendations():
     prompt = f"User nutrition data: {nutrition_data}\nUser exercise data: {exercise_data}\nGive personalized nutrition and exercise recommendations separately. Respond in JSON with 'nutrition' and 'exercise' fields."
 
     # Call OpenAI API
-    openai.api_key = ""
+    openai.api_key = os.environ.get('OPENAI_API_KEY')
+    if not openai.api_key:
+        return json_response({'status': 'error', 'message': 'OpenAI API key not set in environment.'}, 500)
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": prompt}],

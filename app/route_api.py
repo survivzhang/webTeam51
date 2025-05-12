@@ -861,10 +861,15 @@ def generate_recommendations():
     nutrition_data = data.get('nutrition_data')
     exercise_data = data.get('exercise_data')
 
-    # Compose prompt for ChatGPT
-    prompt = f"User nutrition data: {nutrition_data}\nUser exercise data: {exercise_data}\nGive personalized nutrition and exercise recommendations separately. Respond in JSON with 'nutrition' and 'exercise' fields."
+    prompt = (
+        f"User nutrition data: {nutrition_data}\n"
+        f"User exercise data: {exercise_data}\n"
+        "Give personalized nutrition and exercise recommendations separately. "
+        "Respond in JSON with 'nutrition' and 'exercise' fields. "
+        "The JSON should be in the following format: "
+        "{{'nutrition': Your recommendation, 'exercise': Your recommendation}}"
+    )
 
-    # Use OpenAI 1.x+ client
     api_key = os.environ.get('OPENAI_API_KEY')
     if not api_key:
         return json_response({'status': 'error', 'message': 'OpenAI API key not set in environment.'}, 500)
@@ -881,15 +886,54 @@ def generate_recommendations():
             if ai_text.strip().startswith('```json'):
                 ai_text = ai_text.strip().strip('```json').strip('```').strip()
             ai_json = json.loads(ai_text)
-            # Try to extract recommendations
-            nutrition_rec = "\n".join(ai_json.get('nutrition', {}).get('recommendations', []))
-            exercise_rec = "\n".join(ai_json.get('exercise', {}).get('recommendations', []))
+            # --- Nutrition Recommendation Formatting ---
+            nutrition = ai_json.get('nutrition', {})
+            nutrition_lines = []
+            if isinstance(nutrition, list):
+                # List of dicts with 'recommendation' keys
+                for item in nutrition:
+                    if isinstance(item, dict) and 'recommendation' in item:
+                        nutrition_lines.append(f"- {item['recommendation']}")
+                    else:
+                        nutrition_lines.append(str(item))
+            elif isinstance(nutrition, dict):
+                for key, value in nutrition.items():
+                    if isinstance(value, list):
+                        nutrition_lines.append(f"{key.replace('_', ' ').capitalize()}:")
+                        for v in value:
+                            nutrition_lines.append(f"- {v}")
+                    elif isinstance(value, str):
+                        nutrition_lines.append(f"{key.replace('_', ' ').capitalize()}: {value}")
+            elif isinstance(nutrition, str):
+                nutrition_lines.append(nutrition)
+            nutrition_rec = "\n".join(nutrition_lines)
+            # --- Exercise Recommendation Formatting ---
+            exercise = ai_json.get('exercise', {})
+            exercise_lines = []
+            if isinstance(exercise, list):
+                for item in exercise:
+                    if isinstance(item, dict) and 'recommendation' in item:
+                        exercise_lines.append(f"- {item['recommendation']}")
+                    else:
+                        exercise_lines.append(str(item))
+            elif isinstance(exercise, dict):
+                for key, value in exercise.items():
+                    if isinstance(value, list):
+                        for v in value:
+                            if isinstance(v, dict) and 'recommendation' in v:
+                                exercise_lines.append(f"- {v['recommendation']}")
+                            else:
+                                exercise_lines.append(str(v))
+                    elif isinstance(value, str):
+                        exercise_lines.append(f"{key.replace('_', ' ').capitalize()}: {value}")
+            elif isinstance(exercise, str):
+                exercise_lines.append(exercise)
+            exercise_rec = "\n".join(exercise_lines)
         except Exception:
             # fallback: treat as plain text
             nutrition_rec = ai_text
             exercise_rec = ''
 
-        # Store in DB
         rec = Recommendation(user_id=user_id, nutrition_recommendation=nutrition_rec, exercise_recommendation=exercise_rec)
         db.session.add(rec)
         db.session.commit()

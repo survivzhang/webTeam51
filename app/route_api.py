@@ -855,6 +855,7 @@ def get_nutrition_summary():
 @login_required
 @csrf.exempt
 def generate_recommendations():
+    import traceback
     user_id = session.get('user_id')
     data = request.json
     nutrition_data = data.get('nutrition_data')
@@ -863,35 +864,41 @@ def generate_recommendations():
     # Compose prompt for ChatGPT
     prompt = f"User nutrition data: {nutrition_data}\nUser exercise data: {exercise_data}\nGive personalized nutrition and exercise recommendations separately. Respond in JSON with 'nutrition' and 'exercise' fields."
 
-    # Call OpenAI API
-    openai.api_key = os.environ.get('OPENAI_API_KEY')
-    if not openai.api_key:
+    # Use OpenAI 1.x+ client
+    api_key = os.environ.get('OPENAI_API_KEY')
+    if not api_key:
         return json_response({'status': 'error', 'message': 'OpenAI API key not set in environment.'}, 500)
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=300
-    )
-    ai_text = response['choices'][0]['message']['content']
+    client = openai.OpenAI(api_key=api_key)
     try:
-        ai_json = json.loads(ai_text)
-        nutrition_rec = ai_json.get('nutrition', '')
-        exercise_rec = ai_json.get('exercise', '')
-    except Exception:
-        # fallback: treat as plain text
-        nutrition_rec = ai_text
-        exercise_rec = ''
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=300
+        )
+        ai_text = response.choices[0].message.content
+        try:
+            ai_json = json.loads(ai_text)
+            nutrition_rec = ai_json.get('nutrition', '')
+            exercise_rec = ai_json.get('exercise', '')
+        except Exception:
+            # fallback: treat as plain text
+            nutrition_rec = ai_text
+            exercise_rec = ''
 
-    # Store in DB
-    rec = Recommendation(user_id=user_id, nutrition_recommendation=nutrition_rec, exercise_recommendation=exercise_rec)
-    db.session.add(rec)
-    db.session.commit()
+        # Store in DB
+        rec = Recommendation(user_id=user_id, nutrition_recommendation=nutrition_rec, exercise_recommendation=exercise_rec)
+        db.session.add(rec)
+        db.session.commit()
 
-    return json_response({
-        'status': 'success',
-        'nutrition_recommendation': nutrition_rec,
-        'exercise_recommendation': exercise_rec
-    })
+        return json_response({
+            'status': 'success',
+            'nutrition_recommendation': nutrition_rec,
+            'exercise_recommendation': exercise_rec
+        })
+    except Exception as e:
+        print("Error in generate_recommendations:", e)
+        print(traceback.format_exc())
+        return json_response({'status': 'error', 'message': str(e)}, 500)
 
 @app.route('/api/recommendation/latest', methods=['GET'])
 @login_required

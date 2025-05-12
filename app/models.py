@@ -43,6 +43,8 @@ class User(db.Model):
         'CalorieBurn', back_populates='user', cascade='all, delete-orphan')
     verification_codes = db.relationship(
         'VerificationCode', back_populates='user', cascade='all, delete-orphan')
+    recommendations = db.relationship(
+        'Recommendation', back_populates='user', cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<User {self.username}>'
@@ -195,6 +197,22 @@ class Food(db.Model):
     carbohydrates: so.Mapped[float] = so.mapped_column(nullable=False)
     sugars: so.Mapped[float] = so.mapped_column(nullable=False)
     fiber: so.Mapped[float] = so.mapped_column(nullable=False)
+
+
+class Recommendation(db.Model):
+    __tablename__ = 'recommendations'
+    
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    nutrition_recommendation: so.Mapped[str] = so.mapped_column(sa.Text, nullable=False)
+    exercise_recommendation: so.Mapped[str] = so.mapped_column(sa.Text, nullable=False)
+    created_at: so.Mapped[datetime] = so.mapped_column(default=datetime.utcnow)
+    
+    # Relationship
+    user: so.Mapped['User'] = so.relationship(back_populates='recommendations')
+    
+    def __repr__(self):
+        return f'<Recommendation for user {self.user_id} created at {self.created_at}>'
 
 
 class VerificationCode(db.Model):

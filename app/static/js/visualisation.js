@@ -461,8 +461,7 @@ function initializeCharts(userData) {
     console.error("Nutrition Analysis chart canvas not found");
   }
 
-  // Generate recommendations based on real data
-  generateRecommendations(processedData);
+  window._latestProcessedData = processedData; // Store for recommendation button
 }
 
 // Helper function to draw a message when no data is available
@@ -570,56 +569,91 @@ async function fetchNutritionData() {
   }
 }
 
-function generateRecommendations(userData) {
-  // Nutrition Recommendations based on actual data
-  let nutritionRecommendations = [];
-  
-  // Basic recommendations (could be more sophisticated with actual data)
-  nutritionRecommendations = [
-    "Your carbohydrate intake is slightly high. Consider reducing refined carbs and increasing protein intake.",
-    "Good protein balance! Maintain this level for muscle health.",
-    "Fat intake is within healthy range. Focus on healthy fats like avocados and nuts.",
-    "Consider increasing vitamin-rich foods like fruits and vegetables.",
-    "Sugar intake is well controlled. Keep it up!",
-  ];
-
-  // Exercise Recommendations
-  // Calculate recent calorie burn data for recommendations
-  let exerciseRecommendations = [];
-  
-  if (userData.totalCaloriesBurned < 500) {
-    exerciseRecommendations.push("Your overall calorie burn is relatively low. Try to incorporate more physical activity in your routine.");
-  } else if (userData.totalCaloriesBurned > 2000) {
-    exerciseRecommendations.push("You're burning a high number of calories. Make sure you're also getting proper nutrition and rest.");
-  }
-  
-  // Add standard recommendations
-  exerciseRecommendations = exerciseRecommendations.concat([
-    "Aim for a mix of cardio and strength training for optimal health benefits.",
-    "Try to maintain consistency in your workout schedule - aim for 3-5 sessions per week.",
-    "Consider adding flexibility exercises like yoga to improve mobility.",
-    "Increase weight training duration to help boost your base metabolic rate.",
-    "Aim for 150 minutes of moderate activity or 75 minutes of vigorous activity each week."
-  ]);
-
-  // Update recommendation sections
+// Fetch and display the latest recommendation on page load
+async function fetchAndDisplayLatestRecommendation() {
   const nutritionRecElement = document.getElementById("nutritionRecommendations");
-  if (nutritionRecElement) {
-    nutritionRecElement.innerHTML = `
-      <h3 class="font-semibold text-blue-800 mb-2">Nutrition Recommendations:</h3>
-      <ul class="list-disc list-inside text-gray-700">
-        ${nutritionRecommendations.map((rec) => `<li>${rec}</li>`).join("")}
-      </ul>
-    `;
-  }
-
   const exerciseRecElement = document.getElementById("exerciseRecommendations");
-  if (exerciseRecElement) {
-    exerciseRecElement.innerHTML = `
-      <h3 class="font-semibold text-green-800 mb-2">Exercise Recommendations:</h3>
-      <ul class="list-disc list-inside text-gray-700">
-        ${exerciseRecommendations.map((rec) => `<li>${rec}</li>`).join("")}
-      </ul>
-    `;
+  const timestampElement = document.getElementById("recommendationTimestamp");
+  if (nutritionRecElement) nutritionRecElement.innerHTML = '<span>Loading...</span>';
+  if (exerciseRecElement) exerciseRecElement.innerHTML = '<span>Loading...</span>';
+  if (timestampElement) timestampElement.textContent = '';
+  try {
+    const res = await fetch('/api/recommendation/latest');
+    const data = await res.json();
+    if (data.status === 'success') {
+      nutritionRecElement.innerHTML = `
+        <h3 class="font-semibold text-blue-800 mb-2">Nutrition Recommendations:</h3>
+        <div class="text-gray-700 whitespace-pre-line">${data.nutrition_recommendation}</div>
+      `;
+      exerciseRecElement.innerHTML = `
+        <h3 class="font-semibold text-green-800 mb-2">Exercise Recommendations:</h3>
+        <div class="text-gray-700 whitespace-pre-line">${data.exercise_recommendation}</div>
+      `;
+      if (timestampElement && data.created_at) {
+        const d = new Date(data.created_at);
+        timestampElement.textContent = `Last updated: ${d.toLocaleString()}`;
+      }
+    } else {
+      nutritionRecElement.innerHTML = '<span>No recommendation available.</span>';
+      exerciseRecElement.innerHTML = '';
+    }
+  } catch (e) {
+    nutritionRecElement.innerHTML = '<span>Failed to load recommendation.</span>';
+    exerciseRecElement.innerHTML = '';
   }
 }
+
+// Request a new recommendation from the backend
+async function requestNewRecommendation(userData) {
+  const nutritionRecElement = document.getElementById("nutritionRecommendations");
+  const exerciseRecElement = document.getElementById("exerciseRecommendations");
+  const timestampElement = document.getElementById("recommendationTimestamp");
+  if (nutritionRecElement) nutritionRecElement.innerHTML = '<span>Generating recommendation...</span>';
+  if (exerciseRecElement) exerciseRecElement.innerHTML = '';
+  if (timestampElement) timestampElement.textContent = '';
+  // Prepare nutrition and exercise summary for the API
+  const nutrition_data = userData.nutritionSummary || {};
+  const exercise_data = userData.exercisesByType || {};
+  try {
+    const res = await fetch('/api/generate_recommendations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nutrition_data, exercise_data })
+    });
+    const data = await res.json();
+    if (data.status === 'success') {
+      nutritionRecElement.innerHTML = `
+        <h3 class="font-semibold text-blue-800 mb-2">Nutrition Recommendations:</h3>
+        <div class="text-gray-700 whitespace-pre-line">${data.nutrition_recommendation}</div>
+      `;
+      exerciseRecElement.innerHTML = `
+        <h3 class="font-semibold text-green-800 mb-2">Exercise Recommendations:</h3>
+        <div class="text-gray-700 whitespace-pre-line">${data.exercise_recommendation}</div>
+      `;
+      timestampElement.textContent = `Last updated: ${new Date().toLocaleString()}`;
+    } else {
+      nutritionRecElement.innerHTML = '<span>Failed to generate recommendation.</span>';
+      exerciseRecElement.innerHTML = '';
+    }
+  } catch (e) {
+    nutritionRecElement.innerHTML = '<span>Failed to generate recommendation.</span>';
+    exerciseRecElement.innerHTML = '';
+  }
+}
+
+// Attach button event after DOM loaded
+window.addEventListener('DOMContentLoaded', function () {
+  fetchAndDisplayLatestRecommendation();
+  const btn = document.getElementById('requestRecommendationBtn');
+  if (btn) {
+    btn.addEventListener('click', async function () {
+      // Get the latest user data for recommendation
+      const userData = window._latestProcessedData;
+      if (userData) {
+        await requestNewRecommendation(userData);
+      } else {
+        alert('User data not loaded yet.');
+      }
+    });
+  }
+});

@@ -877,9 +877,13 @@ def generate_recommendations():
         )
         ai_text = response.choices[0].message.content
         try:
+            # Remove markdown code block if present
+            if ai_text.strip().startswith('```json'):
+                ai_text = ai_text.strip().strip('```json').strip('```').strip()
             ai_json = json.loads(ai_text)
-            nutrition_rec = ai_json.get('nutrition', '')
-            exercise_rec = ai_json.get('exercise', '')
+            # Try to extract recommendations
+            nutrition_rec = "\n".join(ai_json.get('nutrition', {}).get('recommendations', []))
+            exercise_rec = "\n".join(ai_json.get('exercise', {}).get('recommendations', []))
         except Exception:
             # fallback: treat as plain text
             nutrition_rec = ai_text

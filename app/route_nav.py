@@ -296,6 +296,8 @@ def profile():
 @login_required
 def complete_profile():
     user = User.query.get(session['user_id'])
+    from .models import UserGoal
+    goal = UserGoal.query.filter_by(user_id=user.id).first()
     if request.method == 'POST':
         user.username = request.form.get('fullName', user.username)
         user.email = request.form.get('email', user.email)
@@ -312,6 +314,10 @@ def complete_profile():
         selected_photo = request.form.get('photo')
         if selected_photo:
             user.photo = selected_photo
+        # Ensure UserGoal is created with initial and current weight
+        if not goal and weight:
+            goal = UserGoal(user_id=user.id, initial_weight=float(weight), current_weight=float(weight))
+            db.session.add(goal)
         try:
             db.session.commit()
             flash('Profile completed successfully!', 'success')

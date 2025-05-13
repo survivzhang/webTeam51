@@ -28,6 +28,10 @@
                 dark: "#4299e1",
               },
             },
+            zIndex: {
+              '100': '100',
+              '200': '200',
+            }
           },
         },
       };
@@ -75,7 +79,7 @@
         text-align: center;
         border-radius: 10px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        z-index: 1000;
+        z-index: 100;
         border: none;
         outline: none;
         cursor: pointer;
@@ -87,6 +91,36 @@
         background-color: #90cdf4;
         transform: translateY(-3px);
       }
+      
+      /* Add styles for fixed sidebar */
+      .fixed-sidebar {
+        position: sticky;
+        top: 80px; /* Provides space for the navbar */
+        height: calc(100vh - 80px);
+        overflow-y: auto;
+      }
+      
+      /* Main content class */
+      .main-content {
+        padding-top: 1rem;
+      }
+      
+      /* Global fixed navbar style */
+      .global-navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 200; /* Higher z-index than sidebar */
+        background-color: white;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+
+      /* Content container adjustment */
+      .content-container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
     </style>
 
     {% block head %}{% endblock %}
@@ -95,7 +129,7 @@
   <body class="bg-gray-50 min-h-screen">
     <!-- Navigation Bar -->
     {% if request.path != '/index' and request.path != '/' %}
-    <nav class="bg-white shadow-md p-4 fixed top-0 left-0 right-0 z-10">
+    <nav class="global-navbar p-4">
       <div class="container mx-auto flex justify-between items-center">
         <a
           href="{{ url_for('home') }}"
@@ -146,7 +180,7 @@
 
     <!-- Content Container with Flash Messages -->
     <div
-      class="container mx-auto {% if request.path == '/index' or request.path == '/' %}mt-4{% else %}mt-24{% endif %} px-4"
+      class="content-container mx-auto {% if request.path == '/index' or request.path == '/' %}mt-4{% else %}mt-24{% endif %} px-4"
     >
       <!-- Flash Messages -->
       {% with messages = get_flashed_messages(with_categories=true) %} {% if

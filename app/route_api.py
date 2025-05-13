@@ -870,9 +870,9 @@ def generate_recommendations():
         "{{'nutrition': Your recommendation, 'exercise': Your recommendation}}"
     )
 
-    api_key = os.environ.get('OPENAI_API_KEY')
-    if not api_key:
-        return json_response({'status': 'error', 'message': 'OpenAI API key not set in environment.'}, 500)
+    api_key = app.config['OPENAI_API_KEY']
+    if not api_key or api_key == 'your-api-key-here':
+        return json_response({'status': 'error', 'message': 'OpenAI API key not configured properly.'}, 500)
     client = openai.OpenAI(api_key=api_key)
     try:
         response = client.chat.completions.create(

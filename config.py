@@ -18,3 +18,6 @@ class Config:
     MAIL_DEFAULT_SENDER = ('CalTrack', 'caltrack1@outlook.com')  
     MAIL_DEBUG = True  # Enable mail debugging
     MAIL_MAX_EMAILS = 5  # Limit emails per connection
+
+    # OpenAI API Settings
+    OPENAI_API_KEY = 'Please add your own OpenAI API key'

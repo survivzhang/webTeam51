@@ -611,16 +611,37 @@ async function requestNewRecommendation(userData) {
   if (nutritionRecElement) nutritionRecElement.innerHTML = '<span>Generating recommendation...</span>';
   if (exerciseRecElement) exerciseRecElement.innerHTML = '';
   if (timestampElement) timestampElement.textContent = '';
-  // Prepare nutrition and exercise summary for the API
-  const nutrition_data = userData.nutritionSummary || {};
-  const exercise_data = userData.exercisesByType || {};
+  
   try {
+    // Prepare data needed for API
+    const nutrition_data = {
+      mealsByType: userData.mealsByType || {},
+      totalCaloriesIn: userData.totalCaloriesIn || 0
+    };
+    
+    const exercise_data = {
+      exercisesByType: userData.exercisesByType || {},
+      totalCaloriesBurned: userData.totalCaloriesBurned || 0
+    };
+    
+    console.log("Sending data for recommendation:", { nutrition_data, exercise_data });
+    
     const res = await fetch('/api/generate_recommendations', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
       body: JSON.stringify({ nutrition_data, exercise_data })
     });
+    
+    if (!res.ok) {
+      throw new Error(`Failed to get recommendation: ${res.status} ${res.statusText}`);
+    }
+    
     const data = await res.json();
+    console.log("Recommendation response:", data);
+    
     if (data.status === 'success') {
       nutritionRecElement.innerHTML = `
         <h3 class="font-semibold text-blue-800 mb-2">Nutrition Recommendations:</h3>
@@ -632,11 +653,12 @@ async function requestNewRecommendation(userData) {
       `;
       timestampElement.textContent = `Last updated: ${new Date().toLocaleString()}`;
     } else {
-      nutritionRecElement.innerHTML = '<span>Failed to generate recommendation.</span>';
+      nutritionRecElement.innerHTML = `<span class="text-red-500">Failed to generate recommendation: ${data.message || 'Unknown error'}</span>`;
       exerciseRecElement.innerHTML = '';
     }
   } catch (e) {
-    nutritionRecElement.innerHTML = '<span>Failed to generate recommendation.</span>';
+    console.error("Error requesting recommendation:", e);
+    nutritionRecElement.innerHTML = `<span class="text-red-500">Failed to generate recommendation: ${e.message}</span>`;
     exerciseRecElement.innerHTML = '';
   }
 }
@@ -647,12 +669,18 @@ window.addEventListener('DOMContentLoaded', function () {
   const btn = document.getElementById('requestRecommendationBtn');
   if (btn) {
     btn.addEventListener('click', async function () {
-      // Get the latest user data for recommendation
-      const userData = window._latestProcessedData;
-      if (userData) {
-        await requestNewRecommendation(userData);
-      } else {
-        alert('User data not loaded yet.');
+      try {
+        // Get the latest user data for recommendation
+        const userData = window._latestProcessedData;
+        if (userData) {
+          await requestNewRecommendation(userData);
+        } else {
+          console.error("User data not loaded yet");
+          alert('User data not loaded yet. Please wait for data to load and try again.');
+        }
+      } catch (err) {
+        console.error("Error in recommendation request:", err);
+        alert(`Error requesting recommendation: ${err.message}`);
       }
     });
   }

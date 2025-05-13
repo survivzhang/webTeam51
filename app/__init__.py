@@ -11,6 +11,7 @@ from datetime import timedelta
 from functools import wraps
 from sqlalchemy import and_, or_
 from flask_mail import Mail
+import openai  
 
 
 # Create application instance - disable instance folder

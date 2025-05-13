@@ -17,11 +17,6 @@
       <span class="text-3xl font-extrabold text-gray-900">{{ target_progress if target_progress is not none else 'N/A' }}{% if target_progress is not none %}%{% endif %}</span>
     </div>
     <div class="w-full bg-gray-200 rounded-full h-2 mt-4">
-      <!--
-        NOTE: The following script block uses Jinja template variables (e.g., {{ data_labels | tojson }}).
-        Linter errors may appear in your IDE because of the template syntax, but this code will work correctly at runtime.
-         You do NOT need to modify this code. -By zhaoyang Lin 13/5/2025
-      -->
       <div class="bg-cal-blue h-2 rounded-full" style="width: {{ target_progress if target_progress is not none else 0 }}%"></div>
     </div>
   </div>
@@ -236,6 +231,29 @@
     <div class="flex justify-end space-x-2">
       <button type="button" id="keep-initial-btn" class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">Keep Previous Progress</button>
       <button type="button" id="reset-initial-btn" class="px-4 py-2 bg-cal-blue text-white rounded hover:bg-cal-blue-dark">Restart Goal Tracking</button>
+    </div>
+  </div>
+</div>
+
+<!-- Formula Footer -->
+<div class="mt-8 p-4 bg-gray-50 rounded-lg shadow-sm">
+  <h3 class="text-lg font-semibold text-gray-700 mb-3">Formulas Used</h3>
+  <div class="space-y-4">
+    <div>
+      <h4 class="font-medium text-gray-600">Basal Metabolic Rate (BMR)</h4>
+      <p class="text-sm text-gray-500 mt-1">
+        For males: BMR = 10 × weight + 6.25 × height - 5 × age + 5<br>
+        For females: BMR = 10 × weight + 6.25 × height - 5 × age - 161
+      </p>
+    </div>
+    <div>
+      <h4 class="font-medium text-gray-600">Net Daily Calories</h4>
+      <p class="text-sm text-gray-500 mt-1">
+        Net Daily Calories = Calories In - Calories Out<br>
+        Where:<br>
+        - Calories In = Sum of all food intake calories for the day<br>
+        - Calories Out = Sum of all calories burned through exercise for the day
+      </p>
     </div>
   </div>
 </div>

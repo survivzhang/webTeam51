@@ -857,9 +857,11 @@ def get_nutrition_summary():
 def generate_recommendations():
     import traceback
     user_id = session.get('user_id')
-    data = request.json
-    nutrition_data = data.get('nutrition_data')
-    exercise_data = data.get('exercise_data')
+    data = request.json or {}
+    nutrition_data = data.get('nutrition_data', {})
+    exercise_data = data.get('exercise_data', {})
+    
+    print("Received data:", json.dumps(data))
 
     prompt = (
         f"User nutrition data: {nutrition_data}\n"
@@ -870,32 +872,43 @@ def generate_recommendations():
         "{{'nutrition': Your recommendation, 'exercise': Your recommendation}}"
     )
 
-    api_key = app.config['OPENAI_API_KEY']
+    api_key = app.config.get('OPENAI_API_KEY')
     if not api_key or api_key == 'your-api-key-here':
         return json_response({'status': 'error', 'message': 'OpenAI API key not configured properly.'}, 500)
-    client = openai.OpenAI(api_key=api_key)
+    
     try:
+        client = openai.OpenAI(api_key=api_key)
         response = client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-3.5-turbo",  # Use available model
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=300
+            max_tokens=500
         )
+        
+        # Ensure response content is correctly retrieved
+        if not hasattr(response, 'choices') or not response.choices:
+            return json_response({'status': 'error', 'message': 'Empty response from OpenAI API'}, 500)
+            
         ai_text = response.choices[0].message.content
+        print("AI Response:", ai_text)
+        
         try:
             # Remove markdown code block if present
             if ai_text.strip().startswith('```json'):
                 ai_text = ai_text.strip().strip('```json').strip('```').strip()
+            # Try to parse JSON response
             ai_json = json.loads(ai_text)
+            
             # --- Nutrition Recommendation Formatting ---
-            nutrition = ai_json.get('nutrition', {})
+            nutrition = ai_json.get('nutrition', "No nutrition recommendations available.")
             nutrition_lines = []
+            
             if isinstance(nutrition, list):
-                # List of dicts with 'recommendation' keys
+                # List of items
                 for item in nutrition:
                     if isinstance(item, dict) and 'recommendation' in item:
                         nutrition_lines.append(f"- {item['recommendation']}")
                     else:
-                        nutrition_lines.append(str(item))
+                        nutrition_lines.append(f"- {str(item)}")
             elif isinstance(nutrition, dict):
                 for key, value in nutrition.items():
                     if isinstance(value, list):
@@ -906,37 +919,51 @@ def generate_recommendations():
                         nutrition_lines.append(f"{key.replace('_', ' ').capitalize()}: {value}")
             elif isinstance(nutrition, str):
                 nutrition_lines.append(nutrition)
-            nutrition_rec = "\n".join(nutrition_lines)
+                
+            nutrition_rec = "\n".join(nutrition_lines) if nutrition_lines else "No nutrition recommendations available."
+            
             # --- Exercise Recommendation Formatting ---
-            exercise = ai_json.get('exercise', {})
+            exercise = ai_json.get('exercise', "No exercise recommendations available.")
             exercise_lines = []
+            
             if isinstance(exercise, list):
                 for item in exercise:
                     if isinstance(item, dict) and 'recommendation' in item:
                         exercise_lines.append(f"- {item['recommendation']}")
                     else:
-                        exercise_lines.append(str(item))
+                        exercise_lines.append(f"- {str(item)}")
             elif isinstance(exercise, dict):
                 for key, value in exercise.items():
                     if isinstance(value, list):
+                        exercise_lines.append(f"{key.replace('_', ' ').capitalize()}:")
                         for v in value:
                             if isinstance(v, dict) and 'recommendation' in v:
                                 exercise_lines.append(f"- {v['recommendation']}")
                             else:
-                                exercise_lines.append(str(v))
+                                exercise_lines.append(f"- {str(v)}")
                     elif isinstance(value, str):
                         exercise_lines.append(f"{key.replace('_', ' ').capitalize()}: {value}")
             elif isinstance(exercise, str):
                 exercise_lines.append(exercise)
-            exercise_rec = "\n".join(exercise_lines)
-        except Exception:
+                
+            exercise_rec = "\n".join(exercise_lines) if exercise_lines else "No exercise recommendations available."
+            
+        except Exception as e:
+            print(f"Error processing AI response: {e}")
+            print(f"AI text: {ai_text}")
             # fallback: treat as plain text
-            nutrition_rec = ai_text
-            exercise_rec = ''
-
-        rec = Recommendation(user_id=user_id, nutrition_recommendation=nutrition_rec, exercise_recommendation=exercise_rec)
-        db.session.add(rec)
-        db.session.commit()
+            nutrition_rec = "Based on your data: " + ai_text[:200] + "..."
+            exercise_rec = "Please try again later."
+            
+        # Save to database
+        try:
+            rec = Recommendation(user_id=user_id, nutrition_recommendation=nutrition_rec, exercise_recommendation=exercise_rec)
+            db.session.add(rec)
+            db.session.commit()
+        except Exception as db_error:
+            print(f"Database error: {db_error}")
+            db.session.rollback()
+            # Continue to return recommendations even if DB save fails
 
         return json_response({
             'status': 'success',
@@ -944,7 +971,7 @@ def generate_recommendations():
             'exercise_recommendation': exercise_rec
         })
     except Exception as e:
-        print("Error in generate_recommendations:", e)
+        print(f"Error in generate_recommendations: {e}")
         print(traceback.format_exc())
         return json_response({'status': 'error', 'message': str(e)}, 500)
 

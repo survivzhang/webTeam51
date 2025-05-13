@@ -17,6 +17,11 @@
       <span class="text-3xl font-extrabold text-gray-900">{{ target_progress if target_progress is not none else 'N/A' }}{% if target_progress is not none %}%{% endif %}</span>
     </div>
     <div class="w-full bg-gray-200 rounded-full h-2 mt-4">
+      <!--
+        NOTE: The following script block uses Jinja template variables (e.g., {{ data_labels | tojson }}).
+        Linter errors may appear in your IDE because of the template syntax, but this code will work correctly at runtime.
+         You do NOT need to modify this code. -By zhaoyang Lin 13/5/2025
+      -->
       <div class="bg-cal-blue h-2 rounded-full" style="width: {{ target_progress if target_progress is not none else 0 }}%"></div>
     </div>
   </div>

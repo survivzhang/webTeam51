@@ -20,4 +20,4 @@ class Config:
     MAIL_MAX_EMAILS = 5  # Limit emails per connection
 
     # OpenAI API Settings
-    OPENAI_API_KEY = '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'
+    OPENAI_API_KEY = 'Please add your own OpenAI API key'

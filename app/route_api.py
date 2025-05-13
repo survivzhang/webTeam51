@@ -8,7 +8,8 @@ import json
 from .auth import login_required
 from .app_utils import json_response
 import os
-from openai import OpenAI
+import openai
+
 # Exempt API routes from CSRF
 @csrf.exempt
 @app.route('/api/friend/request', methods=['POST'])
@@ -872,31 +873,14 @@ def generate_recommendations():
     api_key = app.config['OPENAI_API_KEY']
     if not api_key or api_key == 'your-api-key-here':
         return json_response({'status': 'error', 'message': 'OpenAI API key not configured properly.'}, 500)
-    client = OpenAI(
-        base_url="https://openrouter.ai/api/v1",
-        api_key=api_key)
+    client = openai.OpenAI(api_key=api_key)
     try:
         response = client.chat.completions.create(
-            model="google/gemini-2.0-flash-exp:free",
+            model="gpt-4o",
             messages=[{"role": "user", "content": prompt}],
-            extra_headers={
-            "HTTP-Referer": "http://localhost:5000", 
-            "X-Title": "Caltrack"                 # Replace with your app name
-    },
-    extra_body={}
+            max_tokens=300
         )
-        print("Raw OpenRouter response:", response)
-
-        if not response or not hasattr(response, "choices") or not response.choices:
-            print("⚠️ OpenRouter returned no choices!")
-            return json_response({
-                'status': 'error',
-                'message': 'AI response was empty or malformed.'
-            }, 500)
-        else:
-            ai_text = response.choices[0].message.content
-            print("🧠 AI response text:", repr(ai_text))
-
+        ai_text = response.choices[0].message.content
         try:
             # Remove markdown code block if present
             if ai_text.strip().startswith('```json'):

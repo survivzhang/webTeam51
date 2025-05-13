@@ -1,15 +1,33 @@
 {# templates/profile.html #} {% extends 'base.html' %} {% block content %}
 <!-- Stats Section -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-  <div class="bg-white rounded-xl shadow p-6">
+  <div class="bg-white rounded-xl shadow p-6 relative group">
     <div class="text-sm text-gray-500">BMR</div>
     <div class="text-3xl font-extrabold text-gray-900 mt-1">{{ bmr|default('N/A') }} kcal</div>
     <div class="text-xs mt-2">{{ bmr_change|safe }}</div>
+    <!-- BMR Tooltip -->
+    <div class="absolute left-0 top-full mt-2 w-64 p-3 bg-white rounded-lg shadow-lg border border-gray-200 hidden group-hover:block z-10">
+      <h4 class="font-medium text-gray-600">Basal Metabolic Rate (BMR)</h4>
+      <p class="text-sm text-gray-500 mt-1">
+        For males: BMR = 10 × weight + 6.25 × height - 5 × age + 5<br>
+        For females: BMR = 10 × weight + 6.25 × height - 5 × age - 161
+      </p>
+    </div>
   </div>
-  <div class="bg-white rounded-xl shadow p-6">
+  <div class="bg-white rounded-xl shadow p-6 relative group">
     <div class="text-sm text-gray-500">Net Daily Calories</div>
     <div class="text-3xl font-extrabold text-gray-900 mt-1">{{ net_daily_calories|default('N/A') }} kcal</div>
     <div class="text-xs mt-2">{{ net_calories_change|safe }}</div>
+    <!-- Net Daily Calories Tooltip -->
+    <div class="absolute left-0 top-full mt-2 w-64 p-3 bg-white rounded-lg shadow-lg border border-gray-200 hidden group-hover:block z-10">
+      <h4 class="font-medium text-gray-600">Net Daily Calories</h4>
+      <p class="text-sm text-gray-500 mt-1">
+        Net Daily Calories = Calories In - Calories Out<br>
+        Where:<br>
+        - Calories In = Sum of all food intake calories for the day<br>
+        - Calories Out = Sum of all calories burned through exercise for the day
+      </p>
+    </div>
   </div>
   <div class="bg-white rounded-xl shadow p-6">
     <div class="text-sm text-gray-500">Target Progress</div>
@@ -231,29 +249,6 @@
     <div class="flex justify-end space-x-2">
       <button type="button" id="keep-initial-btn" class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">Keep Previous Progress</button>
       <button type="button" id="reset-initial-btn" class="px-4 py-2 bg-cal-blue text-white rounded hover:bg-cal-blue-dark">Restart Goal Tracking</button>
-    </div>
-  </div>
-</div>
-
-<!-- Formula Footer -->
-<div class="mt-8 p-4 bg-gray-50 rounded-lg shadow-sm">
-  <h3 class="text-lg font-semibold text-gray-700 mb-3">Formulas Used</h3>
-  <div class="space-y-4">
-    <div>
-      <h4 class="font-medium text-gray-600">Basal Metabolic Rate (BMR)</h4>
-      <p class="text-sm text-gray-500 mt-1">
-        For males: BMR = 10 × weight + 6.25 × height - 5 × age + 5<br>
-        For females: BMR = 10 × weight + 6.25 × height - 5 × age - 161
-      </p>
-    </div>
-    <div>
-      <h4 class="font-medium text-gray-600">Net Daily Calories</h4>
-      <p class="text-sm text-gray-500 mt-1">
-        Net Daily Calories = Calories In - Calories Out<br>
-        Where:<br>
-        - Calories In = Sum of all food intake calories for the day<br>
-        - Calories Out = Sum of all calories burned through exercise for the day
-      </p>
     </div>
   </div>
 </div>

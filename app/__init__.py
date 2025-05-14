@@ -13,41 +13,54 @@ from sqlalchemy import and_, or_
 from flask_mail import Mail
 import openai  
 
+# Initialize extensions outside of create_app
+db = SQLAlchemy()
+migrate = Migrate()
+csrf = CSRFProtect()
+mail = Mail()
 
-# Create application instance - disable instance folder
-app = Flask(__name__, instance_relative_config=False, instance_path=None)
-app.config.from_object(Config)
-
-# Configure database options
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    'pool_pre_ping': True,  # Test database connection before executing query
-}
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# Initialize CSRF protection
-csrf = CSRFProtect(app)
-
-# Initialize Mail
-mail = Mail(app)
-
-# Configure sessions
-app.config['SESSION_TYPE'] = 'filesystem'
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)  # Session duration for remember me function
-
-# Initialize database
-db = SQLAlchemy(app)
-migrate = Migrate(app, db)
-
-# Print database configuration
-print(f"Database URL: {app.config['SQLALCHEMY_DATABASE_URI']}")
-db_path = app.config['SQLALCHEMY_DATABASE_URI'].replace('sqlite:///', '')
-print(f"Database File Path: {db_path}")
-print(f"Database File Exists: {os.path.exists(db_path)}")
-
-# Import routes
-from . import routes
-from . import route_nav
-from . import route_api
-
-# Import models here
-from .models import User
+def create_app(config):
+    # Create application instance - disable instance folder
+    app = Flask(__name__, instance_relative_config=False, instance_path=None)
+    app.config.from_object(config)
+    
+    # Initialize extensions with app
+    db.init_app(app)
+    migrate.init_app(app, db)
+    csrf.init_app(app)
+    mail.init_app(app)
+    
+    # Configure database options
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_pre_ping': True,  # Test database connection before executing query
+    }
+    
+    # Configure sessions
+    app.config['SESSION_TYPE'] = 'filesystem'
+    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)  # Session duration for remember me function
+    
+    with app.app_context():
+        # Import models
+        from .models import User
+        
+        # 先创建蓝图实例
+        from .blueprints import main
+        
+        # 在注册蓝图之前导入路由模块
+        # 这样路由装饰器会在蓝图注册前应用到蓝图上
+        from . import routes
+        from . import route_nav
+        from . import route_api
+        
+        # 最后注册蓝图
+        app.register_blueprint(main)
+        
+        # Print database configuration if not in testing mode
+        if not app.config.get('TESTING', False):
+            print(f"Database URL: {app.config['SQLALCHEMY_DATABASE_URI']}")
+            if app.config['SQLALCHEMY_DATABASE_URI'].startswith('sqlite:///'):
+                db_path = app.config['SQLALCHEMY_DATABASE_URI'].replace('sqlite:///', '')
+                print(f"Database File Path: {db_path}")
+                print(f"Database File Exists: {os.path.exists(db_path)}")
+    
+    return app

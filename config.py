@@ -19,5 +19,16 @@ class Config:
     MAIL_DEBUG = True  # Enable mail debugging
     MAIL_MAX_EMAILS = 5  # Limit emails per connection
 
-    # OpenAI API Settings
+    # OpenAI API Settings 
     OPENAI_API_KEY = 'Please add your own OpenAI API key'
+
+class DevelopmentConfig(Config):
+    DEBUG = True
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
+        'sqlite:///' + os.path.join(basedir, 'dev.db')
+    # Add any other development-specific configurations here
+
+class TestingConfig(Config):
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'  # Use in-memory database for testing
+    WTF_CSRF_ENABLED = False  # Disable CSRF protection in tests

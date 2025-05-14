@@ -1,7 +1,7 @@
 from . import app, db, csrf
 from flask import render_template, flash, session, redirect, url_for, request
 import sqlalchemy as sa
-from .models import User, Friendship, DailyMetrics, CalorieBurn, ExerciseType, MealType, CalorieEntry
+from .models import User, Friendship, DailyMetrics, CalorieBurn, ExerciseType, MealType, CalorieEntry, UserGoal
 from sqlalchemy import and_, or_, desc
 from .auth import login_required
 from datetime import datetime, date
@@ -172,6 +172,13 @@ def sharing():
 @login_required
 def profile():
     user = User.query.get(session['user_id'])
+    goal = UserGoal.query.filter_by(user_id=user.id).first()
+    if not goal:
+        # Create a goal record if not exists, using current profile values
+        goal = UserGoal(user_id=user.id, initial_weight=user.weight or 0, target_weight=user.target_weight, current_weight=user.weight or 0)
+        db.session.add(goal)
+        db.session.commit()
+
     if request.method == 'POST':
         # Update fields
         user.username = request.form.get('fullName', user.username)
@@ -182,15 +189,26 @@ def profile():
         user.gender = request.form.get('gender', user.gender)
         user.bio = request.form.get('bio', user.bio)
         user.phone = request.form.get('phone', user.phone)
-        # Save height and weight
         height = request.form.get('height')
-        weight = request.form.get('weight')
         user.height = float(height) if height else None
-        user.weight = float(weight) if weight else None
         # Save selected default photo
         selected_photo = request.form.get('photo')
         if selected_photo:
             user.photo = selected_photo
+        # Weight logic
+        new_weight = request.form.get('weight')
+        new_target_weight = request.form.get('target_weight')
+        reset_initial = request.form.get('reset_initial_weight') == '1'
+        # Update current weight
+        if new_weight:
+            user.weight = float(new_weight)
+            goal.current_weight = float(new_weight)
+        # Update target weight
+        if new_target_weight:
+            user.target_weight = float(new_target_weight)
+            goal.target_weight = float(new_target_weight)
+            if reset_initial:
+                goal.initial_weight = float(new_weight) if new_weight else goal.current_weight
         try:
             db.session.commit()
             flash('Profile updated successfully!', 'success')
@@ -198,13 +216,88 @@ def profile():
             db.session.rollback()
             flash(f'Error updating profile: {str(e)}', 'error')
         return redirect(url_for('profile'))
-    return render_template('profile.html', title='Profile', current_user=user) 
+
+    # --- Calculate dynamic stats ---
+    def calc_bmr(weight, height, gender, age=30):
+        if not weight or not height or not gender:
+            return None
+        if gender == 'male':
+            return 10 * weight + 6.25 * height - 5 * age + 5
+        elif gender == 'female':
+            return 10 * weight + 6.25 * height - 5 * age - 161
+        else:
+            return 10 * weight + 6.25 * height - 5 * age
+
+    bmr = None
+    if goal.current_weight and user.height and user.gender:
+        bmr = round(calc_bmr(goal.current_weight, user.height, user.gender))
+
+    # BMR comparison: average BMR this week vs last week
+    today = date.today()
+    week_ago = today - timedelta(days=7)
+    two_weeks_ago = today - timedelta(days=14)
+    # Get daily metrics for last 14 days
+    metrics = db.session.query(DailyMetrics).filter(
+        DailyMetrics.user_id == user.id,
+        DailyMetrics.date >= two_weeks_ago
+    ).order_by(DailyMetrics.date.asc()).all()
+    # Calculate BMR for each day if possible
+    bmr_by_day = {}
+    for m in metrics:
+        if m.weight and user.height and user.gender:
+            bmr_by_day[m.date] = calc_bmr(m.weight, user.height, user.gender)
+    # Fill missing days with current profile BMR
+    for i in range(14):
+        d = two_weeks_ago + timedelta(days=i)
+        if d not in bmr_by_day and bmr:
+            bmr_by_day[d] = bmr
+    # Average BMR for this week and last week
+    this_week_bmrs = [bmr_by_day.get(two_weeks_ago + timedelta(days=i)) for i in range(7, 14)]
+    last_week_bmrs = [bmr_by_day.get(two_weeks_ago + timedelta(days=i)) for i in range(0, 7)]
+    this_week_bmrs = [v for v in this_week_bmrs if v]
+    last_week_bmrs = [v for v in last_week_bmrs if v]
+    bmr_change = ''
+    if this_week_bmrs and last_week_bmrs:
+        avg_this = sum(this_week_bmrs) / len(this_week_bmrs)
+        avg_last = sum(last_week_bmrs) / len(last_week_bmrs)
+        if avg_last != 0:
+            percent = (avg_this - avg_last) / avg_last * 100
+            color = 'green' if percent > 0 else 'red'
+            sign = '+' if percent > 0 else ''
+            bmr_change = f'<span class="text-{color}-600">{sign}{percent:.1f}% vs. last week</span>'
+
+    # Net Daily Calories (today's intake - burn)
+    calories_in = db.session.query(db.func.sum(CalorieEntry.calories)).filter_by(user_id=user.id, date=today).scalar() or 0
+    calories_out = db.session.query(db.func.sum(CalorieBurn.calories_burned)).filter_by(user_id=user.id, date=today).scalar() or 0
+    net_daily_calories = calories_in - calories_out
+    # Net Daily Calories comparison: today vs yesterday
+    yesterday = today - timedelta(days=1)
+    yest_in = db.session.query(db.func.sum(CalorieEntry.calories)).filter_by(user_id=user.id, date=yesterday).scalar() or 0
+    yest_out = db.session.query(db.func.sum(CalorieBurn.calories_burned)).filter_by(user_id=user.id, date=yesterday).scalar() or 0
+    net_yesterday = yest_in - yest_out
+    net_calories_change = ''
+    if net_yesterday != 0:
+        percent = (net_daily_calories - net_yesterday) / abs(net_yesterday) * 100
+        color = 'green' if percent < 0 else 'red'  # less net calories is improvement
+        sign = '+' if percent > 0 else ''
+        net_calories_change = f'<span class="text-{color}-600">{sign}{percent:.1f}% vs. yesterday</span>'
+
+    # Target Progress (using UserGoal)
+    target_progress = None
+    if goal.target_weight is not None and goal.initial_weight is not None and goal.target_weight != goal.initial_weight:
+        target_progress = int(abs(goal.current_weight - goal.initial_weight) / abs(goal.target_weight - goal.initial_weight) * 100)
+        target_progress = max(0, min(target_progress, 100))
+    elif goal.target_weight == goal.initial_weight:
+        target_progress = None
+    return render_template('profile.html', title='Profile', current_user=user, bmr=bmr, bmr_change=bmr_change, net_daily_calories=net_daily_calories, net_calories_change=net_calories_change, target_progress=target_progress, initial_weight=goal.initial_weight, target_weight=goal.target_weight, current_weight=goal.current_weight)
 
 
 @app.route('/complete-profile', methods=['GET', 'POST'])
 @login_required
 def complete_profile():
     user = User.query.get(session['user_id'])
+    from .models import UserGoal
+    goal = UserGoal.query.filter_by(user_id=user.id).first()
     if request.method == 'POST':
         user.username = request.form.get('fullName', user.username)
         user.email = request.form.get('email', user.email)
@@ -221,6 +314,10 @@ def complete_profile():
         selected_photo = request.form.get('photo')
         if selected_photo:
             user.photo = selected_photo
+        # Ensure UserGoal is created with initial and current weight
+        if not goal and weight:
+            goal = UserGoal(user_id=user.id, initial_weight=float(weight), current_weight=float(weight))
+            db.session.add(goal)
         try:
             db.session.commit()
             flash('Profile completed successfully!', 'success')

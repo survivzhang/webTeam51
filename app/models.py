@@ -24,6 +24,7 @@ class User(db.Model):
     phone = db.Column(db.String(30), nullable=True)
     height = db.Column(db.Float, nullable=True)
     weight = db.Column(db.Float, nullable=True)
+    target_weight = db.Column(db.Float, nullable=True)
     is_verified = db.Column(db.Boolean, default=False, nullable=False)
     
     # Relationships
@@ -233,6 +234,20 @@ class VerificationCode(db.Model):
     
     def is_valid(self):
         return not self.is_used and datetime.utcnow() < self.expires_at
+
+
+class UserGoal(db.Model):
+    __tablename__ = 'user_goals'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, unique=True)
+    initial_weight = db.Column(db.Float, nullable=False)
+    target_weight = db.Column(db.Float, nullable=True)
+    current_weight = db.Column(db.Float, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    user = db.relationship('User', backref=db.backref('goal', uselist=False, cascade='all, delete-orphan'))
+
+    def __repr__(self):
+        return f'<UserGoal user_id={self.user_id} initial={self.initial_weight} target={self.target_weight} current={self.current_weight}>'
 
 
 # Create indexes (SQLAlchemy 2.0 style)

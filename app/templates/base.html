@@ -29,9 +29,9 @@
               },
             },
             zIndex: {
-              '100': '100',
-              '200': '200',
-            }
+              100: "100",
+              200: "200",
+            },
           },
         },
       };
@@ -91,7 +91,7 @@
         background-color: #90cdf4;
         transform: translateY(-3px);
       }
-      
+
       /* Add styles for fixed sidebar */
       .fixed-sidebar {
         position: sticky;
@@ -99,12 +99,12 @@
         height: calc(100vh - 80px);
         overflow-y: auto;
       }
-      
+
       /* Main content class */
       .main-content {
         padding-top: 1rem;
       }
-      
+
       /* Global fixed navbar style */
       .global-navbar {
         position: fixed;
@@ -113,7 +113,8 @@
         right: 0;
         z-index: 200; /* Higher z-index than sidebar */
         background-color: white;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
       }
 
       /* Content container adjustment */
@@ -132,7 +133,7 @@
     <nav class="global-navbar p-4">
       <div class="container mx-auto flex justify-between items-center">
         <a
-          href="{{ url_for('home') }}"
+          href="{{ url_for('main.home') }}"
           class="font-bold text-2xl flex items-center {% if request.path == '/' or request.path == '/index' %}active{% endif %}"
         >
           <i data-lucide="activity" class="w-6 h-6 mr-2 text-cal-blue"></i>
@@ -141,19 +142,19 @@
 
         <div class="hidden md:flex items-center space-x-1">
           <a
-            href="{{ url_for('upload') }}"
+            href="{{ url_for('main.upload') }}"
             class="nav-link flex items-center {% if request.path == '/upload' %}active{% endif %}"
           >
             <i data-lucide="edit" class="w-4 h-4 mr-1"></i>Upload
           </a>
           <a
-            href="{{ url_for('visualisation') }}"
+            href="{{ url_for('main.visualisation') }}"
             class="nav-link flex items-center {% if request.path == '/visualisation' %}active{% endif %}"
           >
             <i data-lucide="bar-chart" class="w-4 h-4 mr-1"></i>Visualisation
           </a>
           <a
-            href="{{ url_for('sharing') }}"
+            href="{{ url_for('main.sharing') }}"
             class="nav-link flex items-center {% if request.path == '/sharing' %}active{% endif %}"
           >
             <i data-lucide="share-2" class="w-4 h-4 mr-1"></i>Sharing
@@ -162,13 +163,13 @@
 
         <div class="flex items-center">
           <a
-            href="{{ url_for('profile') }}"
+            href="{{ url_for('main.profile') }}"
             class="nav-link flex items-center {% if request.path == '/profile' %}active{% endif %}"
           >
             <i data-lucide="user" class="w-4 h-4 mr-1"></i>Profile
           </a>
           <a
-            href="{{ url_for('logout') }}"
+            href="{{ url_for('main.logout') }}"
             class="nav-link flex items-center ml-2 hover:bg-blue-200"
           >
             <i data-lucide="log-out" class="w-4 h-4 mr-1"></i>Logout
@@ -202,37 +203,43 @@
       {% endif %} {% endfor %} {% endif %} {% endwith %} {% block content %}{%
       endblock %}
     </div>
+
     <!-- Back to Top Button -->
-    <button id="backToTopBtn" title="Go to top">
-      <i data-lucide="arrow-up" class="w-full h-full"></i>
+    <button id="backToTopBtn" onclick="scrollToTop()">
+      <i data-lucide="chevron-up" class="w-6 h-6 mx-auto"></i>
     </button>
 
-    <!-- Footer -->
-    <footer class="bg-white border-t border-gray-300 mt-12">
-      <div
-        class="container mx-auto px-4 py-6 flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0"
-      >
-          <a
-            href="https://github.com/survivzhang/webTeam51"
-            class="text-gray-600 hover:text-cal-blue transition-colors"
-            aria-label="GitHub"
-          >
-            <i data-lucide="github" class="w-5 h-5"></i>
-          </a>
-        <p class="text-sm text-gray-500 text-center md:text-right">
-          © 2025 CalTrack. All rights reserved.
-        </p>
-      </div>
-    </footer>
-
-    <!-- Scripts -->
+    <!-- Initialize Lucide icons -->
     <script>
       lucide.createIcons();
+    </script>
 
-      // Smooth scroll to top
-      document.getElementById("backToTopBtn").addEventListener("click", () => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      });
+    <!-- Back to Top Script -->
+    <script>
+      // Get the button
+      let myButton = document.getElementById("backToTopBtn");
+
+      // When the user scrolls down 20px from the top of the document, show the button
+      window.onscroll = function () {
+        scrollFunction();
+      };
+
+      function scrollFunction() {
+        if (
+          document.body.scrollTop > 20 ||
+          document.documentElement.scrollTop > 20
+        ) {
+          myButton.style.display = "block";
+        } else {
+          myButton.style.display = "none";
+        }
+      }
+
+      // When the user clicks on the button, scroll to the top of the document
+      function scrollToTop() {
+        document.body.scrollTop = 0; // For Safari
+        document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+      }
     </script>
 
     {% block scripts %}{% endblock %}

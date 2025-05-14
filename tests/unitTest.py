@@ -8,11 +8,11 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app import create_app, db
 from app.models import User
-from config import TestConfig
+from config import TestingConfig
 
 class CalTrackUnitTests(unittest.TestCase):
     def setUp(self):
-        self.app = create_app(TestConfig)
+        self.app = create_app(TestingConfig)
         self.app_context = self.app.app_context()
         self.app_context.push()
         

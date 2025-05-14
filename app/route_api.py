@@ -471,7 +471,7 @@ def save_daily_metrics():
     # Check if at least one field is filled
     if not any([weight, sleep_hours, mood]):
         flash('Please fill in at least one field', 'error')
-        return redirect(url_for('upload'))
+        return redirect(url_for('main.upload'))
     
     try:
         # Check if entry already exists for today
@@ -505,7 +505,7 @@ def save_daily_metrics():
         db.session.rollback()
         flash(f'Error saving daily metrics: {str(e)}', 'error')
     
-    return redirect(url_for('upload'))
+    return redirect(url_for('main.upload'))
 
 
 @csrf.exempt
@@ -523,14 +523,14 @@ def save_exercise():
     # Validate required fields
     if not exercise_type_id or not duration:
         flash('Please select an exercise type and enter duration', 'error')
-        return redirect(url_for('upload'))
+        return redirect(url_for('main.upload'))
     
     try:
         # Verify exercise type exists
         exercise_type = db.session.get(ExerciseType, exercise_type_id)
         if not exercise_type:
             flash('Invalid exercise type', 'error')
-            return redirect(url_for('upload'))
+            return redirect(url_for('main.upload'))
         
         # Create new calorie burn entry
         new_burn = CalorieBurn(
@@ -548,7 +548,7 @@ def save_exercise():
         db.session.rollback()
         flash(f'Error saving exercise: {str(e)}', 'error')
     
-    return redirect(url_for('upload'))
+    return redirect(url_for('main.upload'))
 
 
 @csrf.exempt

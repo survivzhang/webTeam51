@@ -2,6 +2,7 @@ import unittest
 from werkzeug.security import generate_password_hash
 import sys
 import os
+from sqlalchemy import inspect
 
 # Add parent directory to path to import app package
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -42,7 +43,7 @@ class CalTrackUnitTests(unittest.TestCase):
         # Check if the database is connected
         self.assertIsNotNone(db.engine)
         # Check if the User table exists
-        self.assertTrue(db.engine.dialect.has_table(db.engine, 'user'))
+        self.assertTrue(inspect(db.engine).has_table('users'))
             
     def test_index_renders_login(self):
         r = self.client.get('/')

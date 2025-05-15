@@ -43,16 +43,16 @@ def create_app(config):
         # Import models
         from .models import User
         
-        # 先创建蓝图实例
+        # Create blueprint instance first
         from .blueprints import main
         
-        # 在注册蓝图之前导入路由模块
-        # 这样路由装饰器会在蓝图注册前应用到蓝图上
+        # Import route modules before registering blueprints
+        # This way route decorators are applied to the blueprint before registration
         from . import routes
         from . import route_nav
         from . import route_api
         
-        # 最后注册蓝图
+        # Finally register the blueprint
         app.register_blueprint(main)
         
         # Print database configuration if not in testing mode

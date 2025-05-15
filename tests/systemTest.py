@@ -69,7 +69,7 @@ def add_test_data_to_db():
     )
     db.session.add(user)
     
-    # 添加运动类型数据 - 添加必需的name字段
+    # Add exercise type data - add required name field
     exercise_types = [
         ExerciseType(id=1, name='running', display_name='Running'),
         ExerciseType(id=2, name='swimming', display_name='Swimming'),
@@ -90,7 +90,7 @@ def add_test_data_to_db():
 class SeleniumBaseTest(unittest.TestCase):
     
     def setUp(self):
-        # 使用固定端口5000
+        # Use fixed port 5000
         PORT = 5000
         self.base_url = f"http://localhost:{PORT}/"
 
@@ -135,7 +135,7 @@ class TestLoginSuccess(SeleniumBaseTest):
     
     def test_login_success(self):
         """Test successful login with valid credentials"""
-        # Enter login details
+        # Login first
         self.driver.find_element(By.ID, "email").send_keys("test@example.com")
         self.driver.find_element(By.ID, "password").send_keys("Password123")
         self.driver.find_element(By.XPATH, "//button[contains(text(), 'Login')]").click()
@@ -169,12 +169,12 @@ class TestRegistration(SeleniumBaseTest):
     
     def test_registration(self):
         """Test user registration process"""
-        # 确保页面加载完成
+        # Ensure page is loaded
         WebDriverWait(self.driver, 5).until(
             EC.presence_of_element_located((By.ID, "show-register"))
         )
         
-        # 使用JavaScript点击按钮，避免元素被遮挡的问题
+        # Use JavaScript to click button to avoid element being intercepted
         show_register_btn = self.driver.find_element(By.ID, "show-register")
         try:
             show_register_btn.click()
@@ -182,19 +182,19 @@ class TestRegistration(SeleniumBaseTest):
             print(f"Regular click failed: {str(e)}, trying JavaScript click")
             self.driver.execute_script("arguments[0].click();", show_register_btn)
 
-        # 等待注册表单出现
+        # Wait for registration form to appear
         WebDriverWait(self.driver, 5).until(
             EC.visibility_of_element_located((By.ID, "register-form"))
         )
 
         register_form = self.driver.find_element(By.ID, "register-form")
 
-        # 等待 email 字段可点击，防止动画未结束
+        # Wait for email field to be clickable, preventing animation from interfering
         WebDriverWait(register_form, 5).until(
             EC.element_to_be_clickable((By.ID, "email"))
         )
 
-        # 填写基本注册信息
+        # Fill in basic registration information
         username_input = register_form.find_element(By.ID, "username")
         email_input = register_form.find_element(By.ID, "email")
         
@@ -204,18 +204,18 @@ class TestRegistration(SeleniumBaseTest):
         username_input.send_keys("newuser")
         email_input.send_keys("newuser@example.com")
         
-        # 确保验证码按钮可点击
+        # Ensure verification code button is clickable
         send_btn = WebDriverWait(self.driver, 5).until(
             EC.element_to_be_clickable((By.ID, "send-verification-btn"))
         )
 
-        # 在测试环境中，我们使用固定的验证码
+        # In test environment, use fixed verification code
         fixed_code = "123456"
         
-        # 发送验证码
+        # Send verification code
         send_btn.click()
 
-        # 等待验证码消息出现
+        # Wait for verification code message to appear
         try:
             WebDriverWait(self.driver, 5).until(
                 EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Verification code has been sent')]"))
@@ -224,30 +224,30 @@ class TestRegistration(SeleniumBaseTest):
         except Exception as e:
             print(f"Warning: Verification message not found: {str(e)}")
         
-        # 等待后端写入验证码
+        # Wait for backend to process verification code
         time.sleep(3)
         
-        # 使用固定的验证码 - 不再尝试修改数据库或会话
+        # Use fixed verification code - no longer attempting to modify database or session
         code = fixed_code
         print(f"Using verification code: {code}")
 
-        # 填写密码和验证码
+        # Fill in password and verification code
         register_form.find_element(By.ID, "reg-password").send_keys("NewPassword123")
         register_form.find_element(By.ID, "reg-confirm-password").send_keys("NewPassword123")
         register_form.find_element(By.ID, "verification_code").send_keys(code)
 
-        # 提交表单 - 使用JavaScript执行点击，避免元素被遮挡的问题
+        # Submit form - use JavaScript to click to avoid element being intercepted
         submit_btn = register_form.find_element(By.XPATH, "//button[contains(text(), 'Create Account')]")
         try:
-            # 尝试常规点击
+            # Try regular click
             submit_btn.click()
         except Exception as e:
             print(f"Regular click failed: {str(e)}, trying JavaScript click")
-            # 使用JavaScript执行点击
+            # Use JavaScript to execute click
             self.driver.execute_script("arguments[0].click();", submit_btn)
 
-        # 验证成功提示
-        # 等待跳转到 /complete-profile 页面
+        # Verify success
+        # Wait for redirect to /complete-profile page
         try:
             WebDriverWait(self.driver, 10).until(
                 EC.url_contains("/complete-profile")
@@ -259,7 +259,7 @@ class TestRegistration(SeleniumBaseTest):
             print("Page source:", self.driver.page_source[:500])
             raise
 
-        # 再断言页面是否含有期望关键词
+        # Assert page contains expected keywords
         self.assertIn("Complete Your Profile", self.driver.page_source)
 
 
@@ -267,7 +267,7 @@ class TestTrackExercise(SeleniumBaseTest):
     
     def test_track_exercise(self):
         """Test adding exercise tracking"""
-        # 先登录
+        # Login first
         self.driver.find_element(By.ID, "email").send_keys("test@example.com")
         self.driver.find_element(By.ID, "password").send_keys("Password123")
         self.driver.find_element(By.XPATH, "//button[contains(text(), 'Login')]").click()
@@ -276,39 +276,39 @@ class TestTrackExercise(SeleniumBaseTest):
             EC.url_contains("/home")
         )
         
-        # 导航到上传页面
+        # Navigate to upload page
         self.driver.get("http://localhost:5000/upload")
 
-        # 等待页面加载并确保下拉菜单可用
+        # Wait for page to load and ensure dropdown is available
         WebDriverWait(self.driver, 10).until(
             EC.presence_of_element_located((By.ID, "exercise-type"))
         )
         
-        # 等待下拉菜单选项加载完成
+        # Wait for dropdown options to load
         time.sleep(2)
         
-        # 现在应该可以直接使用下拉菜单选择选项，因为我们已经在数据库中添加了运动类型
+        # Now should be able to use dropdown to select options because we've added exercise types in database
         select = Select(self.driver.find_element(By.ID, "exercise-type"))
-        select.select_by_value("1")  # 选择"Running"
+        select.select_by_value("1")  # Select "Running"
         
-        # 填入 duration（或 calories）
+        # Fill in duration (or calories)
         self.driver.find_element(By.ID, "duration").send_keys("30")
 
-        # 点击提交按钮
+        # Click submit button
         self.driver.find_element(By.XPATH, "//button[contains(text(), 'Add Exercise')]").click()
 
-        # 等待页面刷新或重定向
+        # Wait for page to refresh or redirect
         time.sleep(2)
         
-        # 验证是否成功（检查URL或页面内容）
+        # Verify success (check URL or page content)
         WebDriverWait(self.driver, 5).until(
             EC.presence_of_element_located((By.ID, "recent-entries"))
         )
         
-        # 打印页面源代码以便调试
+        # Print page source for debugging
         print("Page source after exercise submission:", self.driver.page_source[:500])
         
-        # 检查是否没有错误消息
+        # Check for absence of error messages
         self.assertNotIn("Invalid exercise type", self.driver.page_source)
 
 
@@ -338,14 +338,14 @@ class TestViewProfile(SeleniumBaseTest):
         self.assertIn("test@example.com", self.driver.page_source)
 
 
-# 用于运行单个测试的辅助函数
+# Helper function for running individual tests
 def run_specific_test(test_class):
     suite = unittest.TestLoader().loadTestsFromTestCase(test_class)
     unittest.TextTestRunner(verbosity=2).run(suite)
 
 
 if __name__ == "__main__":
-    # 如果有命令行参数，运行指定的测试
+    # If command line arguments are provided, run specified test
     if len(sys.argv) > 1:
         test_name = sys.argv[1]
         if test_name == "login_page":
@@ -361,8 +361,8 @@ if __name__ == "__main__":
         elif test_name == "view_profile":
             run_specific_test(TestViewProfile)
         else:
-            print(f"未知的测试: {test_name}")
-            print("可用的测试: login_page, login_success, login_failure, registration, track_exercise, view_profile")
+            print(f"Unknown test: {test_name}")
+            print("Available tests: login_page, login_success, login_failure, registration, track_exercise, view_profile")
     else:
-        # 否则运行所有测试
+        # Otherwise run all tests
         unittest.main()

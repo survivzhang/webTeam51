@@ -27,7 +27,7 @@ def home():
     now = datetime.utcnow()
     start_date = now.date() - timedelta(days=6)
 
-    # 初始化每天的数据为 0
+    # Initialize daily data to 0
     labels = []
     calories_in = []
     calories_out = []

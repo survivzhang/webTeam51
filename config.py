@@ -33,8 +33,9 @@ class TestingConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'  # Use in-memory database for testing
     WTF_CSRF_ENABLED = False  # Disable CSRF protection in tests
     
-    # 禁用邮件发送
+    # Disable email sending
     MAIL_SUPPRESS_SEND = True
     
-    # 测试专用设置
+    # Testing specific settings
     TEST_MODE = True
+    # SERVER_NAME = 'localhost:5000'

@@ -71,11 +71,11 @@ def register():
         password = register_form.password.data
         verification_code = register_form.verification_code.data
         
-        # 在测试环境中，如果使用了固定验证码123456，直接通过验证
+        # In test environment, if using fixed verification code 123456, bypass verification
         is_test_mode = current_app.config.get('TESTING', False)
         if is_test_mode and verification_code == "123456":
             print("TEST MODE: Bypassing verification code check")
-            # 创建新用户
+            # Create new user
             new_user = User(
                 username=username,
                 email=email,
@@ -86,12 +86,12 @@ def register():
             db.session.add(new_user)
             db.session.commit()
             
-            # 登录用户
+            # Login user
             session['user_id'] = new_user.id
             flash('Registration successful! Please complete your profile.', 'success')
             return redirect(url_for('main.complete_profile'))
         
-        # 正常验证流程
+        # Normal verification process
         # Verify that we have a verification code in session
         if 'verification_code' not in session or session.get('verification_code') != verification_code:
             flash('Invalid verification code', 'error')
@@ -313,11 +313,11 @@ def send_verification():
             # Store temp user ID in session
             session['temp_user_id'] = temp_user.id
             
-            # 在测试环境中，可以跳过实际发送邮件
+            # In test environment, skip sending actual email
             if current_app.config.get('TESTING', False):
                 print(f"TESTING MODE: Skipping email send. Verification code: {verification_code}")
                 success = True
-                # 在测试环境中，将验证码显示在页面上，方便测试捕获
+                # In test environment, display verification code on page for test to capture
                 flash(f"TESTING MODE: Skipping email send. Verification code: {verification_code}", "info")
             else:
                 # Send verification email
@@ -325,7 +325,7 @@ def send_verification():
                 
             if success:
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                    # 在测试环境中，通过AJAX响应返回验证码
+                    # In test environment, return verification code via AJAX response
                     if current_app.config.get('TESTING', False):
                         return jsonify({
                             'message': 'Verification code has been sent to your email',

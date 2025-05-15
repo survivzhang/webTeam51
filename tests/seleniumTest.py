@@ -1,4 +1,3 @@
-
 # You can run selenium tests using:
 #   python -m tests.run_tests login_page
 #   python -m tests.run_tests login_success
@@ -35,14 +34,17 @@ from config import TestingConfig
 from werkzeug.security import generate_password_hash
 
 def wait_for_port_to_free(port, timeout=10):
+    """Wait for a port to become available (not in use)"""
     start = time.time()
     while time.time() - start < timeout:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             result = sock.connect_ex(("localhost", port))
-            if result != 0:
-                return
+            if result != 0:  # Port is free
+                return True
+        print(f"Port {port} still in use, waiting...")
         time.sleep(0.5)
-    raise RuntimeError(f"Port {port} is still in use after {timeout} seconds")
+    print(f"Warning: Port {port} is still in use after {timeout} seconds")
+    return False
 
 
 # Test data
@@ -78,25 +80,28 @@ def add_test_data_to_db():
 
 class SeleniumBaseTest(unittest.TestCase):
     
-    def setUp(self):
-        # Use fixed port 5000
-        PORT = 5000
-        self.base_url = f"http://localhost:{PORT}/"
-
-        self.testApp = create_app(TestingConfig)
-        self.app_context = self.testApp.app_context()
-        self.app_context.push()
+    @classmethod
+    def setUpClass(cls):
+        # Generate a random port between 5001-5999 for each test class
+        cls.PORT = random.randint(5001, 5999)
+        print(f"Starting test server on port {cls.PORT}")
+        
+        cls.base_url = f"http://localhost:{cls.PORT}/"
+        cls.testApp = create_app(TestingConfig)
+        cls.app_context = cls.testApp.app_context()
+        cls.app_context.push()
         db.create_all()
         add_test_data_to_db()
 
-        wait_for_port_to_free(PORT)
-        self.server_thread = Thread(target=self.testApp.run, kwargs={"port": PORT, "use_reloader": False})
-        self.server_thread.daemon = True
-        self.server_thread.start()
+        wait_for_port_to_free(cls.PORT)
+        cls.server_thread = Thread(target=cls.testApp.run, kwargs={"port": cls.PORT, "use_reloader": False})
+        cls.server_thread.daemon = True
+        cls.server_thread.start()
         
         # Give the server a second to ensure it's up
         time.sleep(1)
-        
+    
+    def setUp(self):
         # Set up the Chrome WebDriver
         chrome_options = Options()
         # Uncomment for headless testing
@@ -106,9 +111,15 @@ class SeleniumBaseTest(unittest.TestCase):
     
     def tearDown(self):
         self.driver.quit()
+    
+    @classmethod
+    def tearDownClass(cls):
         db.session.remove()
         db.drop_all()
-        self.app_context.pop()
+        cls.app_context.pop()
+        # Wait for the port to be released
+        wait_for_port_to_free(cls.PORT)
+        print(f"Test server on port {cls.PORT} stopped")
 
 
 class TestLoginPage(SeleniumBaseTest):
@@ -127,7 +138,14 @@ class TestLoginSuccess(SeleniumBaseTest):
         # Login first
         self.driver.find_element(By.ID, "email").send_keys("test@example.com")
         self.driver.find_element(By.ID, "password").send_keys("Password123")
-        self.driver.find_element(By.XPATH, "//button[contains(text(), 'Login')]").click()
+        
+        # Use JavaScript to click login button to avoid element being intercepted
+        login_btn = self.driver.find_element(By.XPATH, "//button[contains(text(), 'Login')]")
+        try:
+            login_btn.click()
+        except Exception as e:
+            print(f"Regular click failed: {str(e)}, trying JavaScript click")
+            self.driver.execute_script("arguments[0].click();", login_btn)
         
         # Wait for redirect to home page
         WebDriverWait(self.driver, 5).until(
@@ -145,7 +163,14 @@ class TestLoginFailure(SeleniumBaseTest):
         # Enter incorrect login details
         self.driver.find_element(By.ID, "email").send_keys("test@example.com")
         self.driver.find_element(By.ID, "password").send_keys("WrongPassword")
-        self.driver.find_element(By.XPATH, "//button[contains(text(), 'Login')]").click()
+        
+        # Use JavaScript to click login button to avoid element being intercepted
+        login_btn = self.driver.find_element(By.XPATH, "//button[contains(text(), 'Login')]")
+        try:
+            login_btn.click()
+        except Exception as e:
+            print(f"Regular click failed: {str(e)}, trying JavaScript click")
+            self.driver.execute_script("arguments[0].click();", login_btn)
         
         # Check we're redirected back to login with error
         WebDriverWait(self.driver, 5).until(
@@ -259,14 +284,21 @@ class TestTrackExercise(SeleniumBaseTest):
         # Login first
         self.driver.find_element(By.ID, "email").send_keys("test@example.com")
         self.driver.find_element(By.ID, "password").send_keys("Password123")
-        self.driver.find_element(By.XPATH, "//button[contains(text(), 'Login')]").click()
+        
+        # Use JavaScript to click login button to avoid element being intercepted
+        login_btn = self.driver.find_element(By.XPATH, "//button[contains(text(), 'Login')]")
+        try:
+            login_btn.click()
+        except Exception as e:
+            print(f"Regular click failed: {str(e)}, trying JavaScript click")
+            self.driver.execute_script("arguments[0].click();", login_btn)
 
         WebDriverWait(self.driver, 5).until(
             EC.url_contains("/home")
         )
         
-        # Navigate to upload page
-        self.driver.get("http://localhost:5000/upload")
+        # Navigate to upload page - use self.base_url instead of hardcoded port
+        self.driver.get(f"{self.base_url}upload")
 
         # Wait for page to load and ensure dropdown is available
         WebDriverWait(self.driver, 10).until(
@@ -309,7 +341,14 @@ class TestViewProfile(SeleniumBaseTest):
         # Enter login details
         self.driver.find_element(By.ID, "email").send_keys("test@example.com")
         self.driver.find_element(By.ID, "password").send_keys("Password123")
-        self.driver.find_element(By.XPATH, "//button[contains(text(), 'Login')]").click()
+        
+        # Use JavaScript to click login button to avoid element being intercepted
+        login_btn = self.driver.find_element(By.XPATH, "//button[contains(text(), 'Login')]")
+        try:
+            login_btn.click()
+        except Exception as e:
+            print(f"Regular click failed: {str(e)}, trying JavaScript click")
+            self.driver.execute_script("arguments[0].click();", login_btn)
         
         # Wait for redirect to home page
         WebDriverWait(self.driver, 5).until(

@@ -8,7 +8,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # Import test modules
 from tests.unitTest import CalTrackUnitTests
 from tests.test_calorie_tracking import CalorieTrackingTests
-from tests.systemTest import (
+from tests.seleniumTest import (
     TestLoginPage, 
     TestLoginSuccess, 
     TestLoginFailure, 
@@ -60,28 +60,44 @@ def run_selenium_view_profile_test():
 def run_all_selenium_tests():
     """Run all Selenium tests"""
     print("\n=== Running All Selenium Tests ===")
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestLoginPage))
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestLoginSuccess))
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestLoginFailure))
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestRegistration))
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestTrackExercise))
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestViewProfile))
-    unittest.TextTestRunner(verbosity=2).run(test_suite)
+    # Use TestLoader to discover and run tests sequentially
+    # This avoids port conflicts by running one test class at a time
+    loader = unittest.TestLoader()
+    
+    # Create a list of test classes to run
+    test_classes = [
+        TestLoginPage,
+        TestLoginSuccess,
+        TestLoginFailure,
+        TestRegistration,
+        TestTrackExercise,
+        TestViewProfile
+    ]
+    
+    # Run each test class individually
+    for test_class in test_classes:
+        print(f"\n--- Running {test_class.__name__} ---")
+        suite = loader.loadTestsFromTestCase(test_class)
+        unittest.TextTestRunner(verbosity=2).run(suite)
 
 def run_all_tests():
     """Run all tests"""
     print("\n=== Running All Tests ===")
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(CalTrackUnitTests))
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(CalorieTrackingTests))
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestLoginPage))
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestLoginSuccess))
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestLoginFailure))
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestRegistration))
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestTrackExercise))
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestViewProfile))
-    unittest.TextTestRunner(verbosity=2).run(test_suite)
+    
+    # Run unit tests
+    print("\n--- Running Unit Tests ---")
+    unittest.TextTestRunner(verbosity=2).run(
+        unittest.defaultTestLoader.loadTestsFromTestCase(CalTrackUnitTests)
+    )
+    
+    # Run calorie tracking tests
+    print("\n--- Running Calorie Tracking Tests ---")
+    unittest.TextTestRunner(verbosity=2).run(
+        unittest.defaultTestLoader.loadTestsFromTestCase(CalorieTrackingTests)
+    )
+    
+    # Run selenium tests one by one
+    run_all_selenium_tests()
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:

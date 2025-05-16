@@ -33,6 +33,9 @@ Usage:
    
    - View profile test:
      python -m tests.run_tests view_profile
+     
+   - Sharing functionality test:
+     python -m tests.run_tests sharing
 
 Notes:
 ------
@@ -49,23 +52,26 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import test modules
-from tests.unitTest import CalTrackUnitTests, CalorieTrackingTests
+from tests.unitTest import CalTrackUnitTests, CalorieTrackingTests, FriendshipTests, DataSharingTests
 from tests.seleniumTest import (
     TestLoginPage, 
     TestLoginSuccess, 
     TestLoginFailure, 
     TestRegistration, 
     TestTrackExercise, 
-    TestViewProfile
+    TestViewProfile,
+    TestSharing
 )
 
 def run_unit_tests():
     """Run all unit tests including calorie tracking tests"""
     print("\n=== Running Unit Tests ===")
-    # Create a test suite with both unit test classes
+    # Create a test suite with all unit test classes
     suite = unittest.TestSuite()
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(CalTrackUnitTests))
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(CalorieTrackingTests))
+    suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(FriendshipTests))
+    suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(DataSharingTests))
     unittest.TextTestRunner(verbosity=2).run(suite)
 
 def run_selenium_login_page_test():
@@ -98,6 +104,11 @@ def run_selenium_view_profile_test():
     print("\n=== Running View Profile Test ===")
     unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(TestViewProfile))
 
+def run_selenium_sharing_test():
+    """Run only the sharing functionality test"""
+    print("\n=== Running Sharing Functionality Test ===")
+    unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(TestSharing))
+
 def run_all_selenium_tests():
     """Run all Selenium tests"""
     print("\n=== Running All Selenium Tests ===")
@@ -112,7 +123,8 @@ def run_all_selenium_tests():
         TestLoginFailure,
         TestRegistration,
         TestTrackExercise,
-        TestViewProfile
+        TestViewProfile,
+        TestSharing
     ]
     
     # Run each test class individually
@@ -152,9 +164,11 @@ if __name__ == "__main__":
             run_selenium_track_exercise_test()
         elif sys.argv[1] == 'view_profile':
             run_selenium_view_profile_test()
+        elif sys.argv[1] == 'sharing':
+            run_selenium_sharing_test()
         else:
             print("Unknown test suite.")
-            print("Available options: unit, selenium, login_page, login_success, login_failure, registration, track_exercise, view_profile")
+            print("Available options: unit, selenium, login_page, login_success, login_failure, registration, track_exercise, view_profile, sharing")
             print("Use -h or --help for more information.")
     else:
         run_all_tests() 

@@ -1,6 +1,6 @@
-from app import app, db
+from app import create_app, db
 from app.models import User, MealType, CalorieEntry, Friendship, SharedCalories, ExerciseType, CalorieBurn, DailyMetrics, Food, VerificationCode, Recommendation, UserGoal
-from app import models
+from config import Config
 from werkzeug.security import generate_password_hash
 from datetime import datetime
 import sqlalchemy as sa
@@ -9,6 +9,9 @@ import os
 
 def init_database():
     print("Initializing database...")
+    
+    # create app instance
+    app = create_app(Config)
     
     with app.app_context():
         try:

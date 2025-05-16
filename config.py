@@ -13,9 +13,9 @@ class Config:
     MAIL_USE_TLS = True
     MAIL_USE_SSL = False
     # For Mailjet: Username is API Key, Password is Secret Key
-    MAIL_USERNAME = 'ea7165101f76cfbd95ab95a5a8e7f890'  
-    MAIL_PASSWORD = '376e381e29315c47ca56f5202d076511'  
-    MAIL_DEFAULT_SENDER = ('CalTrack', 'caltrack1@outlook.com')  
+    MAIL_USERNAME = 'xxxx'  
+    MAIL_PASSWORD = 'xxxx'  
+    MAIL_DEFAULT_SENDER = ('CalTrack', 'xxxx')  
     MAIL_DEBUG = True  # Enable mail debugging
     MAIL_MAX_EMAILS = 5  # Limit emails per connection
 

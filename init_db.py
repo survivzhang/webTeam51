@@ -1,5 +1,6 @@
 from app import app, db
-from app.models import User, MealType, CalorieEntry, Friendship, SharedCalories, ExerciseType, CalorieBurn, DailyMetrics, Food
+from app.models import User, MealType, CalorieEntry, Friendship, SharedCalories, ExerciseType, CalorieBurn, DailyMetrics, Food, VerificationCode, Recommendation, UserGoal
+from app import models
 from werkzeug.security import generate_password_hash
 from datetime import datetime
 import sqlalchemy as sa
@@ -80,6 +81,9 @@ def init_database():
             print(f"- Friendships: {db.session.query(Friendship).count()}")
             print(f"- Shared Calories Settings: {db.session.query(SharedCalories).count()}")
             print(f"- Foods: {db.session.query(Food).count()}")
+            print(f"- Verification Codes: {db.session.query(VerificationCode).count()}")
+            print(f"- Recommendations: {db.session.query(Recommendation).count()}")
+            print(f"- User Goals: {db.session.query(UserGoal).count()}")
 
         except Exception as e:
             db.session.rollback()

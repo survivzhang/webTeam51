@@ -1,17 +1,14 @@
 from flask import Flask, request, render_template, redirect, url_for, flash, session
 import sys
 import os
-# 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config import Config
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_wtf.csrf import CSRFProtect
 from datetime import timedelta
 from functools import wraps
 from sqlalchemy import and_, or_
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+from flask_wtf.csrf import CSRFProtect
 from flask_mail import Mail
-import openai  
+import openai
 
 # Initialize extensions outside of create_app
 db = SQLAlchemy()
@@ -47,7 +44,6 @@ def create_app(config):
         from .blueprints import main
         
         # Import route modules before registering blueprints
-        # This way route decorators are applied to the blueprint before registration
         from . import routes
         from . import route_nav
         from . import route_api

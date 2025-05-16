@@ -54,15 +54,14 @@ Activate the virtual environment:
 # Linux/macOS
 source venv/bin/activate
 
-
-# Windows (Git Bash or WSL)
-source venv/Scripts/activate
-
 # Windows (Command Prompt)
 venv\Scripts\activate.bat
 
 # Windows (PowerShell)
 venv\Scripts\Activate.ps1
+
+# Windows (Git Bash or WSL)
+source venv/Scripts/activate
 ```
 
 #### 4. Install Dependencies
@@ -209,7 +208,7 @@ The profile page serves as a personal dashboard where users can manage their inf
 
 ## Running Tests
 
-The CalTrack application includes a comprehensive test suite to ensure the reliability and functionality of all features. The tests are organised into unit tests and Selenium-based tests.
+The CalTrack application includes a test suite to ensure the reliability and functionality of key features. The tests are organised into unit tests and Selenium-based tests.
 
 ### Test Categories
 
@@ -217,17 +216,14 @@ The CalTrack application includes a comprehensive test suite to ensure the relia
 Fast, database-focused tests that don't require a browser:
 - **Basic Application Tests**: Tests for database connection, page rendering, login functionality, and session management
 - **Calorie Tracking Tests**: Tests for adding meals, exercises, and retrieving activity data
-- **Friendship Tests**: Tests for sending, accepting, and declining friend requests
-- **Data Sharing Tests**: Tests for creating, updating, and viewing shared data between friends
 
 #### Selenium Tests
-Browser-based tests that validate the full functionality through the browser:
+Browser-based tests that validate the functionality through the browser:
 - **Login Tests**: Tests for login page rendering, successful login, and authentication failures
 - **Registration Tests**: Tests for the user registration process
 - **Exercise Tracking Tests**: Tests for adding and tracking exercise activities
 - **Profile Tests**: Tests for viewing and updating user profile information
-- **Sharing Tests**: Tests for the friend management and data sharing interface
-
+- **Sharing Tests**: Tests for accessing the sharing interface
 
 ### Running the Tests
 
@@ -252,7 +248,6 @@ python -m tests.run_tests track_exercise
 python -m tests.run_tests view_profile
 python -m tests.run_tests sharing
 ```
-
 
 ## Project Structure
 

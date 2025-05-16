@@ -72,7 +72,27 @@ Install the required dependencies:
 pip install -r requirements.txt
 ```
 
-#### 5. Run the Flask App
+#### 5. Initialize the database.
+ 
+```bash
+# Linux/macOS
+python3 init_db.py
+ 
+# Windows
+python init_db.py
+```
+ 
+## :warning: Testing Accounts :warning:
+ 
+**The project has already included a small database (app.db) with pre-configured test users:**
+**You can replace the initial database with the pre-filled database by moving it into the webTeam51 folder for testing, or use the empty initial database instead.**
+**If you use pre-filled database you can use following account**
+| Username     | Password  |
+|--------------|-----------|
+| john_doe     | 123456    |
+| jane_smith   | 123456    |
+
+#### 6. Run the Flask App
 
 Start the Flask development server:
 
@@ -84,7 +104,7 @@ python3 app.py
 python app.py
 ```
 
-#### 6. Access the App
+#### 7. Access the App
 
 Open your browser and navigate to the following URL:
 

@@ -54,6 +54,10 @@ Activate the virtual environment:
 # Linux/macOS
 source venv/bin/activate
 
+
+# Windows (Git Bash or WSL)
+source venv/Scripts/activate
+
 # Windows (Command Prompt)
 venv\Scripts\activate.bat
 

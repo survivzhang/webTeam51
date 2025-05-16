@@ -21,7 +21,7 @@
         <form
           id="exercise-form"
           method="POST"
-          action="{{ url_for('save_exercise') }}"
+          action="{{ url_for('main.save_exercise') }}"
         >
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <div class="mb-4">
@@ -96,7 +96,11 @@
         </h3>
       </div>
       <div class="p-5">
-        <form id="meal-form" method="POST" action="{{ url_for('save_meal') }}">
+        <form
+          id="meal-form"
+          method="POST"
+          action="{{ url_for('main.save_meal') }}"
+        >
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
           <!-- Meal Type Dropdown -->
@@ -270,43 +274,63 @@
     </div>
   </div>
 
-  {% endblock %} {% block scripts %}
-  <script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+  <!-- Daily Metrics Form -->
+  <div class="bg-white rounded-lg shadow-lg overflow-hidden mt-6">
+    <div class="px-4 py-4">
+      <h3 class="text-xl font-semibold text-black text-center">
+        Daily Metrics
+      </h3>
+    </div>
+    <div class="p-5">
+      <form
+        id="metrics-form"
+        method="POST"
+        action="{{ url_for('main.save_daily_metrics') }}"
+      >
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
-  <style>
-    /* Add some custom animations */
-    @keyframes shake {
-      0%,
-      100% {
-        transform: translateX(0);
-      }
-      25% {
-        transform: translateX(-5px);
-      }
-      50% {
-        transform: translateX(5px);
-      }
-      75% {
-        transform: translateX(-5px);
-      }
-    }
-
-    .shake {
-      animation: shake 0.5s ease-in-out;
-    }
-
-    .scale-105 {
-      transform: scale(1.05);
-      transition: transform 0.3s ease;
-    }
-
-    /* Ensure Tailwind utilities are included */
-    .transition-all {
-      transition-property: all;
-    }
-    .duration-300 {
-      transition-duration: 300ms;
-    }
-  </style>
-  {% endblock %}
+        // ... existing code ...
+      </form>
+    </div>
+  </div>
 </div>
+
+{% endblock %} {% block scripts %}
+<script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+
+<style>
+  /* Add some custom animations */
+  @keyframes shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    25% {
+      transform: translateX(-5px);
+    }
+    50% {
+      transform: translateX(5px);
+    }
+    75% {
+      transform: translateX(-5px);
+    }
+  }
+
+  .shake {
+    animation: shake 0.5s ease-in-out;
+  }
+
+  .scale-105 {
+    transform: scale(1.05);
+    transition: transform 0.3s ease;
+  }
+
+  /* Ensure Tailwind utilities are included */
+  .transition-all {
+    transition-property: all;
+  }
+  .duration-300 {
+    transition-duration: 300ms;
+  }
+</style>
+{% endblock %}

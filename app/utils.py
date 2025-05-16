@@ -1,8 +1,7 @@
 import random
 import string
 from flask_mail import Message
-from app import mail
-from flask import render_template
+from flask import render_template, current_app
 import logging
 import traceback
 
@@ -45,10 +44,13 @@ The CalTrack Team
             print(f"Error rendering HTML template: {str(html_error)}")
             # Continue with plain text only
         
+        # Get mail instance from current_app
+        mail = current_app.extensions['mail']
+        
         # Print debug information
         print(f"Sending email to: {user.email}")
-        print(f"Using SMTP settings: Server={mail.app.config.get('MAIL_SERVER')}, Port={mail.app.config.get('MAIL_PORT')}")
-        print(f"TLS={mail.app.config.get('MAIL_USE_TLS')}, SSL={mail.app.config.get('MAIL_USE_SSL')}")
+        print(f"Using SMTP settings: Server={current_app.config.get('MAIL_SERVER')}, Port={current_app.config.get('MAIL_PORT')}")
+        print(f"TLS={current_app.config.get('MAIL_USE_TLS')}, SSL={current_app.config.get('MAIL_USE_SSL')}")
         
         # For development, also log the verification code
         print(f"======= VERIFICATION CODE =======")

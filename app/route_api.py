@@ -1,4 +1,3 @@
-from . import app, db, csrf
 from flask import request, jsonify, session, redirect, url_for, flash
 import sqlalchemy as sa
 from .models import User, Friendship, SharedCalories, CalorieEntry, DailyMetrics, CalorieBurn, ExerciseType, MealType, Food, Recommendation
@@ -7,12 +6,14 @@ from datetime import datetime, date
 import json
 from .auth import login_required
 from .app_utils import json_response
+from . import db, csrf
+from .blueprints import main
 import os
 import openai
 
 # Exempt API routes from CSRF
 @csrf.exempt
-@app.route('/api/friend/request', methods=['POST'])
+@main.route('/api/friend/request', methods=['POST'])
 @login_required
 def send_friend_request():
     try:
@@ -101,7 +102,7 @@ def send_friend_request():
 
 
 @csrf.exempt
-@app.route('/api/friend/respond', methods=['POST'])
+@main.route('/api/friend/respond', methods=['POST'])
 @login_required
 def respond_to_request():
     try:
@@ -148,7 +149,7 @@ def respond_to_request():
 
 
 @csrf.exempt
-@app.route('/api/friend/data/<int:friend_id>', methods=['GET'])
+@main.route('/api/friend/data/<int:friend_id>', methods=['GET'])
 @login_required
 def get_friend_data(friend_id):
     try:
@@ -332,7 +333,7 @@ def get_friend_data(friend_id):
 
 
 @csrf.exempt
-@app.route('/api/share/settings', methods=['POST'])
+@main.route('/api/share/settings', methods=['POST'])
 @login_required
 def update_share_settings():
     try:
@@ -425,7 +426,7 @@ def update_share_settings():
 
 
 @csrf.exempt
-@app.route('/api/users/search', methods=['GET'])
+@main.route('/api/users/search', methods=['GET'])
 @login_required
 def search_users():
     try:
@@ -456,7 +457,7 @@ def search_users():
 
 
 @csrf.exempt
-@app.route('/api/save_daily_metrics', methods=['POST'])
+@main.route('/api/save_daily_metrics', methods=['POST'])
 @login_required
 def save_daily_metrics():
     user_id = session.get('user_id')
@@ -470,7 +471,7 @@ def save_daily_metrics():
     # Check if at least one field is filled
     if not any([weight, sleep_hours, mood]):
         flash('Please fill in at least one field', 'error')
-        return redirect(url_for('upload'))
+        return redirect(url_for('main.upload'))
     
     try:
         # Check if entry already exists for today
@@ -504,11 +505,11 @@ def save_daily_metrics():
         db.session.rollback()
         flash(f'Error saving daily metrics: {str(e)}', 'error')
     
-    return redirect(url_for('upload'))
+    return redirect(url_for('main.upload'))
 
 
 @csrf.exempt
-@app.route('/api/save_exercise', methods=['POST'])
+@main.route('/api/save_exercise', methods=['POST'])
 @login_required
 def save_exercise():
     user_id = session.get('user_id')
@@ -522,14 +523,14 @@ def save_exercise():
     # Validate required fields
     if not exercise_type_id or not duration:
         flash('Please select an exercise type and enter duration', 'error')
-        return redirect(url_for('upload'))
+        return redirect(url_for('main.upload'))
     
     try:
         # Verify exercise type exists
         exercise_type = db.session.get(ExerciseType, exercise_type_id)
         if not exercise_type:
             flash('Invalid exercise type', 'error')
-            return redirect(url_for('upload'))
+            return redirect(url_for('main.upload'))
         
         # Create new calorie burn entry
         new_burn = CalorieBurn(
@@ -547,11 +548,11 @@ def save_exercise():
         db.session.rollback()
         flash(f'Error saving exercise: {str(e)}', 'error')
     
-    return redirect(url_for('upload'))
+    return redirect(url_for('main.upload'))
 
 
 @csrf.exempt
-@app.route('/api/user/data_options', methods=['GET'])
+@main.route('/api/user/data_options', methods=['GET'])
 @login_required
 def get_user_data_options():
     user_id = session.get('user_id')
@@ -603,7 +604,7 @@ def get_user_data_options():
 
 
 @csrf.exempt
-@app.route('/api/save_meal', methods=['POST'])
+@main.route('/api/save_meal', methods=['POST'])
 @login_required
 def save_meal():
     user_id = session.get('user_id')
@@ -685,7 +686,7 @@ def save_meal():
 
 
 @csrf.exempt
-@app.route('/api/get_all_data', methods=['GET'])
+@main.route('/api/get_all_data', methods=['GET'])
 @login_required
 def get_all_data():
     user_id = session.get('user_id')
@@ -739,14 +740,15 @@ def get_all_data():
         return json_response({'status': 'error', 'message': f'Error retrieving data: {str(e)}'}, 500)
 
 
-@app.route('/api/default-photos')
+@main.route('/api/default-photos')
 def get_default_photos():
-    folder = os.path.join(app.static_folder, 'profile_photos')
+    from flask import current_app
+    folder = os.path.join(current_app.static_folder, 'profile_photos')
     files = [f for f in os.listdir(folder) if f.startswith('vibrent_') and f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))]
     urls = [url_for('static', filename=f'profile_photos/{f}') for f in files]
     return jsonify({'photos': urls})
 
-@app.route('/api/food_info')
+@main.route('/api/food_info')
 def get_food_info():
     description = request.args.get('description')
     if not description:
@@ -767,7 +769,7 @@ def get_food_info():
         'sugar_per_100g': food.sugars,
     })
 
-@app.route('/api/food_suggestions')
+@main.route('/api/food_suggestions')
 def get_food_suggestions():
     try:
         # Get all food descriptions from the database
@@ -785,7 +787,7 @@ def get_food_suggestions():
         })
 
 @csrf.exempt
-@app.route('/api/nutrition_summary', methods=['GET'])
+@main.route('/api/nutrition_summary', methods=['GET'])
 @login_required
 def get_nutrition_summary():
     user_id = session.get('user_id')
@@ -851,7 +853,7 @@ def get_nutrition_summary():
         print(traceback.format_exc())
         return json_response({'status': 'error', 'message': f'Error retrieving nutrition data: {str(e)}'}, 500)
 
-@app.route('/api/generate_recommendations', methods=['POST'])
+@main.route('/api/generate_recommendations', methods=['POST'])
 @login_required
 @csrf.exempt
 def generate_recommendations():
@@ -872,7 +874,8 @@ def generate_recommendations():
         "{{'nutrition': Your recommendation, 'exercise': Your recommendation}}"
     )
 
-    api_key = app.config.get('OPENAI_API_KEY')
+    from flask import current_app
+    api_key = current_app.config.get('OPENAI_API_KEY')
     if not api_key or api_key == 'your-api-key-here':
         return json_response({'status': 'error', 'message': 'OpenAI API key not configured properly.'}, 500)
     
@@ -975,7 +978,7 @@ def generate_recommendations():
         print(traceback.format_exc())
         return json_response({'status': 'error', 'message': str(e)}, 500)
 
-@app.route('/api/recommendation/latest', methods=['GET'])
+@main.route('/api/recommendation/latest', methods=['GET'])
 @login_required
 def get_latest_recommendation():
     user_id = session.get('user_id')

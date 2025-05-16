@@ -15,7 +15,7 @@ def init_database():
             db.create_all()
             print("All tables created successfully!")
             
-            # ========== add MealType ==========
+            # ========== Add MealType ==========
             meal_types = [
                 MealType(name="breakfast", display_name="Breakfast"),
                 MealType(name="lunch", display_name="Lunch"),
@@ -28,7 +28,7 @@ def init_database():
             db.session.commit()
             print("Added default meal types")
 
-            # ========== add ExerciseType ==========
+            # ========== Add ExerciseType ==========
             exercise_types = [
                 ExerciseType(name="running", display_name="Running"),
                 ExerciseType(name="swimming", display_name="Swimming"),
@@ -45,7 +45,7 @@ def init_database():
             db.session.commit()
             print("Added default exercise types")
 
-            # ========== add Food data ==========
+            # ========== Import Food Data ==========
             food_path = os.path.join(app.root_path, 'static', 'data', 'food_basic_nutrition.json')
             if os.path.exists(food_path):
                 with open(food_path, 'r') as f:
@@ -70,7 +70,7 @@ def init_database():
             else:
                 print("⚠️ Food JSON file not found")
 
-            # ========== Print data summary ==========
+            # ========== Print Data Summary ==========
             print("Current database status:")
             print(f"- Users: {db.session.query(User).count()}")
             print(f"- Meal Types: {db.session.query(MealType).count()}")

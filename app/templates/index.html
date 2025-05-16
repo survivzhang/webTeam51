@@ -1,12 +1,20 @@
 {% extends "base.html" %} {% block content %}
 
 <!-- Background Gradient -->
-<div class="fixed inset-0 bg-gradient-to-br from-blue-50 to-blue-100 -z-10"></div>
+<div
+  class="fixed inset-0 bg-gradient-to-br from-blue-50 to-blue-100 -z-10"
+></div>
 <!-- Background Graphics -->
 <div class="fixed inset-0 -z-10 overflow-hidden">
-  <div class="absolute -top-40 -right-40 w-96 h-96 bg-blue-200 rounded-full opacity-30"></div>
-  <div class="absolute top-1/3 -left-20 w-80 h-80 bg-blue-200 rounded-full opacity-20"></div>
-  <div class="absolute bottom-20 right-1/4 w-64 h-64 bg-purple-200 rounded-full opacity-20"></div>
+  <div
+    class="absolute -top-40 -right-40 w-96 h-96 bg-blue-200 rounded-full opacity-30"
+  ></div>
+  <div
+    class="absolute top-1/3 -left-20 w-80 h-80 bg-blue-200 rounded-full opacity-20"
+  ></div>
+  <div
+    class="absolute bottom-20 right-1/4 w-64 h-64 bg-purple-200 rounded-full opacity-20"
+  ></div>
 </div>
 
 <!-- Welcome Section + Auth Form -->
@@ -29,7 +37,11 @@
         class="bg-white/40 backdrop-blur-2xl rounded-xl shadow-lg overflow-hidden p-8 transition-all duration-500 border border-white/60"
       >
         <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Login</h1>
-        <form method="post" action="{{ url_for('login') }}" class="space-y-6">
+        <form
+          method="post"
+          action="{{ url_for('main.login') }}"
+          class="space-y-6"
+        >
           {{ login_form.csrf_token }}
 
           <div class="relative">
@@ -38,9 +50,10 @@
             >
               <i data-lucide="user" class="h-5 w-5 text-gray-500"></i>
             </div>
-            {{ login_form.email(class="w-full pl-10 pr-4 py-3.5 bg-blue-50/70 border
-            border-gray-200 text-gray-700 placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all duration-200",
-            placeholder="Username or Email") }}
+            {{ login_form.email(class="w-full pl-10 pr-4 py-3.5 bg-blue-50/70
+            border border-gray-200 text-gray-700 placeholder-gray-400 rounded-lg
+            focus:ring-2 focus:ring-blue-300 focus:border-blue-500
+            transition-all duration-200", placeholder="Username or Email") }}
           </div>
 
           <div class="relative">
@@ -49,11 +62,17 @@
             >
               <i data-lucide="lock" class="h-5 w-5 text-gray-500"></i>
             </div>
-            {{ login_form.password(class="w-full pl-10 pr-10 py-3.5 bg-blue-50/70 border
-            border-gray-200 text-gray-700 placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all duration-200",
+            {{ login_form.password(class="w-full pl-10 pr-10 py-3.5
+            bg-blue-50/70 border border-gray-200 text-gray-700
+            placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-blue-300
+            focus:border-blue-500 transition-all duration-200",
             placeholder="Password", id=login_form.password.id) }}
             <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-              <button type="button" id="toggle-password" class="text-gray-500 hover:text-gray-700 transition-colors">
+              <button
+                type="button"
+                id="toggle-password"
+                class="text-gray-500 hover:text-gray-700 transition-colors"
+              >
                 <i data-lucide="eye" class="h-5 w-5"></i>
               </button>
             </div>
@@ -81,7 +100,10 @@
 
         <p class="text-center mt-6 text-sm text-gray-600">
           Don't have an account?
-          <a href="#" id="show-register" class="text-blue-500 hover:text-blue-700 hover:underline transition-colors"
+          <a
+            href="#"
+            id="show-register"
+            class="text-blue-500 hover:text-blue-700 hover:underline transition-colors"
             >Register</a
           >
         </p>
@@ -95,12 +117,12 @@
         <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">
           Register
         </h1>
-        
+
         <!-- Registration Form with Verification Code -->
         <form
           id="complete-registration-form"
           method="post"
-          action="{{ url_for('register') }}"
+          action="{{ url_for('main.register') }}"
           class="space-y-5"
         >
           {{ register_form.csrf_token }}
@@ -111,9 +133,10 @@
             >
               <i data-lucide="user" class="h-5 w-5 text-gray-500"></i>
             </div>
-            {{ register_form.username(class="w-full pl-10 pr-4 py-3.5 bg-blue-50/70 border
-            border-gray-200 text-gray-700 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all duration-200", placeholder="Username")
-            }}
+            {{ register_form.username(class="w-full pl-10 pr-4 py-3.5
+            bg-blue-50/70 border border-gray-200 text-gray-700 rounded-lg
+            focus:ring-2 focus:ring-blue-300 focus:border-blue-500
+            transition-all duration-200", placeholder="Username") }}
           </div>
 
           <div class="relative">
@@ -122,8 +145,10 @@
             >
               <i data-lucide="mail" class="h-5 w-5 text-gray-500"></i>
             </div>
-            {{ register_form.email(class="w-full pl-10 pr-4 py-3.5 bg-blue-50/70 border
-            border-gray-200 text-gray-700 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all duration-200", placeholder="Email") }}
+            {{ register_form.email(class="w-full pl-10 pr-4 py-3.5 bg-blue-50/70
+            border border-gray-200 text-gray-700 rounded-lg focus:ring-2
+            focus:ring-blue-300 focus:border-blue-500 transition-all
+            duration-200", placeholder="Email") }}
           </div>
 
           <div class="relative">
@@ -132,11 +157,17 @@
             >
               <i data-lucide="lock" class="h-5 w-5 text-gray-500"></i>
             </div>
-            {{ register_form.password(class="w-full pl-10 pr-10 py-3.5 bg-blue-50/70 border
-            border-gray-200 text-gray-700 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all duration-200", placeholder="Password",
+            {{ register_form.password(class="w-full pl-10 pr-10 py-3.5
+            bg-blue-50/70 border border-gray-200 text-gray-700 rounded-lg
+            focus:ring-2 focus:ring-blue-300 focus:border-blue-500
+            transition-all duration-200", placeholder="Password",
             id="reg-password") }}
             <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-              <button type="button" id="toggle-reg-password" class="text-gray-500 hover:text-gray-700 transition-colors">
+              <button
+                type="button"
+                id="toggle-reg-password"
+                class="text-gray-500 hover:text-gray-700 transition-colors"
+              >
                 <i data-lucide="eye" class="h-5 w-5"></i>
               </button>
             </div>
@@ -148,16 +179,22 @@
             >
               <i data-lucide="lock" class="h-5 w-5 text-gray-500"></i>
             </div>
-            {{ register_form.confirm_password(class="w-full pl-10 pr-10 py-3.5 bg-blue-50/70
-            border border-gray-200 text-gray-700 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all duration-200",
-            placeholder="Confirm Password", id="reg-confirm-password") }}
+            {{ register_form.confirm_password(class="w-full pl-10 pr-10 py-3.5
+            bg-blue-50/70 border border-gray-200 text-gray-700 rounded-lg
+            focus:ring-2 focus:ring-blue-300 focus:border-blue-500
+            transition-all duration-200", placeholder="Confirm Password",
+            id="reg-confirm-password") }}
             <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-              <button type="button" id="toggle-reg-confirm-password" class="text-gray-500 hover:text-gray-700 transition-colors">
+              <button
+                type="button"
+                id="toggle-reg-confirm-password"
+                class="text-gray-500 hover:text-gray-700 transition-colors"
+              >
                 <i data-lucide="eye" class="h-5 w-5"></i>
               </button>
             </div>
           </div>
-          
+
           <div class="flex items-center space-x-2">
             <div class="relative flex-1">
               <div
@@ -165,9 +202,10 @@
               >
                 <i data-lucide="check-circle" class="h-5 w-5 text-gray-500"></i>
               </div>
-              {{ register_form.verification_code(class="w-full pl-10 pr-4 py-3.5 bg-blue-50/70
-              border border-gray-200 text-gray-700 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all duration-200",
-              placeholder="Verification Code") }}
+              {{ register_form.verification_code(class="w-full pl-10 pr-4 py-3.5
+              bg-blue-50/70 border border-gray-200 text-gray-700 rounded-lg
+              focus:ring-2 focus:ring-blue-300 focus:border-blue-500
+              transition-all duration-200", placeholder="Verification Code") }}
             </div>
             <button
               type="button"
@@ -177,7 +215,9 @@
               Get Code
             </button>
           </div>
-          <p class="text-xs text-gray-500 mt-1">We'll send a 6-digit code to your email</p>
+          <p class="text-xs text-gray-500 mt-1">
+            We'll send a 6-digit code to your email
+          </p>
 
           <button
             type="submit"
@@ -189,7 +229,10 @@
 
         <p class="text-center mt-6 text-sm text-gray-600">
           Already have an account?
-          <a href="#" id="show-login" class="text-blue-500 hover:text-blue-700 hover:underline transition-colors"
+          <a
+            href="#"
+            id="show-login"
+            class="text-blue-500 hover:text-blue-700 hover:underline transition-colors"
             >Login</a
           >
         </p>
@@ -198,7 +241,9 @@
   </div>
 
   <!-- Right Image -->
-  <div class="bg-white/40 backdrop-blur-xl rounded-2xl shadow-lg overflow-hidden border border-white/60 transition-transform duration-300 hover:shadow-xl transform hover:scale-[1.01]">
+  <div
+    class="bg-white/40 backdrop-blur-xl rounded-2xl shadow-lg overflow-hidden border border-white/60 transition-transform duration-300 hover:shadow-xl transform hover:scale-[1.01]"
+  >
     <img
       src="{{ url_for('static', filename='images/healthy-food.jpg') }}"
       alt="Healthy Food"
@@ -215,7 +260,9 @@
 </section>
 
 <section class="grid md:grid-cols-3 gap-6 mt-16">
-  <div class="bg-white/40 backdrop-blur-xl rounded-xl p-6 shadow-md border border-white/70 transition-all duration-300 hover:shadow-lg hover:border-blue-200 transform hover:translate-y-[-5px]">
+  <div
+    class="bg-white/40 backdrop-blur-xl rounded-xl p-6 shadow-md border border-white/70 transition-all duration-300 hover:shadow-lg hover:border-blue-200 transform hover:translate-y-[-5px]"
+  >
     <div class="bg-blue-100 p-2 inline-block rounded-xl mb-4">
       <i data-lucide="utensils" class="w-12 h-12 text-cal-blue"></i>
     </div>
@@ -226,7 +273,9 @@
     </p>
   </div>
 
-  <div class="bg-white/40 backdrop-blur-xl rounded-xl p-6 shadow-md border border-white/70 transition-all duration-300 hover:shadow-lg hover:border-blue-200 transform hover:translate-y-[-5px]">
+  <div
+    class="bg-white/40 backdrop-blur-xl rounded-xl p-6 shadow-md border border-white/70 transition-all duration-300 hover:shadow-lg hover:border-blue-200 transform hover:translate-y-[-5px]"
+  >
     <div class="bg-blue-100 p-2 inline-block rounded-xl mb-4">
       <i data-lucide="dumbbell" class="w-12 h-12 text-cal-blue"></i>
     </div>
@@ -237,7 +286,9 @@
     </p>
   </div>
 
-  <div class="bg-white/40 backdrop-blur-xl rounded-xl p-6 shadow-md border border-white/70 transition-all duration-300 hover:shadow-lg hover:border-blue-200 transform hover:translate-y-[-5px]">
+  <div
+    class="bg-white/40 backdrop-blur-xl rounded-xl p-6 shadow-md border border-white/70 transition-all duration-300 hover:shadow-lg hover:border-blue-200 transform hover:translate-y-[-5px]"
+  >
     <div class="bg-blue-100 p-2 inline-block rounded-xl mb-4">
       <i data-lucide="trending-up" class="w-12 h-12 text-cal-blue"></i>
     </div>
@@ -258,17 +309,18 @@
     -webkit-backdrop-filter: blur(24px);
     backdrop-filter: blur(24px);
   }
-  
+
   /* Ensure blur effect works in Safari */
   @supports not (backdrop-filter: blur(24px)) {
-    .backdrop-blur-2xl, .backdrop-blur-xl {
+    .backdrop-blur-2xl,
+    .backdrop-blur-xl {
       background-color: rgba(255, 255, 255, 0.85) !important;
     }
   }
-  
+
   /* Reference image style input fields */
-  input[type="text"], 
-  input[type="password"], 
+  input[type="text"],
+  input[type="password"],
   input[type="email"] {
     background-color: rgba(240, 245, 255, 0.7) !important;
   }
@@ -308,8 +360,8 @@
       );
       lucide.createIcons();
     });
-    
-  // Registration password toggles  
+
+  // Registration password toggles
   document
     .getElementById("toggle-reg-password")
     ?.addEventListener("click", function () {
@@ -323,7 +375,7 @@
       );
       lucide.createIcons();
     });
-    
+
   document
     .getElementById("toggle-reg-confirm-password")
     ?.addEventListener("click", function () {
@@ -337,111 +389,139 @@
       );
       lucide.createIcons();
     });
-    
+
   // Send verification code via AJAX
   document
     .getElementById("send-verification-btn")
-    ?.addEventListener("click", function() {
-      const emailInput = document.querySelector('#complete-registration-form input[name="email"]');
-      const usernameInput = document.querySelector('#complete-registration-form input[name="username"]');
-      
+    ?.addEventListener("click", function () {
+      const emailInput = document.querySelector(
+        '#complete-registration-form input[name="email"]'
+      );
+      const usernameInput = document.querySelector(
+        '#complete-registration-form input[name="username"]'
+      );
+
       if (!emailInput.value || !usernameInput.value) {
         // Show error notification
-        showNotification('warning', 'Missing Information', 'Please enter both username and email address');
+        showNotification(
+          "warning",
+          "Missing Information",
+          "Please enter both username and email address"
+        );
         return;
       }
-      
+
       // Show loading state
       const originalText = this.textContent;
       this.textContent = "Sending...";
       this.classList.add("opacity-75");
       this.disabled = true;
-      
+
       // Create form data
       const formData = new FormData();
       formData.append("email", emailInput.value);
       formData.append("username", usernameInput.value);
-      formData.append("csrf_token", document.querySelector('#complete-registration-form input[name="csrf_token"]').value);
-      
+      formData.append(
+        "csrf_token",
+        document.querySelector(
+          '#complete-registration-form input[name="csrf_token"]'
+        ).value
+      );
+
       // Send request
-      fetch("{{ url_for('send_verification') }}", {
+      fetch("{{ url_for('main.send_verification') }}", {
         method: "POST",
         body: formData,
         headers: {
-          'X-Requested-With': 'XMLHttpRequest'
-        }
+          "X-Requested-With": "XMLHttpRequest",
+        },
       })
-      .then(response => {
-        // Reset button
-        this.textContent = originalText;
-        this.classList.remove("opacity-75");
-        this.disabled = false;
-        
-        return response.json().then(data => ({
-          status: response.status,
-          body: data
-        }));
-      })
-      .then(result => {
-        if (result.status === 200) {
-          // Success - show message
-          showNotification('success', 'Verification Sent', 'Verification code has been sent to your email address');
-        } else {
-          // Error - show error message
-          showNotification('error', 'Error', result.body.error || 'Error sending verification code. Please try again.');
-        }
-      })
-      .catch(error => {
-        console.error("Error:", error);
-        // Reset button
-        this.textContent = originalText;
-        this.classList.remove("opacity-75");
-        this.disabled = false;
-        showNotification('error', 'Error', 'Error sending verification code. Please try again.');
-      });
+        .then((response) => {
+          // Reset button
+          this.textContent = originalText;
+          this.classList.remove("opacity-75");
+          this.disabled = false;
+
+          return response.json().then((data) => ({
+            status: response.status,
+            body: data,
+          }));
+        })
+        .then((result) => {
+          if (result.status === 200) {
+            // Success - show message
+            showNotification(
+              "success",
+              "Verification Sent",
+              "Verification code has been sent to your email address"
+            );
+          } else {
+            // Error - show error message
+            showNotification(
+              "error",
+              "Error",
+              result.body.error ||
+                "Error sending verification code. Please try again."
+            );
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          // Reset button
+          this.textContent = originalText;
+          this.classList.remove("opacity-75");
+          this.disabled = false;
+          showNotification(
+            "error",
+            "Error",
+            "Error sending verification code. Please try again."
+          );
+        });
     });
 
   // Custom notification function
   function showNotification(type, title, message) {
     // Create modal container if not exists
-    let modal = document.getElementById('notification-modal');
+    let modal = document.getElementById("notification-modal");
     if (!modal) {
-      modal = document.createElement('div');
-      modal.id = 'notification-modal';
-      modal.className = 'fixed inset-0 z-50 flex items-center justify-center hidden';
-      
+      modal = document.createElement("div");
+      modal.id = "notification-modal";
+      modal.className =
+        "fixed inset-0 z-50 flex items-center justify-center hidden";
+
       // Create backdrop
-      const backdrop = document.createElement('div');
-      backdrop.className = 'absolute inset-0 bg-black/30 backdrop-blur-sm';
+      const backdrop = document.createElement("div");
+      backdrop.className = "absolute inset-0 bg-black/30 backdrop-blur-sm";
       backdrop.onclick = () => {
-        modal.classList.add('hidden');
+        modal.classList.add("hidden");
       };
-      
+
       // Create notification content
-      const content = document.createElement('div');
-      content.className = 'bg-white/80 backdrop-blur-md rounded-lg shadow-xl p-6 max-w-md mx-4 transform transition-all duration-300 scale-100';
-      
+      const content = document.createElement("div");
+      content.className =
+        "bg-white/80 backdrop-blur-md rounded-lg shadow-xl p-6 max-w-md mx-4 transform transition-all duration-300 scale-100";
+
       modal.appendChild(backdrop);
       modal.appendChild(content);
       document.body.appendChild(modal);
     }
-    
+
     // Set content based on type
-    const content = modal.querySelector('div:nth-child(2)');
-    let iconClass = 'text-blue-500';
-    let iconName = 'info';
-    
-    if (type === 'success') {
-      iconClass = 'text-green-500';
-      iconName = 'check-circle';
-    } else if (type === 'error') {
-      iconClass = 'text-red-500';
-      iconName = 'alert-circle';
-    } else if (type === 'warning') {
-      iconClass = 'text-amber-500';
-      iconName = 'alert-triangle';
+    const content = modal.querySelector("div:nth-child(2)");
+    let iconClass = "text-blue-500";
+    let iconName = "info";
+
+    if (type === "success") {
+      iconClass = "text-green-500";
+      iconName = "check-circle";
+    } else if (type === "error") {
+      iconClass = "text-red-500";
+      iconName = "alert-circle";
+    } else if (type === "warning") {
+      iconClass = "text-amber-500";
+      iconName = "alert-triangle";
     }
-    
+
     content.innerHTML = `
       <div class="flex items-start space-x-4">
         <div class="${iconClass}">
@@ -458,28 +538,28 @@
         </div>
       </div>
     `;
-    
+
     // Show modal with animation
-    modal.classList.remove('hidden');
+    modal.classList.remove("hidden");
     setTimeout(() => {
-      content.classList.add('scale-100');
-      content.classList.remove('scale-90');
+      content.classList.add("scale-100");
+      content.classList.remove("scale-90");
       lucide.createIcons();
     }, 10);
-    
+
     // Auto-hide after 5 seconds
     setTimeout(() => {
-      if (!modal.classList.contains('hidden')) {
-        modal.classList.add('hidden');
+      if (!modal.classList.contains("hidden")) {
+        modal.classList.add("hidden");
       }
     }, 5000);
   }
 
   document.addEventListener("DOMContentLoaded", function () {
     lucide.createIcons();
-    
+
     // Add subtle animation styles
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.textContent = `
       @keyframes fadeIn {
         from { opacity: 0; transform: translateY(10px); }

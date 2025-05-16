@@ -1,25 +1,24 @@
-from . import app, db, csrf
 from flask import render_template, flash, session, redirect, url_for, request
 import sqlalchemy as sa
 from .models import User, Friendship, DailyMetrics, CalorieBurn, ExerciseType, MealType, CalorieEntry, UserGoal
 from sqlalchemy import and_, or_, desc
 from .auth import login_required
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 import uuid, os
-from flask import current_app
+from flask import current_app, jsonify
 import json
-from flask import jsonify
-from datetime import timedelta
+from . import db, csrf
+from .blueprints import main
 
 
-@app.route('/dashboard')
+@main.route('/dashboard')
 @login_required
 def dashboard():
-    return redirect(url_for('sharing'))
+    return redirect(url_for('main.sharing'))
 
-@app.route('/home')
+@main.route('/home')
 @login_required
 def home():
     user_id = session.get('user_id')
@@ -28,7 +27,7 @@ def home():
     now = datetime.utcnow()
     start_date = now.date() - timedelta(days=6)
 
-    # 初始化每天的数据为 0
+    # Initialize daily data to 0
     labels = []
     calories_in = []
     calories_out = []
@@ -65,7 +64,7 @@ def home():
     )
 
 
-@app.route('/upload')
+@main.route('/upload')
 @login_required
 def upload():
     user_id = session.get('user_id')
@@ -104,7 +103,7 @@ def upload():
                           meal_types=meal_types)
 
 
-@app.route('/visualisation')
+@main.route('/visualisation')
 @login_required
 def visualisation():
     try:
@@ -125,7 +124,7 @@ def visualisation():
                               error=str(e))
 
 
-@app.route('/sharing')
+@main.route('/sharing')
 @login_required
 def sharing():
     try:
@@ -168,7 +167,7 @@ def sharing():
                              pending_requests=[], friends=[])
 
 
-@app.route('/profile', methods=['GET', 'POST'])
+@main.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
     user = User.query.get(session['user_id'])
@@ -215,7 +214,7 @@ def profile():
         except Exception as e:
             db.session.rollback()
             flash(f'Error updating profile: {str(e)}', 'error')
-        return redirect(url_for('profile'))
+        return redirect(url_for('main.profile'))
 
     # --- Calculate dynamic stats ---
     def calc_bmr(weight, height, gender, age=30):
@@ -292,7 +291,7 @@ def profile():
     return render_template('profile.html', title='Profile', current_user=user, bmr=bmr, bmr_change=bmr_change, net_daily_calories=net_daily_calories, net_calories_change=net_calories_change, target_progress=target_progress, initial_weight=goal.initial_weight, target_weight=goal.target_weight, current_weight=goal.current_weight)
 
 
-@app.route('/complete-profile', methods=['GET', 'POST'])
+@main.route('/complete-profile', methods=['GET', 'POST'])
 @login_required
 def complete_profile():
     user = User.query.get(session['user_id'])
@@ -321,13 +320,13 @@ def complete_profile():
         try:
             db.session.commit()
             flash('Profile completed successfully!', 'success')
-            return redirect(url_for('home'))
+            return redirect(url_for('main.home'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error saving profile: {str(e)}', 'error')
     return render_template('complete_profile.html', title='Complete Profile', current_user=user)
 
-@app.route('/autocomplete')
+@main.route('/autocomplete')
 @login_required
 def autocomplete():
     query = request.args.get("query", "").strip().lower()

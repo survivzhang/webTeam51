@@ -5,6 +5,7 @@
 #   python -m tests.run_tests registration
 #   python -m tests.run_tests track_exercise
 #   python -m tests.run_tests view_profile
+#   python -m tests.run_tests sharing
 #
 # Or run all selenium tests using:
 #   python -m tests.run_tests selenium
@@ -29,7 +30,7 @@ import socket
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app import create_app, db
-from app.models import User, ExerciseType
+from app.models import User, ExerciseType, Friendship
 from config import TestingConfig
 from werkzeug.security import generate_password_hash
 
@@ -60,6 +61,17 @@ def add_test_data_to_db():
     )
     db.session.add(user)
     
+    # Create a friend user for testing sharing functionality
+    friend = User(
+        username='frienduser',
+        email='friend@example.com',
+        password_hash=generate_password_hash('Password123'),
+        height=170.0,
+        weight=65.0,
+        is_verified=True
+    )
+    db.session.add(friend)
+    
     # Add exercise type data - add required name field
     exercise_types = [
         ExerciseType(id=1, name='running', display_name='Running'),
@@ -74,6 +86,17 @@ def add_test_data_to_db():
     
     for exercise_type in exercise_types:
         db.session.add(exercise_type)
+    
+    # Commit to get user IDs
+    db.session.commit()
+    
+    # Create friendship between testuser and frienduser
+    friendship = Friendship(
+        user_id=user.id,
+        friend_id=friend.id,
+        status='accepted'
+    )
+    db.session.add(friendship)
     
     db.session.commit()
 
@@ -366,6 +389,91 @@ class TestViewProfile(SeleniumBaseTest):
         self.assertIn("test@example.com", self.driver.page_source)
 
 
+class TestSharing(SeleniumBaseTest):
+    
+    def test_sharing_page(self):
+        """Test the sharing page functionality"""
+        # Login first
+        self.driver.find_element(By.ID, "email").send_keys("test@example.com")
+        self.driver.find_element(By.ID, "password").send_keys("Password123")
+        
+        # Use JavaScript to click login button to avoid element being intercepted
+        login_btn = self.driver.find_element(By.XPATH, "//button[contains(text(), 'Login')]")
+        try:
+            login_btn.click()
+        except Exception as e:
+            print(f"Regular click failed: {str(e)}, trying JavaScript click")
+            self.driver.execute_script("arguments[0].click();", login_btn)
+        
+        # Wait for redirect to home page
+        WebDriverWait(self.driver, 5).until(
+            EC.url_contains("/home")
+        )
+        
+        # Navigate to sharing page
+        try:
+            # First find and click the navbar button to show the menu
+            navbar_toggler = WebDriverWait(self.driver, 5).until(
+                EC.element_to_be_clickable((By.ID, "navbar-toggler"))
+            )
+            navbar_toggler.click()
+            
+            # Find the sharing link and click it
+            sharing_link = WebDriverWait(self.driver, 5).until(
+                EC.element_to_be_clickable((By.XPATH, "//a[contains(@href, '/sharing')]"))
+            )
+            sharing_link.click()
+        except Exception as e:
+            # If menu navigation fails, try direct URL
+            print(f"Menu navigation failed: {str(e)}, trying direct URL")
+            self.driver.get(self.base_url + "sharing")
+        
+        # Wait for sharing page to load
+        WebDriverWait(self.driver, 5).until(
+            EC.presence_of_element_located((By.ID, "friend-management"))
+        )
+        
+        # Test 1: Verify the page loads and contains expected sections
+        self.assertIn("Sharing Hub", self.driver.page_source)
+        self.assertTrue(self.driver.find_element(By.ID, "friend-management").is_displayed())
+        
+        # Test 2: Test tab switching functionality
+        # Click on Friend's Data tab
+        friends_data_tab = self.driver.find_element(By.CSS_SELECTOR, "a[href='#friend-data']")
+        self.driver.execute_script("arguments[0].click();", friends_data_tab)
+        
+        # Verify Friend's Data section is now visible
+        time.sleep(1)  # Allow time for animation
+        friend_data_section = self.driver.find_element(By.ID, "friend-data")
+        self.assertTrue("block" in friend_data_section.get_attribute("style") or 
+                       not "hidden" in friend_data_section.get_attribute("class"))
+        
+        # Test 3: Test Share My Data tab
+        share_data_tab = self.driver.find_element(By.CSS_SELECTOR, "a[href='#sharing-settings']")
+        self.driver.execute_script("arguments[0].click();", share_data_tab)
+        
+        # Verify Share My Data section is now visible
+        time.sleep(1)  # Allow time for animation
+        sharing_settings_section = self.driver.find_element(By.ID, "sharing-settings")
+        self.assertTrue("block" in sharing_settings_section.get_attribute("style") or 
+                       not "hidden" in sharing_settings_section.get_attribute("class"))
+        
+        # Test 4: Test basic form interactions - check a sharing option
+        share_all_checkbox = self.driver.find_element(By.ID, "share-all-data")
+        if not share_all_checkbox.is_selected():
+            share_all_checkbox.click()
+        
+        # Verify checkbox is now selected
+        self.assertTrue(share_all_checkbox.is_selected())
+        
+        # Test 5: Test friend search functionality
+        friend_search = self.driver.find_element(By.ID, "share-friend-search")
+        friend_search.send_keys("friend")
+        
+        # Verify search field contains entered text
+        self.assertEqual("friend", friend_search.get_attribute("value"))
+
+
 # Helper function for running individual tests
 def run_specific_test(test_class):
     suite = unittest.TestLoader().loadTestsFromTestCase(test_class)
@@ -388,9 +496,11 @@ if __name__ == "__main__":
             run_specific_test(TestTrackExercise)
         elif test_name == "view_profile":
             run_specific_test(TestViewProfile)
+        elif test_name == "sharing":
+            run_specific_test(TestSharing)
         else:
             print(f"Unknown test: {test_name}")
-            print("Available tests: login_page, login_success, login_failure, registration, track_exercise, view_profile")
+            print("Available tests: login_page, login_success, login_failure, registration, track_exercise, view_profile, sharing")
     else:
         # Otherwise run all tests
         unittest.main()

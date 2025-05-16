@@ -224,7 +224,9 @@ dataFriendSearch.addEventListener("input", () => {
 
 // Share friend search functionality
 const shareFriendSearch = document.getElementById("share-friend-search");
+const shareFriendSuggestions = document.getElementById("share-friend-suggestions");
 let selectedShareUserId = null;
+let shareFriendSearchTimeout;
 
 shareFriendSearch.addEventListener("input", () => {
   // Clear any previous selection
@@ -236,6 +238,64 @@ shareFriendSearch.addEventListener("input", () => {
   const saveButton = document.getElementById("save-sharing-settings");
   saveButton.setAttribute("disabled", "");
   saveButton.classList.add("opacity-50", "cursor-not-allowed");
+  
+  // Handle suggestions
+  clearTimeout(shareFriendSearchTimeout);
+  const query = shareFriendSearch.value.trim();
+
+  if (query === "") {
+    shareFriendSuggestions.classList.add("hidden");
+    return;
+  }
+
+  shareFriendSearchTimeout = setTimeout(() => {
+    fetch(`/api/users/search?q=${encodeURIComponent(query)}`, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    })
+      .then((response) => response.json())
+      .then((result) => {
+        shareFriendSuggestions.innerHTML = "";
+
+        if (result.users && result.users.length > 0) {
+          result.users.forEach((user) => {
+            const userItem = document.createElement("div");
+            userItem.className = "p-3 hover:bg-gray-100 cursor-pointer";
+            userItem.textContent = user.username;
+            userItem.dataset.userId = user.id;
+
+            userItem.addEventListener("click", () => {
+              shareFriendSearch.value = user.username;
+              selectedShareUserId = user.id;
+              shareFriendSuggestions.classList.add("hidden");
+              
+              // Show selected friend
+              const selectedFriendDiv = document.getElementById("selected-friend");
+              selectedFriendDiv.querySelector("span").textContent = user.username;
+              selectedFriendDiv.classList.remove("hidden");
+
+              // Enable sharing button
+              const saveButton = document.getElementById("save-sharing-settings");
+              saveButton.removeAttribute("disabled");
+              saveButton.classList.remove("opacity-50", "cursor-not-allowed");
+            });
+
+            shareFriendSuggestions.appendChild(userItem);
+          });
+          shareFriendSuggestions.classList.remove("hidden");
+        } else {
+          shareFriendSuggestions.innerHTML = '<div class="p-3 text-gray-500 text-sm">No users found</div>';
+          shareFriendSuggestions.classList.remove("hidden");
+        }
+      })
+      .catch((error) => {
+        console.error("Error searching for friends:", error);
+        shareFriendSuggestions.innerHTML = '<div class="p-3 text-red-500 text-sm">Error searching for friends</div>';
+        shareFriendSuggestions.classList.remove("hidden");
+      });
+  }, 300);
 });
 
 // Select friend button
@@ -245,53 +305,27 @@ document
     const query = shareFriendSearch.value.trim();
 
     if (query === "") {
-      showNotification('warning', 'Missing Information', 'Please enter a search term');
+      showNotification('warning', 'Missing Information', 'Please enter a friend name');
       return;
     }
 
-    console.log(`Selecting sharing friend: keyword=${query}`);
-
-    fetch(`/api/users/search?q=${encodeURIComponent(query)}`, {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-      },
-    })
-      .then((response) => {
-        console.log("Response status:", response.status);
-        console.log("Response headers:", [...response.headers.entries()]);
-
-        // Try to parse JSON response regardless of success or failure
-        return response
-          .json()
-          .then((data) => ({
-            status: response.status,
-            data: data,
-          }))
-          .catch((err) => {
-            // If JSON parsing fails, return error information
-            console.error("JSON parsing error:", err);
-            return {
-              status: response.status,
-              data: {
-                users: [],
-                error: "Server returned a non-JSON format response",
-              },
-            };
-          });
+    if (!selectedShareUserId) {
+      // If no user is selected from dropdown, try to search and select one
+      fetch(`/api/users/search?q=${encodeURIComponent(query)}`, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+        },
       })
-      .then((result) => {
-        console.log("Response data:", result);
-
-        if (result.status >= 200 && result.status < 300) {
-          if (result.data.users && result.data.users.length > 0) {
+        .then((response) => response.json())
+        .then((result) => {
+          if (result.users && result.users.length > 0) {
             // Select the first matching user
-            const user = result.data.users[0];
+            const user = result.users[0];
             selectedShareUserId = user.id;
 
             // Show selected friend
-            const selectedFriendDiv =
-              document.getElementById("selected-friend");
+            const selectedFriendDiv = document.getElementById("selected-friend");
             selectedFriendDiv.querySelector("span").textContent = user.username;
             selectedFriendDiv.classList.remove("hidden");
 
@@ -300,17 +334,22 @@ document
             saveButton.removeAttribute("disabled");
             saveButton.classList.remove("opacity-50", "cursor-not-allowed");
           } else {
-            showNotification('info', 'No Results', 'No matching users found');
+            showNotification('info', 'No Results', 'No matching friends found');
           }
-        } else {
-          showNotification('error', 'Search Failed', result.data.error || `Failed to search users (Code: ${result.status})`);
-        }
-      })
-      .catch((error) => {
-        console.error("Network error while searching for users:", error);
-        showNotification('error', 'Network Error', 'Network error occurred while searching for users, please try again later');
-      });
+        })
+        .catch((error) => {
+          console.error("Error searching for friends:", error);
+          showNotification('error', 'Network Error', 'Error occurred while searching for friends');
+        });
+    }
   });
+
+// Hide friend suggestions when clicking outside
+document.addEventListener("click", (e) => {
+  if (!shareFriendSearch.contains(e.target) && !shareFriendSuggestions.contains(e.target)) {
+    shareFriendSuggestions.classList.add("hidden");
+  }
+});
 
 // Remove selected friend
 document

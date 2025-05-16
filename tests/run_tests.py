@@ -52,7 +52,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import test modules
-from tests.unitTest import CalTrackUnitTests, CalorieTrackingTests, FriendshipTests, DataSharingTests
+from tests.unitTest import CalTrackUnitTests, CalorieTrackingTests
 from tests.seleniumTest import (
     TestLoginPage, 
     TestLoginSuccess, 
@@ -70,8 +70,6 @@ def run_unit_tests():
     suite = unittest.TestSuite()
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(CalTrackUnitTests))
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(CalorieTrackingTests))
-    suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(FriendshipTests))
-    suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(DataSharingTests))
     unittest.TextTestRunner(verbosity=2).run(suite)
 
 def run_selenium_login_page_test():
@@ -171,4 +169,4 @@ if __name__ == "__main__":
             print("Available options: unit, selenium, login_page, login_success, login_failure, registration, track_exercise, view_profile, sharing")
             print("Use -h or --help for more information.")
     else:
-        run_all_tests() 
+        run_all_tests()

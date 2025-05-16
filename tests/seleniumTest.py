@@ -176,7 +176,7 @@ class TestLoginSuccess(SeleniumBaseTest):
         )
         
         # Check we're on the home page
-        self.assertIn("Your Calorie Tracking Overview", self.driver.page_source)
+        self.assertIn("Welcome to CalTrack!", self.driver.page_source)
 
 
 class TestLoginFailure(SeleniumBaseTest):

@@ -23,22 +23,30 @@
   </div>
 </div>
 
+<!-- Store the data passed from the backend in hidden spans to avoid linter issues -->
+<span id="chart-labels" class="hidden">{{ data_labels | tojson }}</span>
+<span id="chart-calories-in" class="hidden">{{ calories_in | tojson }}</span>
+<span id="chart-calories-out" class="hidden">{{ calories_out | tojson }}</span>
+
 <script>
   document.addEventListener("DOMContentLoaded", () => {
-    const DATA_COUNT = 7;
-    const labels = {{ data_labels | tojson }};
+    // Retrieve data from hidden spans
+    const labels = JSON.parse(document.getElementById("chart-labels").textContent);
+    const caloriesIn = JSON.parse(document.getElementById("chart-calories-in").textContent);
+    const caloriesOut = JSON.parse(document.getElementById("chart-calories-out").textContent);
+    
     const data = {
       labels: labels,
       datasets: [
         {
           label: "Calories In",
-          data: {{ calories_in | tojson }},
+          data: caloriesIn,
           borderColor: "#63b3ed",
           backgroundColor: "rgba(99, 179, 237, 0.5)",
         },
         {
           label: "Calories Out",
-          data: {{ calories_out | tojson }},
+          data: caloriesOut,
           borderColor: "#72ee3f",
           backgroundColor: "rgba(153, 244, 115, 0.5)",
         },
@@ -56,7 +64,7 @@
           },
           title: {
             display: true,
-            text: "Your Calorie Tracking Overview",
+            text: "Your Recent Calorie Activity",
           },
         },
         scales: {

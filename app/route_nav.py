@@ -25,33 +25,64 @@ def home():
     user = User.query.get(user_id)
 
     now = datetime.utcnow()
-    start_date = now.date() - timedelta(days=6)
-
-    # Initialize daily data to 0
-    labels = []
-    calories_in = []
-    calories_out = []
-
-    for i in range(7):
-        day = start_date + timedelta(days=i)
-        labels.append(day.strftime('%b %d'))
-
-        # IN
-        in_total = db.session.query(sa.func.sum(CalorieEntry.calories)).filter(
-            CalorieEntry.user_id == user_id,
-            CalorieEntry.date == day
-        ).scalar() or 0
-
-        # OUT
-        out_total = db.session.query(sa.func.sum(CalorieBurn.calories_burned)).filter(
-            CalorieBurn.user_id == user_id,
-            CalorieBurn.date == day
-        ).scalar() or 0
-
-        calories_in.append(round(in_total))
-        calories_out.append(round(out_total))
-
     days_since = (now.date() - user.created_at.date()).days
+
+    # Get unique dates from both calorie entries and burns, ordered by most recent first
+    calorie_dates = db.session.query(CalorieEntry.date).filter(
+        CalorieEntry.user_id == user_id
+    ).distinct().order_by(desc(CalorieEntry.date)).limit(7).all()
+    
+    burn_dates = db.session.query(CalorieBurn.date).filter(
+        CalorieBurn.user_id == user_id
+    ).distinct().order_by(desc(CalorieBurn.date)).limit(7).all()
+    
+    # Combine and get unique dates
+    unique_dates = list(set([date[0] for date in calorie_dates + burn_dates]))
+    unique_dates.sort(reverse=True)  # Most recent first
+    
+    # Take up to 7 most recent dates
+    recent_dates = unique_dates[:7]
+    
+    # If no entries exist, use the current date and 6 days before
+    if not recent_dates:
+        start_date = now.date() - timedelta(days=6)
+        recent_dates = [(start_date + timedelta(days=i)) for i in range(7)]
+        recent_dates.sort(reverse=True)  # Most recent first
+    
+    # Create a dictionary to track entries by date
+    entries_by_date = {}
+    
+    # Process each date to get calories in and out
+    for entry_date in recent_dates:
+        date_str = entry_date.strftime('%b %d')
+        
+        # Get calories in for this date
+        calories_in = db.session.query(sa.func.sum(CalorieEntry.calories)).filter(
+            CalorieEntry.user_id == user_id,
+            CalorieEntry.date == entry_date
+        ).scalar() or 0
+        
+        # Get calories out for this date
+        calories_out = db.session.query(sa.func.sum(CalorieBurn.calories_burned)).filter(
+            CalorieBurn.user_id == user_id,
+            CalorieBurn.date == entry_date
+        ).scalar() or 0
+        
+        entries_by_date[date_str] = {
+            'in': round(calories_in),
+            'out': round(calories_out)
+        }
+    
+    # Sort dates chronologically from oldest to newest (left to right on chart)
+    recent_dates.sort()  # Sort dates in ascending order
+    
+    # Convert dates to formatted strings for chart labels
+    sorted_dates = [date.strftime('%b %d') for date in recent_dates]
+    
+    # Prepare data for the chart
+    labels = sorted_dates
+    calories_in = [entries_by_date[date]['in'] for date in labels]
+    calories_out = [entries_by_date[date]['out'] for date in labels]
 
     return render_template(
         'home.html',

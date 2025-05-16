@@ -228,6 +228,7 @@ Browser-based tests that validate the full functionality through the browser:
 - **Profile Tests**: Tests for viewing and updating user profile information
 - **Sharing Tests**: Tests for the friend management and data sharing interface
 
+
 ### Running the Tests
 
 You can run different test suites with these commands:
@@ -251,6 +252,7 @@ python -m tests.run_tests track_exercise
 python -m tests.run_tests view_profile
 python -m tests.run_tests sharing
 ```
+
 
 ## Project Structure
 

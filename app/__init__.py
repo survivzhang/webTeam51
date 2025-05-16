@@ -49,5 +49,8 @@ from . import routes
 from . import route_nav
 from . import route_api
 
+# Import all models so Alembic can detect them
+from . import models
+
 # Import models here
 from .models import User
